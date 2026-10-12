@@ -8,6 +8,8 @@ import (
 	"github.com/Lord1Egypt/ThothMemory/migrations"
 	"net/url"
 	"os"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -109,6 +111,42 @@ func TestAuditPatchMigrationAtomicity(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	principal := store.Principal{ID: "migration-fixture", Write: true, Projects: []string{"*"}}
+	if err = s.Register(ctx, principal); err != nil {
+		t.Fatal(err)
+	}
+	project := auditProject(t, s, principal, "patch-upgrade")
+	task, err := s.Call(ctx, principal, "create_task", store.Input{ProjectID: project, OperationID: "upgrade-task-create", Title: "SIMULATED preserve revision"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.Call(ctx, principal, "update_task", store.Input{ProjectID: project, OperationID: "upgrade-task-active", TaskID: id(task), ExpectedRevision: 1, State: "active"}); err != nil {
+		t.Fatal(err)
+	}
+	session, err := s.Call(ctx, principal, "start_session", store.Input{ProjectID: project, OperationID: "upgrade-session-start", Agent: "simulated-claude", GitRevision: strings.Repeat("a", 40)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.Call(ctx, principal, "checkpoint_session", store.Input{ProjectID: project, OperationID: "upgrade-session-checkpoint", SessionID: id(session), ExpectedRevision: 1, GitRevision: strings.Repeat("a", 40), Body: "SIMULATED durable Arabic checkpoint إعدادات الاتصال"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.Call(ctx, principal, "attach_evidence", store.Input{ProjectID: project, OperationID: "upgrade-reported-evidence", TaskID: id(task), SourceKind: "test", Outcome: "fail", GitRevision: strings.Repeat("a", 40), Locator: "test://simulated/migration", Body: "SIMULATED failed attempt"}); err != nil {
+		t.Fatal(err)
+	}
+	snapshot := func() map[string]string {
+		out := map[string]string{}
+		for _, table := range []string{"projects", "principals", "agents", "tasks", "sessions", "records", "evidence", "events", "operations"} {
+			var hash string
+			query := "SELECT md5(coalesce(string_agg(v::text,E'\\n' ORDER BY v::text),'')) FROM (SELECT to_jsonb(t)-'search_vector'-'search_text'-'search_simple' AS v FROM " + table + " t) rows"
+			if e := s.Pool.QueryRow(ctx, query).Scan(&hash); e != nil {
+				t.Fatal(e)
+			}
+			out[table] = hash
+		}
+		return out
+	}
+	before := snapshot()
 	if _, err = s.Pool.Exec(ctx, "ALTER TABLE events ADD COLUMN search_simple text"); err != nil {
 		t.Fatal(err)
 	}
@@ -128,5 +166,8 @@ func TestAuditPatchMigrationAtomicity(t *testing.T) {
 	}
 	if err = s.Migrate(ctx); err != nil {
 		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(before, snapshot()) {
+		t.Fatal("patch migration changed IDs, revisions, provenance or history")
 	}
 }
