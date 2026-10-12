@@ -145,3 +145,6 @@ volume and temporary directory. A Windows hosted-runner test compared textual SI
 representations and rejected Windows' valid local Administrator alias (`LA`); both
 expected and actual descriptors are now canonicalized before comparison. This is
 a test portability correction, without weakening the owner-only DACL.
+The Windows image-selection fixture also now clears its intentionally failing
+Docker stub exit code after asserting the expected failure; otherwise GitHub's
+PowerShell wrapper reported failure despite the successful regression assertion.

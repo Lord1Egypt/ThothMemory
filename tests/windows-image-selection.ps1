@@ -17,3 +17,6 @@ try { & (Join-Path $fixture 'setup.ps1') } catch {
 }
 if ($global:SelectedImage -ne 'example.invalid/selected:fixture') { throw "Installer ignored .env image: $global:SelectedImage" }
 Write-Host 'Windows existing .env image selection: PASS (Docker stub; no deployment)'
+# The stub intentionally returns 1 to stop before deployment. The assertion above
+# passed; do not leak that expected failure into the CI PowerShell exit wrapper.
+$global:LASTEXITCODE=0
