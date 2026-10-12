@@ -1,5 +1,11 @@
 name: Docker publication
 on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag with a successful Release validation run
+        required: true
+        type: string
   workflow_run:
     workflows: [Release]
     types: [completed]
@@ -7,22 +13,33 @@ permissions:
   contents: read
 jobs:
   publish:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ inputs.release_tag || github.event.workflow_run.head_sha }}
           fetch-depth: 0
       - name: Validate version tag at checked commit
         id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           tag=$(git describe --tags --exact-match)
           [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          sha=$(git rev-parse HEAD)
+          passed=$(gh run list --workflow release.yml --commit "$sha" --status success --json databaseId --jq length)
+          test "$passed" -gt 0
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Enable multi-platform image storage on the runner
+        uses: docker/setup-docker-action@2bf61fb9464cc67f0cbdeabed6aa0380accd1c70 # v5
+        with:
+          daemon-config: '{"features":{"containerd-snapshotter":true}}'
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
@@ -36,7 +53,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory:candidate-${{ github.event.workflow_run.head_sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory:candidate-${{ steps.version.outputs.sha }}
           sbom: true
           provenance: mode=max
       - name: Extract the candidate's validation client
