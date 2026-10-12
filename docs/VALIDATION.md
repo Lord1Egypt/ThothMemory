@@ -26,6 +26,7 @@ Release workflow results and published digests are linked from DELIVERY.md.
 | Browser dashboard | Real Chromium: unlock, project overview, search, mobile viewport; no JS errors |
 | Backup/restore | SHA-256/archive checks, recovery backup, new database restore and matching event counts |
 | App/PostgreSQL restart | Recorded memory survived; client reconnected |
+| Container architectures | Native amd64 and emulated arm64 passed actual migrations, server startup, handshake, writes and handoff |
 | Runtime privileges | Runtime cannot insert attestations or create schema objects |
 | Go vulnerability scan | Updated Go 1.26.9 and dependencies: no vulnerabilities found |
 

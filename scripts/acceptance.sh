@@ -20,5 +20,6 @@ restored=$(sed -n 's/^Restored into //p' "$backupdir/restore.log")
 count=$(docker compose exec -T db psql -U postgres -d "$restored" -Atc 'SELECT count(*) FROM events')
 test "$count" = "$after"
 # Verify runtime cannot attest evidence or administer the database.
-docker compose exec -T db psql -U postgres -d thoth -Atc "SELECT NOT has_table_privilege('thoth_app','attestations','INSERT') AND NOT has_schema_privilege('thoth_app','public','CREATE')" | rg '^t$'
+privileges=$(docker compose exec -T db psql -U postgres -d thoth -Atc "SELECT NOT has_table_privilege('thoth_app','attestations','INSERT') AND NOT has_schema_privilege('thoth_app','public','CREATE')")
+test "$privileges" = t
 echo 'Deployment, handoff, restart persistence, backup/restore integrity and least privilege: PASS'

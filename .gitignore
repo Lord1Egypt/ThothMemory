@@ -8,3 +8,12 @@ bin/
 *.thoth-backup-*
 coverage.out
 .validation/
+
+# Generated local agent registration and lifecycle files
+.codex/config.toml
+.codex/hooks.json
+.claude/settings*.json
+.mcp.json
+opencode.json
+opencode.jsonc
+.opencode/plugins/thothmemory.js
