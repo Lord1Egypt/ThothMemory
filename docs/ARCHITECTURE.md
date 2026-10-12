@@ -10,6 +10,7 @@ embedding service is required. Stdio is a client-side authenticated bridge to HT
 flowchart TD
   Codex --> Bridge[Stdio bridge or authenticated Streamable HTTP]
   Claude --> Bridge
+  OpenCode --> Bridge
   Other[MCP clients] --> Bridge
   Bridge --> Go[Go application / MCP SDK]
   Browser[Read-only dashboard] --> Go
@@ -49,7 +50,7 @@ Initial credentials explicitly authorize all local projects; restricted credenti
 can limit projects. This is a local shared-owner trust domain, not public SaaS.
 
 ## Acceptance gates
-Real SDK client handshake/discovery/calls; two agent handoff; FTS; stale writes,
+Real SDK client handshake/discovery/calls; three-agent/four-session handoff; FTS; stale writes,
 duplicates and conflicting idempotency; invalid/cross-project evidence; immutable
 history; unauthorized/read-only requests; migrations/restart; backup/restore;
 clean Compose setup; actual client registration/connectivity in isolated homes;
@@ -70,3 +71,11 @@ checkpoint frequently and surface interrupted sessions at resume.
 - https://docs.docker.com/compose/how-tos/use-secrets/
 - https://docs.docker.com/build/ci/github-actions/attestations/
 - https://docs.github.com/en/actions/reference/security/secure-use
+
+## Pre-production patch
+
+The [2026-10-12 audit](audits/PREPRODUCTION-AUDIT.md) adds NFC/simple/literal search,
+bounded checkpoint recovery, explicit Windows file ACLs and owner policy management.
+No new runtime process or dependency version is required. Existing project IDs,
+credentials, evidence and revisions survive the additive migration. OpenCode normal
+V2 runtime remains unverified/unsupported in the tested client; legacy is accepted.

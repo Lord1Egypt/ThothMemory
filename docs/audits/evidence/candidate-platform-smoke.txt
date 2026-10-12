@@ -1,0 +1,4 @@
+linux/amd64: executable ELF architecture verified
+linux/amd64: real server, migration, MCP handshake, tool discovery, writes and handoff PASS
+linux/arm64: executable ELF architecture verified
+linux/arm64: real server, migration, MCP handshake, tool discovery, writes and handoff PASS

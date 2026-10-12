@@ -1,0 +1,36 @@
+{
+  "release": "v0.1.1",
+  "release_source_peeled_annotated_tag": "76176f761f0ade77175d30a5d9add0ffdba5dfd8",
+  "reviewed_main": "88a4a3bf419dce13994b56063f5c925160ee63f2",
+  "index_digest": "sha256:0edd6990289b12099a5c4d44525e9e5bf03fc52934ba09dfb43f293ed4bf9e63",
+  "latest_equals_version": true,
+  "public_anonymous_pull": true,
+  "published_release_not_draft": true,
+  "candidate_draft_guard_rejects_published_version": true,
+  "baseline_workflows": [
+    {
+      "id": 38257888469,
+      "name": "CI",
+      "head_sha": "88a4a3bf419dce13994b56063f5c925160ee63f2",
+      "conclusion": "success",
+      "html_url": "https://github.com/Lord1Egypt/ThothMemory/actions/runs/38257888469"
+    },
+    {
+      "id": 38256353527,
+      "name": "Release",
+      "head_sha": "76176f761f0ade77175d30a5d9add0ffdba5dfd8",
+      "conclusion": "success",
+      "html_url": "https://github.com/Lord1Egypt/ThothMemory/actions/runs/38256353527"
+    },
+    {
+      "id": 38257187961,
+      "name": "Docker publication",
+      "head_sha": "327d9697c097b372aa72e3c937993d7bee1e699a",
+      "conclusion": "success",
+      "html_url": "https://github.com/Lord1Egypt/ThothMemory/actions/runs/38257187961"
+    }
+  ],
+  "published_amd64_binary_matches_release_artifact": true,
+  "published_arm64_binary_architecture_correct": false,
+  "standalone_arm64_release_binary_is_aarch64": true
+}

@@ -1,0 +1,14 @@
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 23 tools
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 23 tools
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 23 tools
+claude-code: session, task retrieval/write, handoff OK
+codex: session, task retrieval/write, handoff OK
+opencode: session, task retrieval/write, handoff OK
+claude-code: session, task retrieval/write, handoff OK
+ISOLATED WINDOWS CMD / POWERSHELL / REPEAT / PRIVATE ACL / MCP / BACKUP / RESTORE: PASS

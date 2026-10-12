@@ -1,0 +1,8 @@
+all modules verified
+?   	github.com/Lord1Egypt/ThothMemory/cmd/thothmemory	[no test files]
+ok  	github.com/Lord1Egypt/ThothMemory/internal/cli	1.115s
+?   	github.com/Lord1Egypt/ThothMemory/internal/gateway	[no test files]
+ok  	github.com/Lord1Egypt/ThothMemory/internal/store	(cached)
+?   	github.com/Lord1Egypt/ThothMemory/internal/web	[no test files]
+?   	github.com/Lord1Egypt/ThothMemory/migrations	[no test files]
+ok  	github.com/Lord1Egypt/ThothMemory/tests	(cached)

@@ -1,0 +1,82 @@
+?   	github.com/Lord1Egypt/ThothMemory/cmd/thothmemory	[no test files]
+=== RUN   TestInitDoesNotRestoreRevokedCredential
+--- PASS: TestInitDoesNotRestoreRevokedCredential (0.01s)
+=== RUN   TestInstructionsRespectIsolatedClientHomes
+Target files:
+  /tmp/TestInstructionsRespectIsolatedClientHomes3005012676/001/codex-custom/AGENTS.md
+  /tmp/TestInstructionsRespectIsolatedClientHomes3005012676/001/claude-custom/CLAUDE.md
+  /tmp/TestInstructionsRespectIsolatedClientHomes3005012676/001/xdg-custom/opencode/AGENTS.md
+--- PASS: TestInstructionsRespectIsolatedClientHomes (0.00s)
+=== RUN   TestPermissionNarrowingAndRevocationSurviveSetup
+Principal: codex; revoke=false; projects=11111111-1111-4111-8111-111111111111; read-only=true
+Target files:
+  .secrets/tokens.json
+Policy saved; tokens unchanged. Reload requires owner action: docker compose up -d --no-deps --force-recreate app. Existing running requests retain their startup policy until then.
+Principal: codex; revoke=true; projects=; read-only=false
+Target files:
+  .secrets/tokens.json
+Policy saved; tokens unchanged. Reload requires owner action: docker compose up -d --no-deps --force-recreate app. Existing running requests retain their startup policy until then.
+--- PASS: TestPermissionNarrowingAndRevocationSurviveSetup (0.01s)
+=== RUN   TestConnectRejectsUnverifiedV2WithoutEditing
+opencode: 1.17.13
+--- PASS: TestConnectRejectsUnverifiedV2WithoutEditing (0.01s)
+=== RUN   TestDatabaseFromComposeConfig
+--- PASS: TestDatabaseFromComposeConfig (0.00s)
+=== RUN   TestOpenCodeSchemaPreservesSettings
+=== RUN   TestOpenCodeSchemaPreservesSettings/legacy
+=== RUN   TestOpenCodeSchemaPreservesSettings/v2
+=== RUN   TestOpenCodeSchemaPreservesSettings/jsonc
+--- PASS: TestOpenCodeSchemaPreservesSettings (0.00s)
+    --- PASS: TestOpenCodeSchemaPreservesSettings/legacy (0.00s)
+    --- PASS: TestOpenCodeSchemaPreservesSettings/v2 (0.00s)
+    --- PASS: TestOpenCodeSchemaPreservesSettings/jsonc (0.00s)
+=== RUN   TestJSONCDoesNotCorruptStrings
+--- PASS: TestJSONCDoesNotCorruptStrings (0.00s)
+=== RUN   TestCodexQuotedAndInlineRegistration
+--- PASS: TestCodexQuotedAndInlineRegistration (0.00s)
+=== RUN   TestCodexExtendsInlineOtherServer
+--- PASS: TestCodexExtendsInlineOtherServer (0.00s)
+=== RUN   TestOpenCodeLifecycleFailureReported
+    lifecycle_audit_test.go:35: OpenCode failed lifecycle callback reports sanitized unsynced warning: PASS
+
+--- PASS: TestOpenCodeLifecycleFailureReported (0.13s)
+PASS
+ok  	github.com/Lord1Egypt/ThothMemory/internal/cli	1.209s
+?   	github.com/Lord1Egypt/ThothMemory/internal/gateway	[no test files]
+=== RUN   TestRepositoryIdentity
+--- PASS: TestRepositoryIdentity (0.00s)
+PASS
+ok  	github.com/Lord1Egypt/ThothMemory/internal/store	1.019s
+?   	github.com/Lord1Egypt/ThothMemory/internal/web	[no test files]
+?   	github.com/Lord1Egypt/ThothMemory/migrations	[no test files]
+=== RUN   TestAuditSearchAndCheckpointRecovery
+--- PASS: TestAuditSearchAndCheckpointRecovery (0.93s)
+=== RUN   TestAuditProjectAssociationsAndExpiredClaims
+--- PASS: TestAuditProjectAssociationsAndExpiredClaims (0.21s)
+=== RUN   TestAuditRealisticFourSessionEngineeringHandoff
+    audit_test.go:197: SIMULATED Claude -> Codex -> OpenCode -> Claude: real authenticated MCP, failed attempt, checkpoint, revision-aware task and handoff recovered
+--- PASS: TestAuditRealisticFourSessionEngineeringHandoff (0.39s)
+=== RUN   TestAuditBriefingPreservesUnicodeBoundary
+--- PASS: TestAuditBriefingPreservesUnicodeBoundary (0.09s)
+=== RUN   TestRealMCPThreeAgentHandoff
+--- PASS: TestRealMCPThreeAgentHandoff (0.39s)
+=== RUN   TestConcurrencyIsolationRollbackAndHistory
+--- PASS: TestConcurrencyIsolationRollbackAndHistory (0.16s)
+=== RUN   TestHTTPBoundary
+=== RUN   TestHTTPBoundary/unauthenticated
+=== RUN   TestHTTPBoundary/host
+=== RUN   TestHTTPBoundary/origin
+=== RUN   TestHTTPBoundary/ready
+--- PASS: TestHTTPBoundary (0.10s)
+    --- PASS: TestHTTPBoundary/unauthenticated (0.00s)
+    --- PASS: TestHTTPBoundary/host (0.00s)
+    --- PASS: TestHTTPBoundary/origin (0.00s)
+    --- PASS: TestHTTPBoundary/ready (0.00s)
+=== RUN   TestClaimOwnershipAndBudgetRollback
+--- PASS: TestClaimOwnershipAndBudgetRollback (0.22s)
+=== RUN   TestUpgradePreservesExistingData
+--- PASS: TestUpgradePreservesExistingData (0.71s)
+=== RUN   TestAuditPatchMigrationAtomicity
+--- PASS: TestAuditPatchMigrationAtomicity (0.63s)
+PASS
+ok  	github.com/Lord1Egypt/ThothMemory/tests	4.871s

@@ -1,0 +1,64 @@
+SET
+PREPARE
+                                                                                                                                                                                                    QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=1501.98..1506.33 rows=1 width=60) (actual time=13.935..14.951 rows=20.00 loops=1)
+   Buffers: shared hit=1267
+   CTE q
+     ->  Result  (cost=0.00..0.52 rows=1 width=96) (actual time=1.077..1.078 rows=1.00 loops=1)
+           Buffers: shared hit=31
+   ->  Result  (cost=1497.12..1514.51 rows=4 width=60) (actual time=13.933..14.946 rows=20.00 loops=1)
+         Buffers: shared hit=1267
+         ->  Sort  (cost=1497.12..1497.13 rows=4 width=697) (actual time=13.800..13.807 rows=20.00 loops=1)
+               Sort Key: ((ts_rank(records.search_vector, q.english) + ts_rank(records.search_simple, q.simple))) DESC, records.created_at DESC, records.id
+               Sort Method: top-N heapsort  Memory: 189kB
+               Buffers: shared hit=1227
+               ->  Nested Loop  (cost=30.80..1497.08 rows=4 width=697) (actual time=1.409..11.184 rows=5000.00 loops=1)
+                     Join Filter: ((q.text = ''::text) OR (records.search_vector @@ q.english) OR (records.search_simple @@ q.simple) OR (strpos(lower(records.search_text), lower(q.text)) > 0))
+                     Rows Removed by Join Filter: 180
+                     Buffers: shared hit=1218
+                     ->  CTE Scan on q  (cost=0.00..0.02 rows=1 width=96) (actual time=1.080..1.082 rows=1.00 loops=1)
+                           Storage: Memory  Maximum Storage: 17kB
+                           Buffers: shared hit=31
+                     ->  Append  (cost=30.80..1496.92 rows=4 width=776) (actual time=0.319..6.890 rows=5180.00 loops=1)
+                           Buffers: shared hit=1187
+                           ->  Bitmap Heap Scan on records  (cost=30.80..779.51 rows=1 width=1367) (actual time=0.319..3.248 rows=2500.00 loops=1)
+                                 Recheck Cond: (project_id = $1)
+                                 Filter: ((($4 = ''::text) OR (agent_id = $4)) AND (($3 = ''::text) OR ((task_id)::text = $3)) AND (($5 = ''::text) OR ((evidence_id)::text = $5)) AND (($8 = ''::text) OR ((id)::text = $8)) AND (($6 = ''::text) OR (created_at >= (NULLIF($6, ''::text))::timestamp with time zone)) AND (($7 = ''::text) OR (created_at <= (NULLIF($7, ''::text))::timestamp with time zone)))
+                                 Heap Blocks: exact=626
+                                 Buffers: shared hit=643
+                                 ->  Bitmap Index Scan on records_project_id_id_key  (cost=0.00..30.80 rows=869 width=0) (actual time=0.232..0.232 rows=2500.00 loops=1)
+                                       Index Cond: (project_id = $1)
+                                       Index Searches: 1
+                                       Buffers: shared hit=17
+                           ->  Result  (cost=33.74..717.37 rows=1 width=1210) (actual time=0.318..3.303 rows=2680.00 loops=1)
+                                 One-Time Filter: (($5 = ''::text) OR NULL::boolean)
+                                 Buffers: shared hit=544
+                                 ->  Bitmap Heap Scan on events  (cost=33.74..717.37 rows=1 width=1210) (actual time=0.316..3.033 rows=2680.00 loops=1)
+                                       Recheck Cond: (project_id = $1)
+                                       Filter: ((($4 = ''::text) OR (agent_id = $4)) AND (($3 = ''::text) OR ((task_id)::text = $3)) AND (($8 = ''::text) OR ((id)::text = $8)) AND (($6 = ''::text) OR (created_at >= (NULLIF($6, ''::text))::timestamp with time zone)) AND (($7 = ''::text) OR (created_at <= (NULLIF($7, ''::text))::timestamp with time zone)))
+                                       Heap Blocks: exact=521
+                                       Buffers: shared hit=544
+                                       ->  Bitmap Index Scan on events_project_time  (cost=0.00..33.73 rows=727 width=0) (actual time=0.246..0.246 rows=2680.00 loops=1)
+                                             Index Cond: (project_id = $1)
+                                             Index Searches: 1
+                                             Buffers: shared hit=23
+                           ->  Result  (cost=0.01..0.01 rows=1 width=264) (actual time=0.017..0.017 rows=0.00 loops=1)
+                                 One-Time Filter: (($4 = ''::text) OR (''::text = $4))
+                                 ->  Seq Scan on evidence  (cost=0.01..0.01 rows=1 width=264) (actual time=0.014..0.015 rows=0.00 loops=1)
+                                       Filter: ((project_id = $1) AND (($3 = ''::text) OR ((task_id)::text = $3)) AND (($5 = ''::text) OR ((id)::text = $5)) AND (($8 = ''::text) OR ((id)::text = $8)) AND (($6 = ''::text) OR (created_at >= (NULLIF($6, ''::text))::timestamp with time zone)) AND (($7 = ''::text) OR (created_at <= (NULLIF($7, ''::text))::timestamp with time zone)))
+                           ->  Result  (cost=0.01..0.01 rows=1 width=264) (actual time=0.006..0.006 rows=0.00 loops=1)
+                                 One-Time Filter: ((($4 = ''::text) OR (''::text = $4)) AND (($5 = ''::text) OR NULL::boolean))
+                                 ->  Seq Scan on tasks  (cost=0.01..0.01 rows=1 width=264) (actual time=0.004..0.005 rows=0.00 loops=1)
+                                       Filter: ((project_id = $1) AND (($3 = ''::text) OR ((id)::text = $3)) AND (($8 = ''::text) OR ((id)::text = $8)) AND (($6 = ''::text) OR (updated_at >= (NULLIF($6, ''::text))::timestamp with time zone)) AND (($7 = ''::text) OR (updated_at <= (NULLIF($7, ''::text))::timestamp with time zone)))
+         SubPlan 2
+           ->  Index Only Scan using records_supersedes_key on records n  (cost=0.28..4.30 rows=1 width=0) (actual time=0.003..0.003 rows=0.00 loops=20)
+                 Index Cond: (supersedes = records.id)
+                 Heap Fetches: 0
+                 Index Searches: 20
+                 Buffers: shared hit=40
+ Planning:
+   Buffers: shared hit=517
+ Planning Time: 8.697 ms
+ Execution Time: 15.343 ms
+(59 rows)

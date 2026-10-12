@@ -1,0 +1,6 @@
+=== RUN   TestOpenCodeLifecycleFailureReported
+    lifecycle_audit_test.go:35: OpenCode failed lifecycle callback reports sanitized unsynced warning: PASS
+
+--- PASS: TestOpenCodeLifecycleFailureReported (0.06s)
+PASS
+ok  	github.com/Lord1Egypt/ThothMemory/internal/cli	0.068s

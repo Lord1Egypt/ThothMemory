@@ -1,0 +1,10 @@
+{
+  "production_configuration_and_secret_hashes_unchanged": true,
+  "original_stopped_container_ids_status_and_finished_at_unchanged": true,
+  "four_unrelated_containers_still_running": true,
+  "normal_profile_hash_exceptions": [
+    ".claude.json"
+  ],
+  "claude_exception_observation": "Nearby Claude preference backups differ in runtime tips/queue counters; no audit project or server registration present. File left untouched.",
+  "temporary_codex_auth_copy_removed": true
+}

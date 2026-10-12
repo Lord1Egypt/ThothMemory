@@ -1,0 +1,42 @@
+Claude actual CLI:
+Checking MCP server health…
+
+thothmemory: <isolated-workspace> bridge --config <isolated-workspace> - ✔ Connected
+
+OpenCode actual legacy CLI with deterministic local fixture:
+
+> build · fixture
+
+⚙ thothmemory_memory_create_project {"name":"Actual OpenCode client fixture","repository":"https://github.com/thothmemory-example/opencode-client"}
+⚙ thothmemory_memory_create_task {"project_id":"28f57b32-b0e7-4eba-9cd0-a3949430045d","operation_id":"26216ed8-b53d-4674-842e-83cbc7f83498","title":"Deterministic client interoperability fixture — no engineering claim"}
+⚙ thothmemory_memory_get_task {"project_id":"28f57b32-b0e7-4eba-9cd0-a3949430045d","task_id":"4147d974-b272-47ed-b186-08a2705b7c3d"}
+Local fixture finished: actual CLI memory write and retrieval completed.
+
+Actual V2 normal run failure:
+Error: Configuration is invalid at <isolated-client-config>
+↳ Unrecognized keys: permissions, providers
+
+Direct plugin callback harness:
+OpenCode system context, idle/error metadata and compaction callback: PASS
+
+Codex genuine exec excerpt:
+t Completed
+codex
+I’ll call the ThothMemory health tool once and report its result.
+mcp: thothmemory/memory_get_health started
+mcp: thothmemory/memory_get_health (completed)
+codex
+Called `memory_get_health` once. Result:
+
+- Database: healthy (`true`)
+- MCP: `ready`
+- Version: `0.1.2-rc.1`
+hook: Stop
+hook: Stop Completed
+tokens used
+3,539
+Called `memory_get_health` once. Result:
+
+- Database: healthy (`true`)
+- MCP: `ready`
+- Version: `0.1.2-rc.1`

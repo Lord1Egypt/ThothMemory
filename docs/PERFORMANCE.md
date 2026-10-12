@@ -1,5 +1,8 @@
 # Measured performance
 
+Historical 0.1.1 report. Current patch audit: [PREPRODUCTION-AUDIT.md](audits/PREPRODUCTION-AUDIT.md).
+
+
 Measured 2026-10-12 on Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz; Linux/WSL2 amd64,
 Docker Desktop Engine 29.8.1, 12 allocated logical CPUs, about 12.7 GiB Docker memory.
 Go 1.26.9 static application and PostgreSQL 18.6. Other containers were running.

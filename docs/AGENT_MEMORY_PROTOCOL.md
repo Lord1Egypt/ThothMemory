@@ -54,7 +54,7 @@ system transformation, compaction, idle/error/compacted event callbacks. It load
 briefing, reminds the agent to checkpoint and records lifecycle metadata. This uses
 local MCP and Git only; it makes no model API request and requires no provider key.
 The experimental OpenCode hook API can change: tested versions and precise validation
-are recorded in [VALIDATION.md](VALIDATION.md). V2 plugin catalogs may use different
+are recorded in [the audit matrix](audits/AGENT-COMPATIBILITY-MATRIX.md). V2 plugin catalogs may use different
 loading mechanisms; do not infer plugin activation from MCP registration.
 
 No integration can guarantee a final callback after SIGKILL, power loss, quota
@@ -66,3 +66,16 @@ Official references: [Codex hooks](https://developers.openai.com/codex/hooks/),
 [Claude hooks](https://code.claude.com/docs/en/hooks),
 [OpenCode rules](https://opencode.ai/docs/rules/),
 [OpenCode plugins](https://opencode.ai/docs/plugins/).
+
+### Audited candidate behavior
+
+Briefings include four recent session observations/checkpoints and label sessions
+without finished_at as incomplete. A missing hook never establishes completion.
+Registration, instructions and hooks honor CODEX_HOME / CLAUDE_CONFIG_DIR /
+XDG_CONFIG_HOME. OpenCode 1.17.13 normal run rejects V2 keys; legacy is the accepted
+path. V2 registration requires explicit `--allow-unverified-v2` and does not verify
+runtime or plugin compatibility. All three integrations remain provider independent;
+only a real agent's intentional writes produce semantic engineering checkpoints.
+
+Failed OpenCode lifecycle calls emit a sanitized client warning (stderr fallback);
+metadata capture still does not constitute a semantic checkpoint or completion.

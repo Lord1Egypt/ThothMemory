@@ -1,5 +1,14 @@
 # ThothMemory 0.1.1 — delivery report
 
+Historical 0.1.1 report. Current patch audit: [PREPRODUCTION-AUDIT.md](audits/PREPRODUCTION-AUDIT.md).
+
+**Audit correction:** published 0.1.1 Docker arm64 contains an x86-64 ELF executable.
+Earlier arm64 smoke output did not verify instruction-set architecture and is not
+compatibility evidence. Standalone arm64 release binary is correct. See the
+[pre-production audit](audits/PREPRODUCTION-AUDIT.md); published tags remain immutable.
+
+
+
 Validated and published 2026-10-12 under the authenticated GitHub account Lord1Egypt
 and independently verified Docker Hub account lord1egypt.
 

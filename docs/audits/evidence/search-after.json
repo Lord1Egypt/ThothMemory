@@ -1,0 +1,96 @@
+{
+  "project": "fbb73e3d-cfad-4058-997f-486dd627c9fe",
+  "cases": [
+    {
+      "case": "English stem",
+      "query": "migrate",
+      "expected_title": "English",
+      "retrieved_expected": true,
+      "matches": 4,
+      "median_ms": 3.228,
+      "p95_ms": 5.537
+    },
+    {
+      "case": "Egyptian Arabic",
+      "query": "اتحلت",
+      "expected_title": "Egyptian Arabic",
+      "retrieved_expected": true,
+      "matches": 2,
+      "median_ms": 2.826,
+      "p95_ms": 3.895
+    },
+    {
+      "case": "Formal Arabic",
+      "query": "تعارض",
+      "expected_title": "Formal Arabic",
+      "retrieved_expected": true,
+      "matches": 2,
+      "median_ms": 2.905,
+      "p95_ms": 3.517
+    },
+    {
+      "case": "Mixed AND",
+      "query": "PostgreSQL اختبار",
+      "expected_title": "Mixed",
+      "retrieved_expected": true,
+      "matches": 2,
+      "median_ms": 2.963,
+      "p95_ms": 4.008
+    },
+    {
+      "case": "Technical partial",
+      "query": "Checkpoint",
+      "expected_title": "Symbols",
+      "retrieved_expected": true,
+      "matches": 4,
+      "median_ms": 3.069,
+      "p95_ms": 4.072
+    },
+    {
+      "case": "Body partial Arabic",
+      "query": "إعداد",
+      "expected_title": "Egyptian Arabic",
+      "retrieved_expected": true,
+      "matches": 2,
+      "median_ms": 2.725,
+      "p95_ms": 3.77
+    },
+    {
+      "case": "File path",
+      "query": "internal/store/operations.go",
+      "expected_title": "Symbols",
+      "retrieved_expected": true,
+      "matches": 2,
+      "median_ms": 3.269,
+      "p95_ms": 4.033
+    },
+    {
+      "case": "Error code",
+      "query": "23505",
+      "expected_title": "Error",
+      "retrieved_expected": true,
+      "matches": 2,
+      "median_ms": 3.02,
+      "p95_ms": 4.333
+    },
+    {
+      "case": "Commit prefix",
+      "query": "9a3f8c1275e4",
+      "expected_title": "Symbols",
+      "retrieved_expected": true,
+      "matches": 16,
+      "median_ms": 5.057,
+      "p95_ms": 6.682
+    },
+    {
+      "case": "Unicode decomposed",
+      "query": "café",
+      "expected_title": "Unicode",
+      "retrieved_expected": true,
+      "matches": 2,
+      "median_ms": 3.249,
+      "p95_ms": 4.22
+    }
+  ],
+  "exact_id_pass": true
+}

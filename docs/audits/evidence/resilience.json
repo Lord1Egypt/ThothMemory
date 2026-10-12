@@ -1,0 +1,7 @@
+{
+  "own_app_and_db_restart_persistence": true,
+  "restart_to_authenticated_mcp_ms": 2292.484,
+  "repeated_linux_setup_credentials_unchanged": true,
+  "repeated_linux_setup_events_unchanged": true,
+  "occupied_unrelated_port_rejected": true
+}

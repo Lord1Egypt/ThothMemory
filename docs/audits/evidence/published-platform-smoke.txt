@@ -1,0 +1,4 @@
+INADEQUATE HISTORICAL PROBE: the following output did not verify ELF architecture.
+Its arm64 PASS was a false compatibility inference on an x86 host; see published-binaries.json.
+linux/amd64: real server, migration, MCP handshake, tool discovery, writes and handoff PASS
+linux/arm64: real server, migration, MCP handshake, tool discovery, writes and handoff PASS
