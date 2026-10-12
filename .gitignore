@@ -1,0 +1,10 @@
+.env
+.secrets/
+client*.json
+bin/
+*.dump
+*.dump.*
+*.sha256
+*.thoth-backup-*
+coverage.out
+.validation/

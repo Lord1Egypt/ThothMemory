@@ -1,0 +1,8 @@
+.git
+.env
+.secrets
+client*.json
+bin
+.validation
+*.dump*
+*.sha256

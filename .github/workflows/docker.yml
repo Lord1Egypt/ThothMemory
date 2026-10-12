@@ -1,0 +1,67 @@
+name: Docker publication
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  publish:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+      - name: Validate version tag at checked commit
+        id: version
+        run: |
+          tag=$(git describe --tags --exact-match)
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build versioned OCI image
+        id: image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory:candidate-${{ github.event.workflow_run.head_sha }}
+          sbom: true
+          provenance: mode=max
+      - name: Smoke-test both architectures using the published digest
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory@${{ steps.image.outputs.digest }}
+        run: ./scripts/smoke-platforms.sh
+      - name: Clean deployment from the published image
+        env:
+          THOTH_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory@${{ steps.image.outputs.digest }}
+        run: |
+          id=$(docker create "$THOTH_IMAGE")
+          mkdir -p bin
+          docker cp "$id:/usr/local/bin/thothmemory" bin/thothmemory
+          docker rm "$id"
+          chmod +x bin/thothmemory
+          ./scripts/acceptance.sh
+      - name: Promote latest and publish the validated draft
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory
+          DIGEST: ${{ steps.image.outputs.digest }}
+          TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          docker buildx imagetools create -t "$IMAGE:${TAG#v}" "$IMAGE@$DIGEST"
+          docker buildx imagetools create -t "$IMAGE:latest" "$IMAGE@$DIGEST"
+          printf '%s\n' "$IMAGE@$DIGEST" > IMAGE_DIGEST.txt
+          gh release upload "$TAG" IMAGE_DIGEST.txt
+          gh release edit "$TAG" --draft=false --latest

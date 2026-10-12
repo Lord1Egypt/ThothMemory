@@ -1,0 +1,60 @@
+name: thothmemory
+services:
+  db:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    environment:
+      POSTGRES_DB: thoth
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_owner_password
+    secrets: [db_owner_password]
+    volumes: [memory:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d thoth']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    logging: {driver: json-file, options: {max-size: "10m", max-file: "3"}}
+    restart: unless-stopped
+    shm_size: 64mb
+    mem_limit: 384m
+    security_opt: [no-new-privileges:true]
+  migrate:
+    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.1.0}
+    logging: {driver: json-file, options: {max-size: "10m", max-file: "3"}}
+    command: [migrate]
+    environment:
+      THOTH_DB_USER: postgres
+      THOTH_DB_NAME: ${THOTH_DATABASE:-thoth}
+      THOTH_DB_PASSWORD_FILE: /run/secrets/db_owner_password
+      THOTH_RUNTIME_PASSWORD_FILE: /run/secrets/db_app_password
+    secrets: [db_owner_password, db_app_password]
+    depends_on:
+      db: {condition: service_healthy}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  app:
+    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.1.0}
+    environment:
+      THOTH_LISTEN: 0.0.0.0:7319
+      THOTH_DB_NAME: ${THOTH_DATABASE:-thoth}
+      THOTH_DB_PASSWORD_FILE: /run/secrets/db_app_password
+      THOTH_TOKENS_FILE: /run/secrets/tokens
+    secrets:
+      - db_app_password
+      - source: tokens
+        target: tokens
+    ports: ['127.0.0.1:${THOTH_PORT:-7319}:7319']
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+    logging: {driver: json-file, options: {max-size: "10m", max-file: "3"}}
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+secrets:
+  db_owner_password: {file: .secrets/db_owner_password}
+  db_app_password: {file: .secrets/db_app_password}
+  tokens: {file: .secrets/tokens.json}
+volumes:
+  memory:

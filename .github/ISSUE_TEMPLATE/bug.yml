@@ -1,0 +1,15 @@
+name: Bug report
+description: Report reproducible behavior without sharing secrets or memories.
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction and expected behavior
+      description: Include version, OS, Docker/Compose and client version. Exclude secrets and private context.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized diagnostics
+      description: Run thothmemory doctor and inspect logs before pasting.

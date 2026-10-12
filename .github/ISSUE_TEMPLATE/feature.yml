@@ -1,0 +1,9 @@
+name: Feature request
+description: Describe a concrete shared-memory workflow.
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Problem and proposed behavior
+    validations:
+      required: true
