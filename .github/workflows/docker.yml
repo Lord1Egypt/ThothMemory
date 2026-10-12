@@ -14,6 +14,9 @@ permissions:
 jobs:
   publish:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    concurrency:
+      group: thothmemory-docker-publication
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -33,6 +36,8 @@ jobs:
           sha=$(git rev-parse HEAD)
           passed=$(gh run list --workflow release.yml --commit "$sha" --status success --json databaseId --jq length)
           test "$passed" -gt 0
+          # A published semantic version is immutable, including on manual retries.
+          test "$(gh release view "$tag" --json isDraft --jq .isDraft)" = true
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
@@ -82,6 +87,7 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ github.token }}
         run: |
+          test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
           docker buildx imagetools create -t "$IMAGE:${TAG#v}" "$IMAGE@$DIGEST"
           docker buildx imagetools create -t "$IMAGE:latest" "$IMAGE@$DIGEST"
           printf '%s\n' "$IMAGE@$DIGEST" > IMAGE_DIGEST.txt

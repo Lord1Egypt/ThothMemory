@@ -49,11 +49,10 @@ func Hooks(ctx context.Context, config string, args []string) error {
 	if e != nil {
 		return e
 	}
-	home, _ := os.UserHomeDir()
 	if agent == "opencode" {
 		base := filepath.Join(dir, ".opencode", "plugins")
 		if scope == "user" {
-			base = filepath.Join(home, ".config", "opencode", "plugins")
+			base = filepath.Join(ClientHome("opencode"), "plugins")
 		}
 		target := filepath.Join(base, "thothmemory.js")
 		if e = confirm([]string{target}, yes); e != nil {
@@ -72,9 +71,9 @@ func Hooks(ctx context.Context, config string, args []string) error {
 		target = filepath.Join(dir, ".codex", "hooks.json")
 	}
 	if scope == "user" {
-		target = filepath.Join(home, "."+agent, "settings.json")
+		target = filepath.Join(ClientHome(agent), "settings.json")
 		if agent == "codex" {
-			target = filepath.Join(home, ".codex", "hooks.json")
+			target = filepath.Join(ClientHome("codex"), "hooks.json")
 		}
 	}
 	m, e := loadObject(target)

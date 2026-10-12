@@ -66,3 +66,67 @@ func TestUpgradePreservesExistingData(t *testing.T) {
 		t.Fatal("checksum corruption accepted")
 	}
 }
+
+// A collision partway through migration 005 must roll back all preceding DDL.
+func TestAuditPatchMigrationAtomicity(t *testing.T) {
+	dsn := os.Getenv("THOTH_TEST_DATABASE_URL")
+	if dsn == "" {
+		t.Skip("database unset; migration rollback NOT executed")
+	}
+	ctx := context.Background()
+	admin, err := store.Open(ctx, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer admin.Pool.Close()
+	schema := fmt.Sprintf("patch_%d", time.Now().UnixNano())
+	if _, err = admin.Pool.Exec(ctx, "CREATE SCHEMA "+schema); err != nil {
+		t.Fatal(err)
+	}
+	defer admin.Pool.Exec(ctx, "DROP SCHEMA "+schema+" CASCADE")
+	u, _ := url.Parse(dsn)
+	q := u.Query()
+	q.Set("search_path", schema)
+	u.RawQuery = q.Encode()
+	s, err := store.Open(ctx, u.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Pool.Close()
+	if _, err = s.Pool.Exec(ctx, "CREATE TABLE schema_migrations(version text PRIMARY KEY,checksum text NOT NULL)"); err != nil {
+		t.Fatal(err)
+	}
+	files, _ := migrations.Files.ReadDir(".")
+	for _, f := range files {
+		if f.Name() >= "005" {
+			continue
+		}
+		b, _ := migrations.Files.ReadFile(f.Name())
+		if _, err = s.Pool.Exec(ctx, string(b)); err != nil {
+			t.Fatal(err)
+		}
+		if _, err = s.Pool.Exec(ctx, "INSERT INTO schema_migrations VALUES($1,$2)", f.Name(), fmt.Sprintf("%x", sha256.Sum256(b))); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err = s.Pool.Exec(ctx, "ALTER TABLE events ADD COLUMN search_simple text"); err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Migrate(ctx); err == nil {
+		t.Fatal("collision did not abort migration")
+	}
+	var leaked bool
+	if err = s.Pool.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=$1 AND table_name='records' AND column_name='search_text')", schema).Scan(&leaked); err != nil || leaked {
+		t.Fatal("partial migration committed", err)
+	}
+	var count int
+	if err = s.Pool.QueryRow(ctx, "SELECT count(*) FROM schema_migrations").Scan(&count); err != nil || count != 4 {
+		t.Fatal("migration history changed", count, err)
+	}
+	if _, err = s.Pool.Exec(ctx, "ALTER TABLE events DROP COLUMN search_simple"); err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Migrate(ctx); err != nil {
+		t.Fatal(err)
+	}
+}

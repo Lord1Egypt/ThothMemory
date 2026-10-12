@@ -15,6 +15,9 @@ func InitConfig() error {
 	if e := os.MkdirAll(".secrets", 0700); e != nil {
 		return e
 	}
+	if e := privatePath(".secrets", true); e != nil {
+		return e
+	}
 	for _, name := range []string{"db_owner_password", "db_app_password", "agent_token", "read_token", "codex_token", "claude_token", "opencode_token"} {
 		p := filepath.Join(".secrets", name)
 		if b, e := os.ReadFile(p); e == nil {
@@ -34,9 +37,11 @@ func InitConfig() error {
 		}
 	}
 	var ps []map[string]any
+	existingPermissions := false
 	path := ".secrets/tokens.json"
 	if b, e := os.ReadFile(path); e == nil {
-		if e = json.Unmarshal(b, &ps); e != nil {
+		existingPermissions = true
+		if e = json.Unmarshal(b, &ps); e != nil || ps == nil {
 			return errors.New("invalid existing tokens.json")
 		}
 	} else if !os.IsNotExist(e) {
@@ -47,6 +52,10 @@ func InitConfig() error {
 		id, file string
 		write    bool
 	}{{"local-agent", "agent_token", true}, {"local-reader", "read_token", false}, {"codex", "codex_token", true}, {"claude", "claude_token", true}, {"opencode", "opencode_token", true}} {
+		// Existing policy is authoritative, including intentionally removed principals.
+		if existingPermissions {
+			continue
+		}
 		found := false
 		for _, p := range ps {
 			if p["id"] == item.id {
@@ -107,6 +116,11 @@ func InitConfig() error {
 func exclusive(path string, b []byte) error {
 	f, e := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if e != nil {
+		return e
+	}
+	if e = privatePath(path, false); e != nil {
+		_ = f.Close()
+		_ = os.Remove(path)
 		return e
 	}
 	_, e = f.Write(b)
