@@ -131,11 +131,15 @@ existing v0.1.1 remains immutable. [Release verification](evidence/publication.j
 volumes, nine networks and six candidate image tags. No audit Compose containers
 remain. Original stopped production containers retained identical status/finish
 timestamps; all four unrelated running workloads remain running. No global prune
-was used. Further container acceptance runs execute on disposable CI runners.
+was used. Nine stopped containers, three volumes and three networks from earlier
+temporary ThothMemory validation installations were also removed after confirming
+their exact project labels and temporary-directory configuration. Total: 36 test
+containers, 12 named test volumes, 12 test networks and six candidate image tags.
+Further container acceptance runs execute on disposable CI runners.
 
 The first PR CI run exposed PostgreSQL startup timing: socket readiness could
 observe the temporary initialization server, then `createdb` raced its shutdown.
-Smoke tests and Compose now wait on TCP readiness from the final server, and the
+Smoke tests, the integration helper and Compose now wait on TCP readiness from the final server, and the
 smoke timeout fails explicitly. Smoke cleanup also removes its database's anonymous
 volume and temporary directory. A Windows hosted-runner test compared textual SID
 representations and rejected Windows' valid local Administrator alias (`LA`); both
