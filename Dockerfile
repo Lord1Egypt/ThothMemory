@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1.7
 FROM --platform=$BUILDPLATFORM golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade AS build
-ARG TARGETOS=linux
-ARG TARGETARCH=amd64
+# Import BuildKit's automatic target values without overriding them with defaults.
+ARG TARGETOS
+ARG TARGETARCH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
