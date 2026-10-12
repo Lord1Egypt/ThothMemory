@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/pelletier/go-toml/v2"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -165,6 +165,14 @@ func object(m map[string]any, k string) (map[string]any, error) {
 func jsonBytes(m any) []byte { b, _ := json.MarshalIndent(m, "", "  "); return append(b, '\n') }
 func OpenCodeSchema(m map[string]any) (string, error) {
 	if mcp, ok := m["mcp"].(map[string]any); ok {
+		if timeout, ok := mcp["timeout"].(map[string]any); ok {
+			if _, ok := timeout["request"]; ok {
+				return "v2", nil
+			}
+			if _, ok := timeout["startup"]; ok {
+				return "v2", nil
+			}
+		}
 		if servers, exists := mcp["servers"]; exists {
 			if _, ok := servers.(map[string]any); !ok {
 				return "", errors.New("invalid V2 mcp.servers")
@@ -206,6 +214,16 @@ func MergeOpenCode(m map[string]any, command []string) (string, error) {
 		entry["disabled"] = false
 	} else {
 		entry["enabled"] = true
+		// A minimal V1 config needs a recognized marker for OpenCode's V2 migration loader.
+		marked := false
+		for _, k := range []string{"logLevel", "server", "command", "reference", "snapshot", "plugin", "autoshare", "disabled_providers", "enabled_providers", "small_model", "mode", "agent", "provider", "permission", "tools", "attachment", "layout"} {
+			if _, ok := m[k]; ok {
+				marked = true
+			}
+		}
+		if !marked {
+			m["logLevel"] = "INFO"
+		}
 	}
 	if e != nil {
 		return "", e
@@ -306,14 +324,14 @@ func Connect(ctx context.Context, config string, args []string) error {
 			if e != nil && !os.IsNotExist(e) {
 				return e
 			}
-			block := "\n[mcp_servers.thothmemory]\ncommand = " + strconv.Quote(exe) + "\nargs = [\"bridge\", \"--config\", " + strconv.Quote(clientConfig) + "]\n"
-			if strings.Contains(string(old), "[mcp_servers.thothmemory]") {
-				if !strings.Contains(string(old), strings.TrimSpace(block)) {
-					return errors.New("existing Codex thothmemory registration requires review")
-				}
+			merged, e := MergeCodex(old, exe, clientConfig)
+			if e != nil {
+				return e
+			}
+			if string(merged) == string(old) {
 				continue
 			}
-			edits = append(edits, edit{path, append(old, []byte(block)...)})
+			edits = append(edits, edit{path, merged})
 		case "claude":
 			path := filepath.Join(dir, ".mcp.json")
 			key := "mcpServers"
@@ -456,4 +474,38 @@ func Instructions(args []string) error {
 		}
 	}
 	return nil
+}
+
+func MergeCodex(old []byte, exe, config string) ([]byte, error) {
+	m := map[string]any{}
+	if e := toml.Unmarshal(old, &m); e != nil {
+		return nil, errors.New("existing Codex TOML is invalid; no files changed")
+	}
+	args := []string{"bridge", "--config", config}
+	if servers, ok := m["mcp_servers"].(map[string]any); ok {
+		if v, exists := servers["thothmemory"]; exists {
+			entry, ok := v.(map[string]any)
+			if !ok || entry["command"] != exe || string(jsonBytes(entry["args"])) != string(jsonBytes(args)) {
+				return nil, errors.New("existing Codex thothmemory registration requires review")
+			}
+			return old, nil
+		}
+	}
+	block, e := toml.Marshal(map[string]any{"mcp_servers": map[string]any{"thothmemory": map[string]any{"command": exe, "args": args}}})
+	if e != nil {
+		return nil, e
+	}
+	out := append(append(append([]byte{}, old...), '\n'), block...)
+	var parsed map[string]any
+	if e = toml.Unmarshal(out, &parsed); e != nil {
+		// TOML inline tables cannot be extended by appending another table. Preserve
+		// their values by re-encoding; save() keeps the exact original as a backup.
+		servers, err := object(m, "mcp_servers")
+		if err != nil {
+			return nil, err
+		}
+		servers["thothmemory"] = map[string]any{"command": exe, "args": args}
+		return toml.Marshal(m)
+	}
+	return out, nil
 }

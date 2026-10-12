@@ -18,6 +18,7 @@ separate and uses the PostgreSQL license. Build tooling is not linked into the r
 | github.com/jackc/puddle/v2 | v2.2.2 | MIT |
 | github.com/kr/pretty | v0.3.0 | MIT |
 | github.com/modelcontextprotocol/go-sdk | v1.8.0 | MIT |
+| github.com/pelletier/go-toml/v2 | v2.4.3 | MIT |
 | github.com/pmezard/go-difflib | v1.0.0 | BSD-2-Clause |
 | github.com/segmentio/asm | v1.1.3 | MIT |
 | github.com/segmentio/encoding | v0.5.4 | MIT |
