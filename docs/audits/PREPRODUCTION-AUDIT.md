@@ -124,3 +124,20 @@ of source tampering. The old smoke output is retained as explicitly inadequate
 evidence. Candidate CI now includes ELF validation and real MCP smoke for both
 architectures. A new authorized release is required to distribute the correction;
 existing v0.1.1 remains immutable. [Release verification](evidence/publication.json).
+
+## Cleanup and remote regression follow-up
+
+[Selective cleanup](evidence/cleanup.json) removed 27 audit containers, nine named
+volumes, nine networks and six candidate image tags. No audit Compose containers
+remain. Original stopped production containers retained identical status/finish
+timestamps; all four unrelated running workloads remain running. No global prune
+was used. Further container acceptance runs execute on disposable CI runners.
+
+The first PR CI run exposed PostgreSQL startup timing: socket readiness could
+observe the temporary initialization server, then `createdb` raced its shutdown.
+Smoke tests and Compose now wait on TCP readiness from the final server, and the
+smoke timeout fails explicitly. Smoke cleanup also removes its database's anonymous
+volume and temporary directory. A Windows hosted-runner test compared textual SID
+representations and rejected Windows' valid local Administrator alias (`LA`); both
+expected and actual descriptors are now canonicalized before comparison. This is
+a test portability correction, without weakening the owner-only DACL.

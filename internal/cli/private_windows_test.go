@@ -45,7 +45,13 @@ func TestPrivateWindowsFilesRejectInheritedReaders(t *testing.T) {
 		}
 		// The protected descriptor must grant only the current local owner.
 		want := "D:P(A;;FA;;;" + user.User.Sid.String() + ")"
-		if strings.Replace(got.String(), "D:PAI", "D:P", 1) != want {
+		// Windows renders well-known SIDs as aliases (e.g. LA for the local
+		// Administrator on hosted runners). Canonicalize both descriptors.
+		expected, err := windows.SecurityDescriptorFromString(want)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Replace(got.String(), "D:PAI", "D:P", 1) != expected.String() {
 			t.Fatalf("unexpected private ACL: %s", got.String())
 		}
 	}
