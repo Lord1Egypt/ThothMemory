@@ -7,6 +7,7 @@
 Local-first shared engineering memory for **Codex CLI · Claude Code · OpenCode**.
 
 [![CI](https://github.com/Lord1Egypt/ThothMemory/actions/workflows/ci.yml/badge.svg)](https://github.com/Lord1Egypt/ThothMemory/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Lord1Egypt/ThothMemory)](https://github.com/Lord1Egypt/ThothMemory/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-gold.svg)](LICENSE)
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-thoth--memory-2496ED?logo=docker)](https://hub.docker.com/r/lord1egypt/thoth-memory)
 
@@ -216,3 +217,9 @@ architecture. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 **License:** [MIT](LICENSE). Dependencies retain their own notices.
 
 **Image:** [lord1egypt/thoth-memory](https://hub.docker.com/r/lord1egypt/thoth-memory).
+
+## Release evidence
+
+See the [delivery report](docs/DELIVERY.md) for published digests, successful workflow
+runs, actual measurements and known limits, and the [executed demonstration](docs/DEMONSTRATION.md)
+for public-image installation and recovery results.
