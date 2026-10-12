@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.1.0
+## 0.1.1
+
+Initial public release. The unpublished 0.1.0 tag was retained after a pre-release
+recovery check found that backup ignored database activation through .env.
+Backup and restore now resolve the active database through Compose itself.
 
 Initial release: local PostgreSQL memory; authenticated MCP; append-only events,
 optimistic task revisions, idempotent operations, scoped credentials, evidence and

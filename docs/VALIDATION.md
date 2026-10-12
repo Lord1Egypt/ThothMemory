@@ -25,6 +25,7 @@ Release workflow results and published digests are linked from DELIVERY.md.
 | Windows native setup | PowerShell 5.1 / Docker Desktop; clean setup, repeat setup, unchanged credential, real MCP demo, backup and restore passed |
 | Browser dashboard | Real Chromium: unlock, project overview, search, mobile viewport; no JS errors |
 | Backup/restore | SHA-256/archive checks, recovery backup, new database restore and matching event counts |
+| Activated restore backup | .env database selection honored; restored-database sentinel present in subsequent archive |
 | App/PostgreSQL restart | Recorded memory survived; client reconnected |
 | Container architectures | Native amd64 and emulated arm64 passed actual migrations, server startup, handshake, writes and handoff |
 | Runtime privileges | Runtime cannot insert attestations or create schema objects |

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +17,31 @@ import (
 
 func compose(ctx context.Context, args ...string) *exec.Cmd {
 	return exec.CommandContext(ctx, "docker", append([]string{"compose"}, args...)...)
+}
+
+// Resolve through Compose itself so .env, shell overrides, and Compose's precedence
+// select exactly the database used by the running application configuration.
+func activeDatabase(ctx context.Context) (string, error) {
+	b, e := compose(ctx, "config", "--format", "json").Output()
+	if e != nil {
+		return "", errors.New("cannot resolve active Compose database configuration")
+	}
+	return databaseFromConfig(b)
+}
+func databaseFromConfig(b []byte) (string, error) {
+	var config struct {
+		Services map[string]struct {
+			Environment map[string]string `json:"environment"`
+		} `json:"services"`
+	}
+	if e := json.Unmarshal(b, &config); e != nil {
+		return "", errors.New("invalid Compose database configuration")
+	}
+	db := config.Services["app"].Environment["THOTH_DB_NAME"]
+	if db == "" {
+		return "", errors.New("active application database is not configured")
+	}
+	return db, nil
 }
 func backup(ctx context.Context, path, db string) error {
 	if _, e := os.Stat(path); !os.IsNotExist(e) {
@@ -60,9 +86,9 @@ func BackupRestore(ctx context.Context, action string, args []string) error {
 		return errors.New(action + " requires an archive path; restore also requires --confirm")
 	}
 	path := args[0]
-	db := os.Getenv("THOTH_DATABASE")
-	if db == "" {
-		db = "thoth"
+	db, err := activeDatabase(ctx)
+	if err != nil {
+		return err
 	}
 	if action == "backup" {
 		return backup(ctx, path, db)

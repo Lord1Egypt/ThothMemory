@@ -19,6 +19,17 @@ backupdir=$(mktemp -d)
 restored=$(sed -n 's/^Restored into //p' "$backupdir/restore.log")
 count=$(docker compose exec -T db psql -U postgres -d "$restored" -Atc 'SELECT count(*) FROM events')
 test "$count" = "$after"
+# Activate the restored database using .env, exactly as documented. A subsequent
+# backup must contain its sentinel rather than silently backing up the old database.
+docker compose exec -T db psql -U postgres -d "$restored" -c 'CREATE TABLE backup_selection_sentinel(id integer)' >/dev/null
+cp .env "$backupdir/original.env"
+trap 'cp "$backupdir/original.env" .env' EXIT
+sed "s/^THOTH_DATABASE=.*/THOTH_DATABASE=$restored/" "$backupdir/original.env" > .env
+./bin/thothmemory backup "$backupdir/activated.dump"
+docker compose exec -T db pg_restore --list < "$backupdir/activated.dump" > "$backupdir/catalog"
+test "$(sed -n '/TABLE public backup_selection_sentinel /p' "$backupdir/catalog" | wc -l)" -eq 1
+cp "$backupdir/original.env" .env
+trap - EXIT
 # Verify runtime cannot attest evidence or administer the database.
 privileges=$(docker compose exec -T db psql -U postgres -d thoth -Atc "SELECT NOT has_table_privilege('thoth_app','attestations','INSERT') AND NOT has_schema_privilege('thoth_app','public','CREATE')")
 test "$privileges" = t

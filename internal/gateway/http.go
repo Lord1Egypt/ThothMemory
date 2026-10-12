@@ -29,7 +29,7 @@ func Handler(s *store.Store, principals []store.Principal) http.Handler {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"status":"ready","version":"0.1.0"}`))
+		_, _ = w.Write([]byte(`{"status":"ready","version":"0.1.1"}`))
 	})
 	mux.HandleFunc("/mcp", func(w http.ResponseWriter, r *http.Request) {
 		i := authenticate(r, principals)

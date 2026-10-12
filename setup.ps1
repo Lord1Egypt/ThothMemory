@@ -6,7 +6,7 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw 'Install Do
 if ($LASTEXITCODE -ne 0) { throw 'Start Docker Desktop and retry.' }
 & docker compose version
 if ($LASTEXITCODE -ne 0) { throw 'Docker Compose is required.' }
-$image = if ($env:THOTH_IMAGE) { $env:THOTH_IMAGE } else { 'lord1egypt/thoth-memory:0.1.0' }
+$image = if ($env:THOTH_IMAGE) { $env:THOTH_IMAGE } else { 'lord1egypt/thoth-memory:0.1.1' }
 if ($Build) { $image = 'thoth-memory:dev'; $env:THOTH_IMAGE = $image; & docker build -t $image . } else { & docker pull $image }
 if ($LASTEXITCODE -ne 0) { throw 'Image retrieval failed.' }
 New-Item -ItemType Directory -Force bin | Out-Null

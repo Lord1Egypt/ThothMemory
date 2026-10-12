@@ -100,7 +100,7 @@ func (s *Store) Call(ctx context.Context, p Principal, tool string, a Input) (an
 	}
 	if tool == "get_health" {
 		e := s.Pool.Ping(ctx)
-		return map[string]any{"database": e == nil, "mcp": "ready", "version": "0.1.0"}, e
+		return map[string]any{"database": e == nil, "mcp": "ready", "version": "0.1.1"}, e
 	}
 	if tool == "list_projects" {
 		return Rows(ctx, s.Pool, "SELECT to_jsonb(p) FROM projects p WHERE $1 OR id::text=ANY($2::text[]) ORDER BY name,id LIMIT $3 OFFSET $4", p.Allows("*"), p.Projects, a.Limit, a.Offset)

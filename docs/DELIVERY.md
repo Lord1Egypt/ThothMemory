@@ -2,7 +2,7 @@
 
 Source: https://github.com/Lord1Egypt/ThothMemory
 Image: https://hub.docker.com/r/lord1egypt/thoth-memory
-Release: https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.1.0
+Release: https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.1.1
 License: MIT; dependency notices in third_party and the image's /licenses.
 
 The release pipeline validates source and deployment, creates draft native artifacts,
