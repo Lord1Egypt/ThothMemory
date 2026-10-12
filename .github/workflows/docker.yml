@@ -39,6 +39,16 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory:candidate-${{ github.event.workflow_run.head_sha }}
           sbom: true
           provenance: mode=max
+      - name: Extract the candidate's validation client
+        env:
+          THOTH_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory@${{ steps.image.outputs.digest }}
+        run: |
+          docker pull "$THOTH_IMAGE"
+          id=$(docker create "$THOTH_IMAGE")
+          mkdir -p bin
+          docker cp "$id:/usr/local/bin/thothmemory" bin/thothmemory
+          docker rm "$id"
+          chmod +x bin/thothmemory
       - name: Smoke-test both architectures using the published digest
         env:
           IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory@${{ steps.image.outputs.digest }}
@@ -47,11 +57,6 @@ jobs:
         env:
           THOTH_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory@${{ steps.image.outputs.digest }}
         run: |
-          id=$(docker create "$THOTH_IMAGE")
-          mkdir -p bin
-          docker cp "$id:/usr/local/bin/thothmemory" bin/thothmemory
-          docker rm "$id"
-          chmod +x bin/thothmemory
           ./scripts/acceptance.sh
       - name: Promote latest and publish the validated draft
         env:
