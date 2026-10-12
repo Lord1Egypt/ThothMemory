@@ -135,10 +135,17 @@ func OpenCodePlugin(exe, config string) string {
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const execute = promisify(execFile);
-export const ThothMemory = async ({ directory }) => {
+export const ThothMemory = async ({ directory, client }) => {
   const run = async phase => {
     try { return (await execute(%s, ['lifecycle','opencode',phase,'--config',%s], { cwd:directory, timeout:20000, maxBuffer:131072 })).stdout; }
-    catch { return 'ThothMemory unavailable or project unregistered. Record unsynced progress honestly.'; }
+    catch {
+      const message = 'ThothMemory unavailable or project unregistered. Record unsynced progress honestly.';
+      try {
+        if (client?.app?.log) await client.app.log({ body: { service:'thothmemory', level:'warn', message } });
+        else console.warn(message);
+      } catch { console.warn(message); }
+      return message;
+    }
   };
   return {
     'experimental.chat.system.transform': async (_input, output) => {
