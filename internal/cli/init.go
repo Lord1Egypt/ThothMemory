@@ -114,13 +114,8 @@ func InitConfig() error {
 	return nil
 }
 func exclusive(path string, b []byte) error {
-	f, e := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	f, e := privateCreate(path)
 	if e != nil {
-		return e
-	}
-	if e = privatePath(path, false); e != nil {
-		_ = f.Close()
-		_ = os.Remove(path)
 		return e
 	}
 	_, e = f.Write(b)

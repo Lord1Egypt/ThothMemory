@@ -67,15 +67,13 @@ func save(path string, b []byte) error {
 	if e = os.MkdirAll(filepath.Dir(path), 0700); e != nil {
 		return e
 	}
-	f, e := os.CreateTemp(filepath.Dir(path), ".thoth-*")
+	f, e := privateCreate(filepath.Join(filepath.Dir(path), ".thoth-"+operation()))
 	if e != nil {
 		return e
 	}
 	tmp := f.Name()
 	defer os.Remove(tmp)
-	if e = privatePath(tmp, false); e == nil {
-		_, e = f.Write(b)
-	}
+	_, e = f.Write(b)
 	closeErr := f.Close()
 	if e != nil {
 		return e

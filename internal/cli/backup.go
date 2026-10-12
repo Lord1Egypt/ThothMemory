@@ -50,7 +50,7 @@ func backup(ctx context.Context, path, db string) error {
 	if e := os.MkdirAll(filepath.Dir(path), 0700); e != nil {
 		return e
 	}
-	f, e := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	f, e := privateCreate(path)
 	if e != nil {
 		return e
 	}
@@ -61,9 +61,6 @@ func backup(ctx context.Context, path, db string) error {
 			_ = os.Remove(path)
 		}
 	}()
-	if e = privatePath(path, false); e != nil {
-		return e
-	}
 	h := sha256.New()
 	cmd := compose(ctx, "exec", "-T", "db", "pg_dump", "-U", "postgres", "-Fc", "--no-owner", "--no-privileges", "-d", db)
 	cmd.Stdout = io.MultiWriter(f, h)
