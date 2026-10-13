@@ -1,5 +1,11 @@
 # Sequential release plan (prepared 2026-10-13)
 
+**Execution update:** owner approved the first two gates; PR #9 merged, main CI
+passed, v0.1.2 was published, and public artifacts were independently verified.
+See [exact release evidence](RELEASE_0.1.2_VERIFIED.md). Production is unchanged.
+The original plan below is retained for subsequent integration/release gates;
+its statements that the first two gates are unexecuted are historical.
+
 State when written: `main` = `88a4a3b` (v0.1.1 plus docs), unprotected, no rulesets. PR #9
 `patch/0.1.2-arm64-fix` (head `ef4867f`), PR #2 `audit/preproduction-0.1.2` (head `ecb8415`), PR #8
 `nextgen/full-and-mini`. All Draft or unmerged. Production containers and volume untouched; verified cold

@@ -1,8 +1,29 @@
 # Verified engineering checkpoint — 2026-10-13
 
-## Release execution checkpoint
+## Current release status: v0.1.2 completed
 
-Current release action is **awaiting explicit owner approval**, as required by
+Owner approved PR #9 merge and conditional v0.1.2 publication. PR #9 merged as
+`c7d2f8dd69a8284058f8e2d69619140ddc2d32e1`; fresh main CI succeeded before
+annotated v0.1.2 was pushed. Release and Docker publication workflows succeeded.
+Public downloads/checksums, both image architectures, immutable child digests,
+provenance/SBOM, and independent public server smoke tests passed. latest equals
+0.1.2; v0.1.1 and historical Git tags unchanged. Production remains stopped and
+untouched. No PR #2/#8 merge or other release was performed.
+
+Public release: https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.1.2
+
+Full image: `lord1egypt/thoth-memory@sha256:c6c7d7e0803afe1e8703f1fd6d8cf80f7427cf2d3447a07316ac378afdafd245`
+
+Complete hashes, workflow URLs, platform limitations, recovery instructions and
+executable verification commands: [RELEASE_0.1.2_VERIFIED.md](RELEASE_0.1.2_VERIFIED.md).
+The approval record below is retained as historical context and superseded by
+this completed result. Next engineering step is PR #2 integration and fresh CI;
+its merge/publication require a new owner approval. PR #8/GitGuardian and final
+Mini device gate remain outstanding.
+
+## Superseded pre-publication checkpoint
+
+At that checkpoint release action was **awaiting explicit owner approval**, as required by
 section 3 of the owner's final integration mission. No approval was inferred.
 Rechecked PR #9 at `ef4867f2d3fc642dd91cee41c77177fcbda2ba94`: Draft/open,
 MERGEABLE/CLEAN; test, Windows and GitGuardian all SUCCESS on its actual head.

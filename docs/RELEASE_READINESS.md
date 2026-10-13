@@ -1,6 +1,8 @@
 # Release readiness (final assessment, 2026-10-13)
 
-**Nothing is merged, tagged, published or deployed.** Production v0.1.1 is untouched: its two
+**v0.1.2 is merged, tagged, published and independently verified**; see
+[publication evidence](RELEASE_0.1.2_VERIFIED.md). No production deployment occurred.
+PR #2 and PR #8 remain unmerged. Production v0.1.1 is untouched: its two
 containers show their original stop time (`2026-10-13T13:37:28Z`), and a **verified cold backup**
 of the volume exists (`~/ThothMemory-production-backup-20261013/`, SHA-256 `14bb3cce…8612bc`,
 restored into a disposable PostgreSQL where every table's row count and content hash matched
@@ -8,7 +10,7 @@ the production fingerprint; 12 projects).
 
 | Branch / PR | Purpose | Head | CI |
 |---|---|---|---|
-| `patch/0.1.2-arm64-fix`, Draft PR #9 → `main` | ARM64 container fix only | `ef4867f2d3fc642dd91cee41c77177fcbda2ba94` | **green**: [run 38441187422](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38441187422) incl. ELF checks, GitGuardian pass |
+| `patch/0.1.2-arm64-fix`, merged PR #9 → `main` | ARM64 container fix only | merge `c7d2f8dd69a8284058f8e2d69619140ddc2d32e1` | **green**: [post-merge CI](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38456555296), [publication](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38457634410); pre-merge GitGuardian pass |
 | `nextgen/full-and-mini`, Draft PR #8 → `audit/preproduction-0.1.2` | Full + Mini + UltraLite + automatic memory | tested engineering revision `c9b852adbcf9820eb8d6a5ecff0c1edefb84846a` | **six CI jobs green; GitGuardian separately failed**: [run 38452588196](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38452588196) |
 | PR #2 `audit/preproduction-0.1.2` | audit hardening | `ecb8415` | green, unmerged |
 
@@ -19,15 +21,15 @@ The current fixture is built at runtime; the history still holds the literal. It
 "mark as false positive" in GitGuardian (owner), or a history rewrite of this unmerged branch,
 which I did not do.
 
-## 1. ARM64 patch release (v0.1.2)
+## 1. ARM64 patch release (v0.1.2): published and verified
 
 Scope 15 files including release notes, no migration, no behavior change ([notes](https://github.com/Lord1Egypt/ThothMemory/blob/ef4867f2d3fc642dd91cee41c77177fcbda2ba94/docs/RELEASE_0.1.2.md)). Reproduced defect:
 published arm64 image holds the amd64 binary (`e_machine` 62, identical SHA-256). Candidate: amd64
 executable `d7b9c3fa…`, e_machine 62; arm64 `573e4c1c…`, e_machine **183**. Tests, govulncheck, real
-server smoke on both platforms pass (arm64 under QEMU locally; CI repeats it). **Ready for owner
-review.** Needs separate merge and tag/publication approvals. The tag starts the Release
-workflow; Docker publication follows automatically, validates the candidate by digest, then
-promotes `latest`. Independently verify public assets and child-manifest ELF types afterward.
+server smoke on both platforms pass (arm64 under QEMU locally; CI repeats it).
+Owner approvals were obtained; post-merge CI, Release and Docker publication succeeded.
+Independent public asset/checksum/ELF/server tests passed. Public index and latest:
+`sha256:c6c7d7e0803afe1e8703f1fd6d8cf80f7427cf2d3447a07316ac378afdafd245`.
 
 ## 2. Full (PostgreSQL), version proposal 0.2.0
 
@@ -82,9 +84,9 @@ hooks unsupported.
 ## 6. Remaining owner decisions
 
 1. Mark the GitGuardian finding a false positive (or approve a history rewrite).
-2. Approve merging in order: #9 (patch), then #2, then #8 as appropriate; renumber PR #2's
+2. PR #9 is complete. Approve later merges separately: #2, then #8 as appropriate; renumber PR #2's
    `0.1.2-rc.1` after #9.
-3. Approve publishing: v0.1.2 patch images; a Mini image to a trusted registry; UltraLite
+3. v0.1.2 publication is complete. Approve later publication separately: a Mini image to a trusted registry; UltraLite
    binaries (consider signing).
 4. Approve a production upgrade only after rehearsing it on the verified backup.
 5. Optional: trust a project in Codex and approve its hooks to confirm Codex hook capture.
