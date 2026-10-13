@@ -17,7 +17,7 @@ bad() { echo "FAIL  $*"; fail=$((fail+1)); }
 ready() {
   local start; start=$(date +%s%N)
   for _ in $(seq 600); do
-    if curl -sf "http://127.0.0.1:$port/healthz" >/dev/null 2>&1; then echo $(( ($(date +%s%N) - start) / 1000000 )); return 0; fi
+    if docker exec "$name" thothmemory-mini healthcheck >/dev/null 2>&1; then echo $(( ($(date +%s%N) - start) / 1000000 )); return 0; fi
     sleep 0.1
   done
   return 1
@@ -32,6 +32,9 @@ base=$(counts) || { bad "owner status unavailable"; exit 1; }
 [[ -n $base ]] || { bad "empty status"; exit 1; }
 ok "ready in ${ms} ms; baseline $base"
 
+vm=$(docker exec "$name" sh -c 'for p in /proc/[0-9]*; do [ "$(cat $p/comm 2>/dev/null)" = mariadbd ] && awk "/^VmSize/{print \$2}" $p/status; done' | head -1)
+# Android kernels with 39-bit user addresses (512 GiB) cannot map MariaDB's default 8 TiB reservation.
+if [[ -n $vm && $vm -lt 16777216 ]]; then ok "mariadbd virtual size $((vm/1024)) MiB (< 16 GiB; a 39-bit address space holds 512 GiB)"; else bad "mariadbd virtual size ${vm:-unknown} kB; would not fit a 39-bit address space"; fi
 docker restart -t 60 "$name" >/dev/null; ms=$(ready) || bad "not ready after restart"
 [[ $(counts) == "$base" ]] && ok "restart: ready in ${ms} ms, data identical" || bad "restart changed data"
 docker logs "$name" 2>&1 | grep -q "MariaDB stopped cleanly" && ok "restart shut MariaDB down cleanly" || bad "no clean MariaDB shutdown logged"
