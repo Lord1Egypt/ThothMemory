@@ -10,7 +10,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o /out/thothmemory ./cmd/thothmemory
 RUN CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o /out/thothmemory.exe ./cmd/thothmemory
 FROM scratch
-LABEL org.opencontainers.image.title="ThothMemory" org.opencontainers.image.description="Local-first shared engineering memory for AI agents" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.2-rc.1"
+LABEL org.opencontainers.image.title="ThothMemory" org.opencontainers.image.description="Local-first shared engineering memory for AI agents" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.2.0-rc.1"
 COPY --from=build /out/thothmemory /usr/local/bin/thothmemory
 COPY --from=build /out/thothmemory.exe /clients/thothmemory.exe
 COPY LICENSE /licenses/ThothMemory.txt
