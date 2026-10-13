@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
+	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/store"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -103,7 +104,7 @@ func TestRealMCPThreeAgentHandoff(t *testing.T) {
 	codex := client(t, srv, p.Token, "codex")
 	open := client(t, srv, p.Token, "opencode")
 	tools, e := claude.ListTools(ctx, nil)
-	if e != nil || len(tools.Tools) != 23 {
+	if e != nil || len(tools.Tools) != len(mcptools.Contracts) {
 		t.Fatalf("discovery: %v, count %d", e, len(tools.Tools))
 	}
 	for _, tool := range tools.Tools {

@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lord1Egypt/ThothMemory/internal/capture"
 	"github.com/Lord1Egypt/ThothMemory/internal/cli"
 	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
@@ -332,4 +333,69 @@ func Call(ctx context.Context, b memory.Backend, p memory.Principal, tool string
 		}
 	}
 	return nil, errors.New("unknown tool " + tool)
+}
+
+// CaptureDir holds capture settings and the retry queue.
+func (h Home) CaptureDir() capture.Dir { return capture.Dir(filepath.Join(h.Dir, "capture")) }
+
+// inproc lets the capture engine reach memory without any transport.
+type inproc struct {
+	b          memory.Backend
+	p          memory.Principal
+	registered bool
+}
+
+func (i *inproc) Call(ctx context.Context, tool string, args map[string]any) (any, error) {
+	// Registering the principal is a write; do it only when one is needed, so
+	// reads (and context at session start) work while another process holds
+	// the write lock.
+	if memory.IsWrite(tool) && !i.registered {
+		if e := i.b.Register(ctx, i.p); e != nil {
+			return nil, errors.New(memory.SafeError(e))
+		}
+		i.registered = true
+	}
+	raw, _ := json.Marshal(args)
+	v, e := Call(ctx, i.b, i.p, tool, raw)
+	if e != nil {
+		return nil, errors.New(memory.SafeError(e))
+	}
+	// Normalize to plain JSON values, as an MCP client would receive them.
+	b, e := json.Marshal(v)
+	if e != nil {
+		return nil, e
+	}
+	var out any
+	return out, json.Unmarshal(b, &out)
+}
+
+// Caller opens the memory as the credential in tokenFile.
+func (h Home) Caller(ctx context.Context, tokenFile string) (capture.Caller, func(), error) {
+	p, e := h.Principal(tokenFile)
+	if e != nil {
+		return nil, nil, e
+	}
+	s, release, e := Open(ctx, h)
+	if e != nil {
+		return nil, nil, e
+	}
+	return &inproc{b: s, p: p}, release, nil
+}
+
+// Lifecycle handles one client lifecycle event for UltraLite: it runs in the
+// hook's own process, opens the SQLite file, writes, and exits.
+func Lifecycle(ctx context.Context, h Home, agent, event, tokenFile string) error {
+	dir, _ := os.Getwd()
+	ev := capture.Event{Agent: agent, Name: event, Dir: dir, Stdin: capture.ReadStdin(os.Stdin)}
+	d := h.CaptureDir()
+	if mode, e := d.Mode(); e == nil && mode == capture.ModeOff {
+		return nil
+	}
+	c, release, e := h.Caller(ctx, tokenFile)
+	if e != nil {
+		fmt.Fprintln(os.Stderr, "ThothMemory unavailable ("+memory.SafeError(e)+"); record unsynced progress honestly and retry later.")
+		return nil
+	}
+	defer release()
+	return capture.Run(ctx, c, d, ev, os.Stdout)
 }

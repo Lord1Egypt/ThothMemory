@@ -58,7 +58,7 @@ type StatusReporter interface {
 	Status(ctx context.Context) (Row, error)
 }
 
-var ContextSections = []string{"project", "tasks", "sessions", "checkpoints", "handoff", "decisions_and_issues", "evidence"}
+var ContextSections = []string{"project", "tasks", "sessions", "checkpoints", "handoff", "decisions_and_issues", "ideas_and_notes", "evidence"}
 
 // Requirement is the evidence a task state demands: passing evidence of one
 // of Kinds, bound to the same task and full revision, owner-attested if set.
@@ -99,6 +99,9 @@ type Tx interface {
 	DependenciesOpen(ctx context.Context, project, task string) (bool, error)
 	UpdateTask(ctx context.Context, project, task string, expected int, state, revision string, claim bool, principal string) (Row, error)
 	RecordIs(ctx context.Context, project, id, kind string) (bool, error)
+	// FindRecord returns the newest record with exactly this kind, title and
+	// body in the project, used to suppress duplicate notes and ideas.
+	FindRecord(ctx context.Context, project, kind, title, body string) (Row, bool, error)
 	InsertRecord(ctx context.Context, r RecordInput) (Row, error)
 	InsertEvidence(ctx context.Context, e EvidenceInput) (Row, error)
 	InsertAttestation(ctx context.Context, project, evidence, principal, statement string) (Row, error)

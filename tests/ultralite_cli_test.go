@@ -10,9 +10,11 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
+	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -73,6 +75,24 @@ func stdioAgent(t *testing.T, home, client string) (*mcp.ClientSession, *exec.Cm
 	return cs, cmd
 }
 
+// gone waits for a process the SDK transport owns to exit, without a second
+// Wait (which would race the transport's own). Unix only; on Windows the
+// doctor command already proves the child exited.
+func gone(t *testing.T, cmd *exec.Cmd) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		return
+	}
+	p, _ := os.FindProcess(cmd.Process.Pid)
+	for i := 0; i < 100; i++ {
+		if p.Signal(syscall.Signal(0)) != nil {
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	t.Fatal("process still running")
+}
+
 func TestUltraLiteNativeCLIAndStdio(t *testing.T) {
 	home := filepath.Join(t.TempDir(), "memory home")
 	if out, e := run(t, home, nil, "init"); e != nil {
@@ -84,7 +104,7 @@ func TestUltraLiteNativeCLIAndStdio(t *testing.T) {
 	head := strings.Repeat("7", 40)
 	claude, claudeCmd := stdioAgent(t, home, "claude")
 	tools, e := claude.ListTools(context.Background(), nil)
-	if e != nil || len(tools.Tools) != 23 {
+	if e != nil || len(tools.Tools) != len(mcptools.Contracts) {
 		t.Fatal("stdio discovery", e)
 	}
 	project := id(invoke(t, claude, "create_project", map[string]any{"name": "UltraLite stdio", "repository": "local:11111111-2222-4333-8444-555555555555"}, false))
@@ -108,11 +128,6 @@ func TestUltraLiteNativeCLIAndStdio(t *testing.T) {
 	}
 	wg.Wait()
 	close(results)
-	defer func() {
-		for _, c := range racers {
-			_ = c.Process.Kill()
-		}
-	}()
 	wins := 0
 	for ok := range results {
 		if ok {
@@ -124,13 +139,7 @@ func TestUltraLiteNativeCLIAndStdio(t *testing.T) {
 	}
 	invoke(t, claude, "finish_session", map[string]any{"project_id": project, "session_id": sess, "operation_id": "ul-finish", "expected_revision": 1, "git_revision": head, "body": "Handoff over stdio."}, false)
 	claude.Close()
-	done := make(chan error, 1)
-	go func() { done <- claudeCmd.Wait() }()
-	select {
-	case <-done:
-	case <-time.After(5 * time.Second):
-		t.Fatal("mcp-stdio process did not exit after the client disconnected")
-	}
+	gone(t, claudeCmd) // the stdio process exits with its client
 	// A different agent process resumes from the durable handoff.
 	codex, _ := stdioAgent(t, home, "codex")
 	h := invoke(t, codex, "get_latest_handoff", map[string]any{"project_id": project}, false).([]any)
@@ -173,14 +182,14 @@ func TestUltraLiteNativeCLIAndStdio(t *testing.T) {
 	}
 	for _, c := range racers {
 		_ = c.Process.Kill()
-		_ = c.Wait()
+		gone(t, c)
 	}
 	busy, busyCmd := stdioAgent(t, home, "codex")
 	if out, e = run(t, home, nil, "restore", backup, "--confirm"); e == nil || !strings.Contains(out, "in use") {
 		t.Fatal("restore while in use:", out)
 	}
 	busy.Close()
-	_ = busyCmd.Wait()
+	gone(t, busyCmd)
 	if out, e = run(t, home, nil, "restore", backup, "--confirm"); e != nil {
 		t.Fatal(out)
 	}

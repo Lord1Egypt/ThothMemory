@@ -110,6 +110,7 @@ func (s *Store) Context(ctx context.Context, project string) (map[string][]memor
 		"checkpoints":          "SELECT " + memory.RecordColumns + " FROM records WHERE project_id=? AND session_id IS NOT NULL AND kind='observation' ORDER BY created_at DESC,id LIMIT 4",
 		"handoff":              "SELECT " + memory.RecordColumns + " FROM records WHERE project_id=? AND kind='handoff' ORDER BY created_at DESC,id LIMIT 1",
 		"decisions_and_issues": "SELECT " + prefixed("r", memory.RecordColumns) + " FROM records r WHERE r.project_id=? AND r.kind IN ('decision','issue') AND NOT EXISTS(SELECT 1 FROM records n WHERE n.supersedes=r.id) ORDER BY r.created_at DESC,r.id LIMIT 8",
+		"ideas_and_notes":      "SELECT " + prefixed("r", memory.RecordColumns) + " FROM records r WHERE r.project_id=? AND r.kind IN ('idea','note') AND NOT EXISTS(SELECT 1 FROM records n WHERE n.supersedes=r.id) ORDER BY r.created_at DESC,r.id LIMIT 8",
 		"evidence":             "SELECT " + prefixed("e", memory.EvidenceColumns) + ",EXISTS(SELECT 1 FROM attestations x WHERE x.evidence_id=e.id) AS owner_attested FROM evidence e WHERE e.project_id=? ORDER BY e.created_at DESC,e.id LIMIT 8",
 	}
 	out := map[string][]memory.Row{}

@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Lord1Egypt/ThothMemory/internal/capture"
 	"github.com/Lord1Egypt/ThothMemory/internal/cli"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/sqlite"
@@ -49,6 +50,11 @@ Manage memory:
   attest PROJECT EVIDENCE OPERATION STATEMENT   owner review of reported evidence
   permissions PRINCIPAL ...     narrow, read-only or revoke a client credential
   instructions [--dir PATH]     add the shared memory protocol to AGENTS.md/CLAUDE.md
+  hooks codex|claude|opencode [--scope project|user] [--dir PATH] [--yes]
+                                install lifecycle hooks: session-start context, session
+                                resume, compaction checkpoints, optional prompt capture
+  capture status|set MODE|pending|retry
+                                MODE is off, metadata (default) or prompts (opt-in)
 
 Data directory: %s (override with --data DIR or THOTH_HOME)
 `
@@ -169,6 +175,25 @@ func run(ctx context.Context, args []string) error {
 				return []string{"mcp-stdio", "--data", dir, "--token-file", filepath.Join(h.Secrets(), client+"_token")}
 			},
 			Verify: func(ctx context.Context) error { return doctor(ctx, h) },
+		})
+	case "lifecycle":
+		if len(rest) < 2 {
+			return errors.New("lifecycle AGENT start|prompt|checkpoint|compacted|idle|error|end --token-file FILE")
+		}
+		token, _ := flag(rest[2:], "--token-file")
+		if token == "" {
+			token = filepath.Join(h.Secrets(), rest[0]+"_token")
+		}
+		return ultralite.Lifecycle(ctx, h, rest[0], rest[1], token)
+	case "hooks":
+		agent := ""
+		if len(rest) > 0 {
+			agent = rest[0]
+		}
+		return cli.HooksWith(ctx, rest, []string{"--data", dir, "--token-file", filepath.Join(h.Secrets(), agent+"_token")}, func(ctx context.Context) error { return doctor(ctx, h) })
+	case "capture":
+		return cli.CaptureCommand(h.CaptureDir(), rest, func() (capture.Caller, func(), error) {
+			return h.Caller(ctx, filepath.Join(h.Secrets(), "agent_token"))
 		})
 	case "permissions":
 		// The policy lives in DIR/.secrets; each new mcp-stdio session reads it.

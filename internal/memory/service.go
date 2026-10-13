@@ -88,6 +88,9 @@ func Call(ctx context.Context, b Backend, p Principal, tool string, a Input) (an
 		if tool == "attest_evidence" && !p.Owner {
 			return nil, ErrForbidden
 		}
+		if e := ScreenSecrets(a.Body, a.Title, a.Locator, a.ArtifactDigest); e != nil {
+			return nil, e
+		}
 		return mutate(ctx, b, p, tool, a, payloadHash(tool, raw))
 	}
 	switch tool {
@@ -280,6 +283,25 @@ func mutate(ctx context.Context, b Backend, p Principal, tool string, a Input, h
 		e = json.Unmarshal(cached, &out)
 		return out, e
 	}
+	if tool == "record_idea" || tool == "record_note" {
+		kind := strings.TrimPrefix(tool, "record_")
+		if a.Title != "" && a.Body != "" && a.Supersedes == "" {
+			if dup, found, e := tx.FindRecord(ctx, a.ProjectID, kind, a.Title, a.Body); e != nil {
+				return nil, e
+			} else if found {
+				// Same words already recorded: return that record, add no history or budget use.
+				dup["duplicate"] = true
+				encoded, e := json.Marshal(dup)
+				if e != nil {
+					return nil, e
+				}
+				if e = tx.InsertOperation(ctx, a.ProjectID, a.OperationID, p.ID, hash, encoded); e != nil {
+					return nil, e
+				}
+				return dup, tx.Commit(ctx)
+			}
+		}
+	}
 	reserved, e := tx.ReserveEvent(ctx, a.ProjectID)
 	if e != nil {
 		return nil, e
@@ -373,18 +395,25 @@ func mutate(ctx context.Context, b Backend, p Principal, tool string, a Input, h
 			}
 		}
 		result, e = tx.UpdateTask(ctx, a.ProjectID, a.TaskID, a.ExpectedRevision, state, a.GitRevision, tool == "claim_task", p.ID)
-	case "record_decision", "record_issue", "record_observation":
+	case "record_decision", "record_issue", "record_observation", "record_idea", "record_note":
 		kind := strings.TrimPrefix(tool, "record_")
 		if a.Title == "" || a.Body == "" {
 			return nil, errors.New("title and body required")
 		}
+		if (kind == "idea" || kind == "note") && a.EvidenceID != "" {
+			return nil, errors.New("ideas and notes cannot cite evidence; record evidence separately")
+		}
 		if a.Supersedes != "" {
-			same, e := tx.RecordIs(ctx, a.ProjectID, a.Supersedes, kind)
-			if e != nil {
-				return nil, e
+			same := false
+			for _, k := range Supersedable(kind) {
+				ok, e := tx.RecordIs(ctx, a.ProjectID, a.Supersedes, k)
+				if e != nil {
+					return nil, e
+				}
+				same = same || ok
 			}
 			if !same {
-				return nil, errors.New("superseded record must be same kind and project")
+				return nil, errors.New("superseded record must be of a replaceable kind in the same project")
 			}
 		}
 		result, e = tx.InsertRecord(ctx, RecordInput{Project: a.ProjectID, Task: a.TaskID, Session: a.SessionID, Kind: kind, Title: a.Title, Body: a.Body, Revision: a.GitRevision, Principal: p.ID, Agent: a.Agent, Evidence: a.EvidenceID, Supersedes: a.Supersedes})

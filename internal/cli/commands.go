@@ -40,6 +40,8 @@ func ClientCommand(ctx context.Context, cmd, config string, rest []string) (bool
 		return true, Instructions(rest)
 	case "lifecycle":
 		return true, Lifecycle(ctx, config, rest)
+	case "capture":
+		return true, Capture(ctx, config, rest)
 	case "demo":
 		return true, Demo(ctx, config)
 	}

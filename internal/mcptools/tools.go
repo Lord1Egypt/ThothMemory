@@ -38,6 +38,8 @@ var Contracts = []Contract{
 	{"record_decision", "Record decision and provenance; use supersedes to replace an older decision.", "project_id operation_id title body", "task_id session_id agent git_revision evidence_id supersedes"},
 	{"record_issue", "Record a blocker or attempted resolution, preserving prior records.", "project_id operation_id title body", "task_id session_id agent git_revision evidence_id supersedes"},
 	{"record_observation", "Record an explicitly unverified discovery or checkpoint.", "project_id operation_id title body", "task_id session_id agent git_revision evidence_id supersedes"},
+	{"record_idea", "Record a PROPOSED idea or suggestion. It is not a decision and not verified; a later decision may supersede it. Repeating the same words returns the existing record.", "project_id operation_id title body", "task_id session_id agent git_revision supersedes"},
+	{"record_note", "Record a short project note, user requirement or preference worth keeping. Never store secrets. Repeating the same words returns the existing record.", "project_id operation_id title body", "task_id session_id agent git_revision supersedes"},
 	{"attach_evidence", "Record reported evidence, not independent verification. Include source, revision and locator.", "project_id operation_id source_kind locator git_revision outcome body", "task_id artifact_digest"},
 	{"record_test_result", "Record a revision-bound reported test result. This never attests evidence.", "project_id operation_id locator git_revision outcome body", "task_id artifact_digest"},
 	{"get_recent_activity", "Paginated append-only event timeline.", "project_id", "task_id limit offset"},

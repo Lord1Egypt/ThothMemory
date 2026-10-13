@@ -156,6 +156,14 @@ func (t tx) RecordIs(ctx context.Context, project, id, kind string) (bool, error
 	return t.exists(ctx, "SELECT 1 FROM records WHERE project_id=? AND id=? AND kind=?", project, id, kind)
 }
 
+func (t tx) FindRecord(ctx context.Context, project, kind, title, body string) (memory.Row, bool, error) {
+	r, e := t.s.rows(ctx, t.Tx, "SELECT "+memory.RecordColumns+" FROM records WHERE project_id=? AND kind=? AND title=? AND body=? ORDER BY created_at DESC,id LIMIT 1", project, kind, title, body)
+	if e != nil || len(r) == 0 {
+		return nil, false, e
+	}
+	return r[0], true, nil
+}
+
 func (t tx) InsertRecord(ctx context.Context, r memory.RecordInput) (memory.Row, error) {
 	id := memory.NewID()
 	if _, e := t.exec(ctx, "INSERT INTO records(id,project_id,task_id,session_id,kind,title,body,git_revision,principal_id,agent_id,evidence_id,supersedes,created_at,search_text) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",

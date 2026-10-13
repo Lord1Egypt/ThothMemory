@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -96,8 +97,14 @@ func Open(ctx context.Context, path string) (*Store, error) {
 
 func (s *Store) Close() error { return s.DB.Close() }
 
-// maxWait bounds how long one operation waits for another writer.
-const maxWait = 10 * time.Second
+// maxWait bounds how long one operation waits for another writer: 10 s, or
+// THOTH_SQLITE_BUSY_MS (milliseconds, 50..60000) for tests and slow disks.
+var maxWait = func() time.Duration {
+	if v, e := strconv.Atoi(os.Getenv("THOTH_SQLITE_BUSY_MS")); e == nil && v >= 50 && v <= 60000 {
+		return time.Duration(v) * time.Millisecond
+	}
+	return 10 * time.Second
+}()
 
 // retry repeats fn while the database is busy, backing off from 5 ms to
 // 100 ms, until it succeeds, fails otherwise, ctx ends or maxWait passes.
@@ -157,7 +164,29 @@ func (s *Store) Migrate(ctx context.Context) error {
 	return retry(ctx, func() error { return s.migrate(ctx) })
 }
 
+// current reports, without taking the write lock, whether every embedded
+// migration is already applied with a matching checksum. A mismatch is not
+// "current": the transactional path below rejects it.
+func (s *Store) current(ctx context.Context) bool {
+	files, e := schema.ReadDir("schema")
+	if e != nil {
+		return false
+	}
+	for _, f := range files {
+		b, _ := schema.ReadFile("schema/" + f.Name())
+		h := sha256.Sum256(b)
+		var sum string
+		if s.DB.QueryRowContext(ctx, "SELECT checksum FROM schema_migrations WHERE version=?", f.Name()).Scan(&sum) != nil || sum != hex.EncodeToString(h[:]) {
+			return false
+		}
+	}
+	return true
+}
+
 func (s *Store) migrate(ctx context.Context) error {
+	if s.current(ctx) {
+		return nil // opening a healthy database must not need the write lock
+	}
 	tx, e := s.DB.BeginTx(ctx, nil)
 	if e != nil {
 		return wrap(e)

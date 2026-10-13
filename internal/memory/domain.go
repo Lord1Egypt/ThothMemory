@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -72,13 +73,13 @@ var (
 	TaskStates   = []string{"planned", "active", "blocked", "implemented", "committed", "tested", "verified", "released"}
 	SourceKinds  = []string{"git_commit", "pull_request", "build", "test", "ci", "log", "human", "inference", "release"}
 	Outcomes     = []string{"pass", "fail", "unknown"}
-	RecordKinds  = []string{"decision", "issue", "observation", "handoff"}
+	RecordKinds  = []string{"decision", "issue", "observation", "handoff", "idea", "note"}
 	ClaimMinutes = 30
 )
 
 func IsWrite(tool string) bool {
 	switch tool {
-	case "create_project", "create_task", "start_session", "checkpoint_session", "claim_task", "release_task", "update_task", "append_event", "record_decision", "record_issue", "record_observation", "attach_evidence", "record_test_result", "finish_session", "attest_evidence":
+	case "create_project", "create_task", "start_session", "checkpoint_session", "claim_task", "release_task", "update_task", "append_event", "record_decision", "record_issue", "record_observation", "record_idea", "record_note", "attach_evidence", "record_test_result", "finish_session", "attest_evidence":
 		return true
 	}
 	return false
@@ -201,6 +202,44 @@ func ValidateCredentials(ps []Principal) error {
 		}
 		seen[p.Token] = true
 		seen["principal:"+p.ID] = true
+	}
+	return nil
+}
+
+// Supersedable lists the record kinds a new record of the given kind may
+// replace. A decision may replace an idea: adopting a proposal resolves it
+// without rewriting it. Nothing else crosses kinds.
+func Supersedable(kind string) []string {
+	if kind == "decision" {
+		return []string{"decision", "idea"}
+	}
+	return []string{kind}
+}
+
+var secretPatterns = []*regexp.Regexp{
+	regexp.MustCompile(`-----BEGIN [A-Z ]*PRIVATE KEY-----`),
+	regexp.MustCompile(`\bAKIA[0-9A-Z]{16}\b`),
+	regexp.MustCompile(`\bgh[pousr]_[A-Za-z0-9]{30,}`),
+	regexp.MustCompile(`\bgithub_pat_[A-Za-z0-9_]{30,}`),
+	regexp.MustCompile(`\bsk-[A-Za-z0-9_-]{20,}`),
+	regexp.MustCompile(`\bxox[baprs]-[A-Za-z0-9-]{10,}`),
+	regexp.MustCompile(`\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}`),
+	regexp.MustCompile(`(?i)\b(password|passwd|pwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|bearer)\b["']?\s*[:=]?\s*["']?[A-Za-z0-9+/_=-]{20,}`),
+}
+
+// ErrSecret is returned when a write looks like it carries a credential.
+var ErrSecret = errors.New("content looks like a credential (private key, token or password) and was not stored; describe it without the value")
+
+// ScreenSecrets refuses text that looks like a credential. It is deliberately
+// conservative: a rejected note can be rewritten, a stored secret cannot be
+// un-stored from append-only history.
+func ScreenSecrets(parts ...string) error {
+	for _, text := range parts {
+		for _, re := range secretPatterns {
+			if re.MatchString(text) {
+				return ErrSecret
+			}
+		}
 	}
 	return nil
 }

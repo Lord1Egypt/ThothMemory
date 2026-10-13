@@ -61,6 +61,7 @@ var contextQueries = map[string]string{
 	"sessions":             "SELECT to_jsonb(s) || jsonb_build_object('status',CASE WHEN finished_at IS NULL THEN 'incomplete' ELSE 'finished' END) FROM sessions s WHERE project_id=$1 ORDER BY started_at DESC,id LIMIT 4",
 	"checkpoints":          "SELECT (to_jsonb(r)" + searchCols + ") FROM records r WHERE project_id=$1 AND session_id IS NOT NULL AND kind='observation' ORDER BY created_at DESC,id LIMIT 4",
 	"handoff":              "SELECT (to_jsonb(r)" + searchCols + ") FROM records r WHERE project_id=$1 AND kind='handoff' ORDER BY created_at DESC,id LIMIT 1",
+	"ideas_and_notes":      "SELECT (to_jsonb(r)" + searchCols + ") FROM records r WHERE project_id=$1 AND kind IN ('idea','note') AND NOT EXISTS(SELECT 1 FROM records n WHERE n.supersedes=r.id) ORDER BY created_at DESC,id LIMIT 8",
 	"decisions_and_issues": "SELECT (to_jsonb(r)" + searchCols + ") FROM records r WHERE project_id=$1 AND kind IN ('decision','issue') AND NOT EXISTS(SELECT 1 FROM records n WHERE n.supersedes=r.id) ORDER BY created_at DESC,id LIMIT 8",
 	"evidence":             "SELECT (to_jsonb(e)" + searchCols + ") || jsonb_build_object('owner_attested',EXISTS(SELECT 1 FROM attestations x WHERE x.evidence_id=e.id)) FROM evidence e WHERE project_id=$1 ORDER BY created_at DESC,id LIMIT 8",
 }
@@ -222,6 +223,14 @@ func (t tx) UpdateTask(ctx context.Context, project, task string, expected int, 
 
 func (t tx) RecordIs(ctx context.Context, project, id, kind string) (bool, error) {
 	return t.exists(ctx, "SELECT EXISTS(SELECT 1 FROM records WHERE project_id=$1 AND id=$2 AND kind=$3)", project, id, kind)
+}
+
+func (t tx) FindRecord(ctx context.Context, project, kind, title, body string) (memory.Row, bool, error) {
+	r, e := Rows(ctx, t.Tx, "SELECT (to_jsonb(r)"+searchCols+") FROM records r WHERE project_id=$1 AND kind=$2 AND title=$3 AND body=$4 ORDER BY created_at DESC,id LIMIT 1", project, kind, title, body)
+	if e != nil || len(r) == 0 {
+		return nil, false, e
+	}
+	return r[0], true, nil
 }
 
 func (t tx) InsertRecord(ctx context.Context, r memory.RecordInput) (memory.Row, error) {

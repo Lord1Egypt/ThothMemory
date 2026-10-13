@@ -82,7 +82,7 @@ def health():
 def handshake():
     init = rpc("initialize", {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "acceptance", "version": "1"}})
     tools = rpc("tools/list", {})["tools"]
-    assert len(tools) == 23 and not any(t["name"] == "memory_attest_evidence" for t in tools), len(tools)
+    assert len(tools) == 25 and not any(t["name"] == "memory_attest_evidence" for t in tools), len(tools)
     return f"{init['serverInfo']['name']} {init['serverInfo']['version']}, {len(tools)} tools"
 
 

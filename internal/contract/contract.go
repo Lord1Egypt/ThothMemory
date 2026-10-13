@@ -142,6 +142,7 @@ func Run(t *testing.T, h Harness) {
 		{"SearchMultilingualAndIdentifiers", search},
 		{"CheckpointRecoveryAndUnicode", recovery},
 		{"DependenciesAndSupersession", dependencies},
+		{"IdeasNotesDuplicatesAndSecrets", ideasAndSecrets},
 		{"DashboardOverviewAndExplorer", dashboard},
 		{"HTTPBoundary", httpBoundary},
 	} {
@@ -646,4 +647,86 @@ func Shapes(t *testing.T, h Harness) map[string]string {
 		out[tool] = Shape(decoded)
 	}
 	return out
+}
+
+func ideasAndSecrets(t *testing.T, h Harness, url string) {
+	ctx := context.Background()
+	project := h.project(t, "ideas")
+	claude := Client(t, url, Agent.Token, "claude-code")
+	// A small idea becomes durable memory, labelled as a proposal.
+	idea := Invoke(t, claude, "record_idea", map[string]any{"project_id": project, "operation_id": "idea-pocketclaw-1", "title": "SQLite edition for PocketClaw", "body": "Maybe we can make a SQLite version for PocketClaw.", "agent": "claude-code"}, false).(map[string]any)
+	if idea["kind"] != "idea" || idea["duplicate"] != nil {
+		t.Fatal("idea not recorded as kind idea", idea)
+	}
+	// The same words again, even under a new operation ID, add no history.
+	events := len(h.call(t, Agent, "get_recent_activity", memory.Input{ProjectID: project, Limit: 100}).([]memory.Row))
+	again := Invoke(t, claude, "record_idea", map[string]any{"project_id": project, "operation_id": "idea-pocketclaw-2", "title": "SQLite edition for PocketClaw", "body": "Maybe we can make a SQLite version for PocketClaw."}, false).(map[string]any)
+	if again["id"] != idea["id"] || again["duplicate"] != true {
+		t.Fatal("duplicate idea created a new record", again)
+	}
+	if after := len(h.call(t, Agent, "get_recent_activity", memory.Input{ProjectID: project, Limit: 100}).([]memory.Row)); after != events {
+		t.Fatal("duplicate idea added history", events, after)
+	}
+	// Replaying the duplicate's operation ID returns the same answer.
+	replay := Invoke(t, claude, "record_idea", map[string]any{"project_id": project, "operation_id": "idea-pocketclaw-2", "title": "SQLite edition for PocketClaw", "body": "Maybe we can make a SQLite version for PocketClaw."}, false).(map[string]any)
+	if replay["id"] != idea["id"] {
+		t.Fatal("duplicate replay differs")
+	}
+	note := Invoke(t, claude, "record_note", map[string]any{"project_id": project, "operation_id": "note-arabic-1", "title": "User preference", "body": "المستخدم يفضل الواجهة العربية في لوحة التحكم"}, false).(map[string]any)
+	// Ideas and notes cannot masquerade as evidence or be verified.
+	Invoke(t, claude, "record_idea", map[string]any{"project_id": project, "operation_id": "idea-evidence-1", "title": "x", "body": "x", "evidence_id": "00000000-0000-4000-8000-000000000000"}, true)
+	// A different agent finds it later by searching, and in the briefing.
+	codex := Client(t, url, Agent.Token, "codex")
+	found := Invoke(t, codex, "search", map[string]any{"project_id": project, "query": "PocketClaw"}, false).([]any)
+	hit := false
+	for _, r := range found {
+		hit = hit || r.(map[string]any)["id"] == idea["id"]
+	}
+	if !hit {
+		t.Fatal("idea not found by search", found)
+	}
+	brief := Invoke(t, codex, "get_project_context", map[string]any{"project_id": project}, false).(map[string]any)
+	if len(brief["ideas_and_notes"].([]any)) != 2 {
+		t.Fatal("briefing omits ideas and notes", brief["ideas_and_notes"])
+	}
+	// Adopting the idea records a decision that supersedes it; the idea is kept.
+	decision := Invoke(t, codex, "record_decision", map[string]any{"project_id": project, "operation_id": "decide-pocketclaw", "title": "Build UltraLite", "body": "Adopt the SQLite idea as UltraLite.", "supersedes": idea["id"]}, false).(map[string]any)
+	if decision["supersedes"] != idea["id"] {
+		t.Fatal("decision did not supersede the idea", decision)
+	}
+	brief = Invoke(t, codex, "get_project_context", map[string]any{"project_id": project}, false).(map[string]any)
+	if len(brief["ideas_and_notes"].([]any)) != 1 || brief["ideas_and_notes"].([]any)[0].(map[string]any)["id"] != note["id"] {
+		t.Fatal("adopted idea still listed as open", brief["ideas_and_notes"])
+	}
+	old := Invoke(t, codex, "search", map[string]any{"project_id": project, "exact_id": idea["id"]}, false).([]any)
+	if len(old) != 1 || old[0].(map[string]any)["superseded"] != true {
+		t.Fatal("adopted idea lost or unflagged", old)
+	}
+	// A note cannot supersede a decision, nor a decision supersede a note.
+	Invoke(t, codex, "record_note", map[string]any{"project_id": project, "operation_id": "note-supersedes-decision", "title": "x", "body": "y", "supersedes": decision["id"]}, true)
+	Invoke(t, codex, "record_decision", map[string]any{"project_id": project, "operation_id": "decision-supersedes-note", "title": "x", "body": "y", "supersedes": note["id"]}, true)
+	// Credential-looking content is refused and leaves nothing behind.
+	for i, secret := range []string{
+		"-----BEGIN OPENSSH PRIVATE KEY-----\nabc",
+		"my key is AKIAIOSFODNN7EXAMPLE ok",
+		"token ghp_" + strings.Repeat("a1B2", 10),
+		"password: hunter2hunter2hunter2hunter2",
+		"Authorization: Bearer " + strings.Repeat("Ab3", 12),
+		"sk-ant-" + strings.Repeat("x9", 20),
+	} {
+		op := fmt.Sprintf("secret-attempt-%d", i)
+		e := h.fails(t, Agent, "record_note", memory.Input{ProjectID: project, OperationID: op, Title: "note", Body: secret})
+		if !errors.Is(e, memory.ErrSecret) {
+			t.Errorf("secret %d not refused: %v", i, e)
+		}
+		if n, _ := h.Admin.CountOperations(ctx, project, op); n != 0 {
+			t.Errorf("secret %d left an operation row", i)
+		}
+	}
+	h.fails(t, Agent, "append_event", memory.Input{ProjectID: project, OperationID: "secret-event-1", Body: "AKIAIOSFODNN7EXAMPLE"})
+	// Ordinary technical prose is not mistaken for a secret.
+	h.call(t, Agent, "record_note", memory.Input{ProjectID: project, OperationID: "benign-note-1", Title: "Config", Body: "token_file points at .secrets/agent_token; the commit is " + strings.Repeat("a", 40) + " and sha " + strings.Repeat("b", 64)})
+	if v := h.call(t, Agent, "explore_records", memory.Input{ProjectID: project, Kind: "idea"}).([]memory.Row); len(v) != 1 {
+		t.Fatal("explore by kind idea", len(v))
+	}
 }

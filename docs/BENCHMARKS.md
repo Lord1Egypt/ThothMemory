@@ -34,9 +34,9 @@ Sustained fill rate: Full 172–189/s, Mini 145–165/s (PRoot 114–138/s), Ult
 | RSS (PSS) | 18.3 + 170.9 MiB (18.3 + 62.1) | 15.5 + 60.1 MiB (75.1 total PSS) | 95.3 MiB (93.5) | **14.4 MiB (14.4)** |
 | CPU over 60 s idle | 90 ms | 30 ms | 10 ms | **0 ms** |
 | Context switches / 60 s | 775 | 202 | 194 | **2** |
-| Listening sockets | 1 (app) | 1 (service) | 1 | **0** |
+| Listening sockets (measured only for UltraLite) | not measured | not measured | not measured | **0** |
 | Executable / image (unpacked; gzip) | 28.7 MB + 304.8 MB PostgreSQL image | 60.3 MB Alpine (23.8 MB); 128.7 MB glibc (62.6 MB) | same | **12.5 MB (5.9 MB gzip)** |
-| Empty database | PostgreSQL cluster ≈ 36 MB at idle | — | — | **0.2 MB** |
+| Empty database | not measured | not measured | not measured | **0.2 MB** |
 | After 10,050 events | 27.0 MB database, 101.7 MB cluster | 154.3 MB data directory (InnoDB system files included) | | **11.7 MB** |
 
 PRoot RSS is for Mini plus the ThothDock engine on this Linux host; Android's
@@ -45,15 +45,14 @@ Mini adds 3 processes beside the engine, UltraLite adds none while idle.
 
 Startup: UltraLite `init` 30 ms and 12 MB; a full stdio session (spawn, MCP
 initialize, tools/list) 9–10 ms; process exit 4 ms after client disconnect, with no
-process or listener left. Mini first start 3 s (Docker) to 2.7 s (PRoT host) with a
-65 MB initial datadir; restart 0.9–1.4 s; SIGKILL recovery 0.3 s. Full compose
+process or listener left. Mini under ThothDock PRoot (host): first start 2.7 s, restart 0.9–1.2 s, SIGKILL recovery 0.3 s. Full compose
 first start 11.3 s. Emulated arm64 Mini first start 19 s (glibc image).
 
 ## Findings worth knowing
 
-- Mini is **not** lighter than Full in memory per request path, but lighter in
-  processes (2 versus 12) and total PSS (75 MiB versus 80 MiB); its advantage is
-  operational (one container, no separate database image), not raw speed.
+- Mini is barely lighter than Full in memory (75 MiB versus 80 MiB total PSS) and
+  not faster; it has far fewer processes (2 versus 12), one container and a
+  smaller image set. Its advantage is operational, not raw speed.
   MariaDB's resident set (60 MiB) is mostly code pages; shrinking the buffer pool
   below 8 MiB saved under 2 MiB.
 - Alpine's musl `mariadbd` for arm64 never finished bootstrap under QEMU in 15+
