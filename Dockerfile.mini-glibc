@@ -20,6 +20,11 @@ RUN set -eu; mkdir -p /slim/bin /slim/lib /slim/share/mariadb; \
     : > /slim/share/mariadb/fill_help_tables.sql; : > /slim/share/mariadb/mariadb_sys_schema.sql
 
 FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+# The pinned base contains libssl3t64 3.0.13-0ubuntu3.15. Trivy reports
+# CVE-2026-84782 (HIGH), fixed by Ubuntu's 3.16 package. Pin the patched
+# package rather than suppressing the finding or upgrading arbitrary packages.
+RUN apt-get update && apt-get install -y --no-install-recommends libssl3t64=3.0.13-0ubuntu3.16 \
+    && rm -rf /var/lib/apt/lists/*
 LABEL org.opencontainers.image.title="ThothMemory Mini (glibc)" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.0"
 COPY --from=mariadb /slim/ /opt/mariadb-slim/
 # Install binaries; add only libraries the base image does not already ship.

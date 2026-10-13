@@ -43,6 +43,15 @@ recheck GitGuardian's actual PR conclusion afterward. Do not waive the check.
 
 ## Remaining executable gates
 
+CI 38462679863 caught a fixable HIGH in the glibc Mini base:
+libssl3t64 3.0.13-0ubuntu3.15, CVE-2026-84782, fixed version 3.0.13-0ubuntu3.16.
+The Dockerfile now pins the patched package; fresh image build/scan is required.
+This finding was not suppressed or waived. Native beginner jobs passed on Linux
+amd64, native Linux ARM64 and Windows amd64, including real Codex CLI registration.
+Historical clone rehearsal preserved all original row fields/counts through 007;
+new generated search columns were excluded from the comparison. Dashboard passed
+12 projects / 84 routes, dark mobile, revision comparison, no JS errors/overflow.
+
 Fresh final branch CI, Mini image security scan and native beginner quickstart
 tests are required after packaging changes. Native model behavior is separate
 from the deterministic installer/MCP tests. Linux/Windows instructions must be
