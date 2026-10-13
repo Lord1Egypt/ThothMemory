@@ -45,7 +45,7 @@ Mini adds 3 processes beside the engine, UltraLite adds none while idle.
 
 Startup: UltraLite `init` 30 ms and 12 MB; a full stdio session (spawn, MCP
 initialize, tools/list) 9–10 ms; process exit 4 ms after client disconnect, with no
-process or listener left. Mini under ThothDock PRoot (host): first start 2.7 s, restart 0.9–1.2 s, SIGKILL recovery 0.3 s. Full compose
+process or listener left. Mini on Docker (host): fresh first start 1.9 s. Mini under ThothDock PRoot (host): first start 2.7 s, restart 0.9–1.2 s, SIGKILL recovery 0.3 s. Full compose
 first start 11.3 s. Emulated arm64 Mini first start 19 s (glibc image).
 
 ## Findings worth knowing
