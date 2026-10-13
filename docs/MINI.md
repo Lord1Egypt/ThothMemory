@@ -37,7 +37,9 @@ It touches only the container `thothmemory-mini` and volume `thothmemory-mini-da
 no `--read-only`, `--memory`, Compose secrets, health checks or `-p` forwarders, none of
 which ThothDock 0.2.1 provides; the service binds loopback itself. Verified end to end
 against ThothDock v0.2.1 with Garden PRoot on a Linux host (install, clients, hooks,
-doctor, backup, restore, uninstall); **not** on a phone.
+doctor, backup, restore, uninstall). The glibc ARM64 image also passed on the Samsung
+SM-A165F with released ThothDock 0.2.1: 11 MCP and 14 lifecycle gates. See
+[the device evidence and limitations](ANDROID_GATE.md).
 
 ## MariaDB settings and why they are safe
 

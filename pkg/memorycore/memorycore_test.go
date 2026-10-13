@@ -63,7 +63,10 @@ func TestEmbeddingContract(t *testing.T) {
 	if _, e = call(reader, "record_idea", fmt.Sprintf(`{"project_id":%q,"operation_id":"embed-idea-2","title":"x","body":"y"}`, project)); e == nil || !strings.Contains(e.Error(), "forbidden") {
 		t.Fatal("read-only session wrote:", e)
 	}
-	if _, e = call(agent, "record_note", fmt.Sprintf(`{"project_id":%q,"operation_id":"embed-secret-1","title":"x","body":"password: abcdefghijklmnopqrstuvwxyz0123"}`, project)); e == nil || strings.Contains(e.Error(), "abcdefgh") {
+	// Build a synthetic credential at runtime; never put credential-shaped literals
+	// in source control. Keep checking both refusal and sanitized error output.
+	secretFixture := strings.Repeat("fixture", 5)
+	if _, e = call(agent, "record_note", fmt.Sprintf(`{"project_id":%q,"operation_id":"embed-secret-1","title":"x","body":%q}`, project, "password: "+secretFixture)); e == nil || strings.Contains(e.Error(), secretFixture) {
 		t.Fatal("secret accepted or echoed:", e)
 	}
 	// Concurrent goroutines, as an agent runtime would call it.

@@ -56,11 +56,17 @@ def op():
 results = []
 
 
+class SkippedGate(Exception):
+    pass
+
+
 def gate(name, fn):
     t0 = time.perf_counter()
     try:
         detail = fn() or ""
         results.append({"gate": name, "result": "PASS", "detail": detail, "ms": round((time.perf_counter() - t0) * 1000, 1)})
+    except SkippedGate as e:
+        results.append({"gate": name, "result": "SKIP", "detail": str(e)})
     except Exception as e:  # report every gate, never stop at the first failure
         results.append({"gate": name, "result": "FAIL", "detail": f"{type(e).__name__}: {e}"})
     r = results[-1]
@@ -166,7 +172,7 @@ def search():
 
 def read_only():
     if not READER:
-        return "skipped: no reader token supplied"
+        raise SkippedGate("no reader token supplied; rerun with --reader-token-file")
     try:
         tool("append_event", {"project_id": ctx["p"], "operation_id": op(), "body": "x"}, token=READER)
         raise AssertionError("reader wrote")
@@ -207,6 +213,7 @@ if args.bench and "p" in ctx:
 if args.json:
     with open(args.json, "w") as f:
         json.dump({"endpoint": args.endpoint, "results": results, "bench": bench, "project": ctx.get("p")}, f, indent=1)
-failed = [r for r in results if r["result"] != "PASS"]
-print(f"{len(results) - len(failed)}/{len(results)} gates passed")
-sys.exit(1 if failed else 0)
+failed = sum(r["result"] == "FAIL" for r in results)
+skipped = sum(r["result"] == "SKIP" for r in results)
+print(f"{len(results) - failed - skipped}/{len(results)} gates passed; {failed} failed; {skipped} skipped")
+sys.exit(1 if failed else 2 if skipped else 0)

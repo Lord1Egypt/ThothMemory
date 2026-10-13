@@ -9,8 +9,9 @@ memory with the same executable's CLI.
 Platforms built without CGO: Windows x64, Linux x64, Linux arm64 (static), macOS
 arm64 and Android arm64 (a PIE executable). Verified so far: Linux x64 (all
 tests), Windows x64 (native init, doctor and ACLs on Windows 11 through WSL
-interop), Linux arm64 under QEMU (init and doctor). CI adds native Linux arm64
-and Windows runners. macOS and Android executables are built but not executed.
+interop), native Linux arm64 and Windows in GitHub CI. Android arm64 init, doctor
+and a 10,050-event workload ran on the Samsung phone; see [device evidence](ANDROID_GATE.md).
+macOS is cross-built only, not executed.
 
 ## Install
 

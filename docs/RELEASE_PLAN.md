@@ -78,13 +78,16 @@ Order: merge #9, then rebase or merge `main` into #2, resolve the 8 files, **run
 
 ## 4. GitGuardian finding on PR #8
 
-GitGuardian's dashboard is login-gated, so I cannot see which of its detectors fired; the check says "1 secret in
-16 commits". I scanned every line added by PR #8 (`ecb8415..HEAD`) instead, **printing nothing but masked
-shapes and counts**:
+Correction from the GitHub check-run API: incident **38171534** is a **Generic Password**
+in `pkg/memorycore/memorycore_test.go:66`, introduced by `1aeacc34`. It is an explicitly
+synthetic secret-rejection fixture, still present at `d391f0b`; the current correction
+constructs it at runtime and retains the rejection/error-sanitization assertions.
+The earlier AWS attribution below was a hypothesis, not the detector result.
+The earlier scan of added lines reported:
 
 - **One AWS-access-key-shaped string**, and it is exactly AWS's published *documentation example* key (verified by
   hash equality, not by reading it). It is in the test fixtures for credential refusal
-  (`internal/contract/contract.go`), added in `e41115e`. This is the most likely trigger.
+  (`internal/contract/contract.go`), added in `e41115e`. This was not the reported trigger.
 - Other candidates are synthetic: a credential-shaped password and token built by repeating a short sequence
   in test code; 64-hex strings that are SHA-256 digests (image digests, binary checksums).
 - **No real secret is involved.** All 2,132 distinct long tokens in the added lines were compared by SHA-256 to
@@ -94,7 +97,7 @@ shapes and counts**:
   **none appears anywhere in any branch's history**. No credential files are tracked.
 - Current code builds these fixtures at runtime, so the tip has no secret-shaped literals. The history still does.
 
-Recommendation: mark the finding a **false positive** (synthetic AWS documentation key) in the GitGuardian
+Recommendation: review incident **38171534** as a **false positive** (synthetic password test fixture) in the GitGuardian
 dashboard. A history rewrite is not needed and I have not done one. Needs you (dashboard access). The same check
 passes on PR #9 (and passed on PR #2) because they contain no such fixtures.
 

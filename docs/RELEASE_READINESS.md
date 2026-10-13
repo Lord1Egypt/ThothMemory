@@ -12,15 +12,16 @@ the production fingerprint; 12 projects).
 | `nextgen/full-and-mini`, Draft PR #8 → `audit/preproduction-0.1.2` | Full + Mini + UltraLite + automatic memory | this branch tip | **green except GitGuardian**: [run 38440745131](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38440745131) |
 | PR #2 `audit/preproduction-0.1.2` | audit hardening | `ecb8415` | green, unmerged |
 
-GitGuardian reports 1 secret in PR #8's history: an earlier commit of test fixtures that
-deliberately contain credential-shaped strings (the AWS documentation example key and similar).
-The latest commit builds them at runtime; the history still holds the literals. It needs
+GitGuardian reports one synthetic password fixture introduced in commit `1aeacc34`,
+`pkg/memorycore/memorycore_test.go:66` (incident **38171534**). The check-run API
+identifies it as Generic Password, not the AWS example previously suspected.
+The current fixture is built at runtime; the history still holds the literal. It needs
 "mark as false positive" in GitGuardian (owner), or a history rewrite of this unmerged branch,
 which I did not do.
 
 ## 1. ARM64 patch release (v0.1.2)
 
-Scope 14 files, no migration, no behavior change ([notes](RELEASE_0.1.2.md)). Reproduced defect:
+Scope 15 files including release notes, no migration, no behavior change ([notes](https://github.com/Lord1Egypt/ThothMemory/blob/ef4867f2d3fc642dd91cee41c77177fcbda2ba94/docs/RELEASE_0.1.2.md)). Reproduced defect:
 published arm64 image holds the amd64 binary (`e_machine` 62, identical SHA-256). Candidate: amd64
 executable `d7b9c3fa…`, e_machine 62; arm64 `573e4c1c…`, e_machine **183**. Tests, govulncheck, real
 server smoke on both platforms pass (arm64 under QEMU locally; CI repeats it). **Ready for owner
@@ -33,8 +34,10 @@ Revision: PR #8 tip. Platforms: linux amd64 (arm64 after the 0.1.2 fix). Evidenc
 race on PostgreSQL 18; migrations 001→007 applied to a clone of the production volume with history
 fingerprints identical through 005 and to a live Compose stack for 006/007; contract and API shape
 parity; dashboard screenshots (desktop, phone, dark); real MCP; backup/restore (PR #2 suite).
-Dashboard was checked against synthetic projects and a Mini instance, not against screenshots of
-the production-sized history. Risks: search semantics differ from Mini/UltraLite; production upgrade
+Dashboard rechecked against a disposable cold-backup restore: all 12 historical projects,
+84 explorer/resume routes, revision comparison, desktop and dark mobile layout, no JavaScript
+errors or horizontal mobile overflow. Screenshots stay private because they contain history.
+Risks: search semantics differ from Mini/UltraLite; production upgrade
 needs its own validated backup/rollback (backup now exists), explicit approval. Owner actions: merge
 order (#9, #2, #8), release approval.
 

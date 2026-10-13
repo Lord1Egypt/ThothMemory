@@ -4,8 +4,9 @@ Measured on one machine, 2026-10-13: Intel i7-9750H (12 threads), 12.7 GiB, WSL2
 kernel 6.18, Docker 29.8. One synthetic project per run, identical MCP workload
 (`scripts/bench-editions.py`), loopback, single client, sequential. Raw results are
 under `docs/audits/evidence/bench-*.json`. These are **host** numbers.
-**No physical Android device was reachable in this session** (`adb devices` was
-empty), so no Android figure is claimed; see [ANDROID_GATE.md](ANDROID_GATE.md).
+These measurements predate the physical-device run. Separate Samsung measurements
+and their limitations are recorded in [ANDROID_GATE.md](ANDROID_GATE.md); they
+are not directly comparable to this host table.
 
 ## Latency (median / p95 ms, 50 samples per size)
 
@@ -60,5 +61,5 @@ first start 11.3 s. Emulated arm64 Mini first start 19 s (glibc image).
   fine. Real ARM hardware may behave differently; this is untested.
 - UltraLite meets the "very lite" goal by construction: no database process, no
   listener, nothing running between sessions.
-- Not measured: battery, Android RSS, concurrent-agent throughput beyond the
+- Not measured here: battery, concurrent-agent throughput beyond the
   six-process contention test, backup/restore timing at scale.

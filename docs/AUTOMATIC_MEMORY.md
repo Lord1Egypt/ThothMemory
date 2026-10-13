@@ -26,7 +26,10 @@ Per client:
 - **Claude Code** exposes every event above; all five fired from the real client.
 - **Codex** (0.162.1) has the same hook model (`hooks` is a stable feature, `hooks.json`, per-hook
   `trusted_hash`), but **project hooks only load once you trust the folder and review the hooks
-  in Codex itself**. In our runs Codex emitted no hook activity at all, and its `-c projects.<path>`
+  in Codex itself**. Rechecked installed CLI 0.162.1: `hooks` is stable and enabled.
+  [Official hook documentation](https://learn.chatgpt.com/docs/hooks) confirms that
+  unreviewed definitions are skipped until approved through `/hooks`; enabling the
+  feature alone does not approve commands. In our runs Codex emitted no hook activity at all, and its `-c projects.<path>`
   override is ignored by design, so we could not verify real firing without bypassing its trust
   control, which we will not do. To enable: run `codex` interactively in the project, accept the
   folder trust, open `/hooks`, review and approve the ThothMemory commands, then check

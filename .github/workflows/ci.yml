@@ -142,7 +142,8 @@ jobs:
           for i in $(seq 600); do curl -sf http://127.0.0.1:7320/healthz && break; sleep 1; done
           umask 077
           docker exec ci-arm thothmemory-mini token local-agent > arm_token
-          python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7320/mcp --token-file arm_token
+          docker exec ci-arm thothmemory-mini token local-reader > arm_read_token
+          python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7320/mcp --token-file arm_token --reader-token-file arm_read_token
   ultralite:
     strategy:
       fail-fast: false
