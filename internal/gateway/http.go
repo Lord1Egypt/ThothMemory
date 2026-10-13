@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/web"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -22,7 +23,7 @@ func dashboardRead(tool string) bool {
 	if memory.DashboardViews[tool] {
 		return true
 	}
-	for _, c := range Contracts {
+	for _, c := range mcptools.Contracts {
 		if c.Name == tool {
 			return !memory.IsWrite(tool)
 		}
@@ -33,7 +34,7 @@ func dashboardRead(tool string) bool {
 func Handler(b memory.Backend, principals []memory.Principal) http.Handler {
 	handlers := make([]http.Handler, len(principals))
 	for i, p := range principals {
-		srv := Server(b, p)
+		srv := mcptools.Server(b, p)
 		handlers[i] = mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return srv }, &mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true})
 	}
 	info := b.Info()

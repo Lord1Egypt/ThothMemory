@@ -2,28 +2,13 @@ package gateway
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 )
-
-// LoadCredentials reads and validates the token policy file.
-func LoadCredentials(path string) ([]memory.Principal, error) {
-	b, e := os.ReadFile(path)
-	if e != nil {
-		return nil, errors.New("THOTH_TOKENS_FILE required")
-	}
-	var ps []memory.Principal
-	if e = json.Unmarshal(b, &ps); e != nil {
-		return nil, errors.New("invalid token configuration")
-	}
-	return ps, memory.ValidateCredentials(ps)
-}
 
 // Serve registers principals and serves MCP and the dashboard until ctx ends.
 func Serve(ctx context.Context, b memory.Backend, ps []memory.Principal, addr string) error {

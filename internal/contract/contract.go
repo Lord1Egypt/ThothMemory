@@ -18,6 +18,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
+	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -154,7 +155,7 @@ func mcpHandoff(t *testing.T, h Harness, url string) {
 	codex := Client(t, url, Agent.Token, "codex")
 	open := Client(t, url, Agent.Token, "opencode")
 	tools, e := claude.ListTools(context.Background(), nil)
-	if e != nil || len(tools.Tools) != len(gateway.Contracts) {
+	if e != nil || len(tools.Tools) != len(mcptools.Contracts) {
 		t.Fatalf("discovery: %v, %d tools", e, len(tools.Tools))
 	}
 	for _, tool := range tools.Tools {
@@ -276,7 +277,7 @@ func concurrency(t *testing.T, h Harness, url string) {
 		t.Fatal("project authorization bypass:", e)
 	}
 	h.fails(t, restricted, "create_project", memory.Input{Name: "forbidden", Repository: "https://github.com/thoth-contract/forbidden"})
-	for _, c := range gateway.Contracts {
+	for _, c := range mcptools.Contracts {
 		if c.Name == "list_projects" || c.Name == "get_health" || c.Name == "create_project" {
 			continue
 		}

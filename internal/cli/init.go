@@ -12,22 +12,27 @@ import (
 )
 
 func InitConfig() error {
-	if e := InitSecrets(".secrets"); e != nil {
+	if e := InitSecrets(".secrets", true); e != nil {
 		return e
 	}
 	return initClients()
 }
 
 // InitSecrets creates missing random credentials and the default token policy
-// in dir. Existing secrets and policy are authoritative and never replaced.
-func InitSecrets(dir string) error {
+// in dir, plus database passwords for server editions. Existing secrets and
+// policy are authoritative and never replaced.
+func InitSecrets(dir string, databasePasswords bool) error {
 	if e := os.MkdirAll(dir, 0700); e != nil {
 		return e
 	}
 	if e := privatePath(dir, true); e != nil {
 		return e
 	}
-	for _, name := range []string{"db_owner_password", "db_app_password", "agent_token", "read_token", "codex_token", "claude_token", "opencode_token"} {
+	names := []string{"agent_token", "read_token", "codex_token", "claude_token", "opencode_token"}
+	if databasePasswords {
+		names = append([]string{"db_owner_password", "db_app_password"}, names...)
+	}
+	for _, name := range names {
 		p := filepath.Join(dir, name)
 		if b, e := os.ReadFile(p); e == nil {
 			if len(b) < 32 {
@@ -136,3 +141,10 @@ func exclusive(path string, b []byte) error {
 	}
 	return closeErr
 }
+
+// PrivateDir restricts a directory to its owner (Unix mode 0700; Windows
+// protected owner-only DACL inherited by new children).
+func PrivateDir(path string) error { return privatePath(path, true) }
+
+// PrivateFile restricts an existing file to its owner.
+func PrivateFile(path string) error { return privatePath(path, false) }

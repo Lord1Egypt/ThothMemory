@@ -132,3 +132,14 @@ func (s *Store) Register(ctx context.Context, p memory.Principal) error {
 	_, e := s.Pool.Exec(ctx, "INSERT INTO principals(id) VALUES($1) ON CONFLICT DO NOTHING", p.ID)
 	return e
 }
+
+// Status reports engine, schema, database size and row counts.
+func (s *Store) Status(ctx context.Context) (memory.Row, error) {
+	r, e := Rows(ctx, s.Pool, `SELECT jsonb_build_object('engine','PostgreSQL '||current_setting('server_version'),'database_bytes',pg_database_size(current_database()),
+ 'schema',(SELECT max(version) FROM schema_migrations),
+ 'counts',jsonb_build_object('projects',(SELECT count(*) FROM projects),'tasks',(SELECT count(*) FROM tasks),'sessions',(SELECT count(*) FROM sessions),'events',(SELECT count(*) FROM events),'records',(SELECT count(*) FROM records),'evidence',(SELECT count(*) FROM evidence),'attestations',(SELECT count(*) FROM attestations),'imports',(SELECT count(*) FROM imports)))`)
+	if e != nil {
+		return nil, e
+	}
+	return r[0], nil
+}

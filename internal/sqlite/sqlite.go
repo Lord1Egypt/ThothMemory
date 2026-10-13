@@ -291,3 +291,35 @@ func fileSum(path string) (string, error) {
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
+
+// FileSum returns the SHA-256 of a file.
+func FileSum(path string) (string, error) { return fileSum(path) }
+
+// Status reports engine, schema, file sizes and row counts.
+func (s *Store) Status(ctx context.Context) (memory.Row, error) {
+	out := memory.Row{"path": s.Path}
+	var version, mode string
+	var pages, size, free int64
+	for _, q := range []struct {
+		sql string
+		dst any
+	}{{"SELECT sqlite_version()", &version}, {"PRAGMA journal_mode", &mode}, {"PRAGMA page_count", &pages}, {"PRAGMA page_size", &size}, {"PRAGMA freelist_count", &free}} {
+		if e := s.DB.QueryRowContext(ctx, q.sql).Scan(q.dst); e != nil {
+			return nil, wrap(e)
+		}
+	}
+	schemaVersion, e := s.SchemaVersion(ctx)
+	if e != nil {
+		return nil, e
+	}
+	counts, e := s.Counts(ctx)
+	if e != nil {
+		return nil, e
+	}
+	out["engine"], out["journal_mode"], out["schema"], out["counts"] = "SQLite "+version, mode, schemaVersion, counts
+	out["database_bytes"], out["free_bytes"] = float64(pages*size), float64(free*size)
+	if st, e := os.Stat(s.Path + "-wal"); e == nil {
+		out["wal_bytes"] = float64(st.Size())
+	}
+	return out, nil
+}

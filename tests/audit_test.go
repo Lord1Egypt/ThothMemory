@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
+	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/store"
 	"net/http/httptest"
@@ -87,7 +88,7 @@ func TestAuditProjectAssociationsAndExpiredClaims(t *testing.T) {
 	if len(projects) != 1 || projects[0].(map[string]any)["id"] != a {
 		t.Fatal("scoped discovery", projects)
 	}
-	for _, contract := range gateway.Contracts {
+	for _, contract := range mcptools.Contracts {
 		if contract.Name == "list_projects" || contract.Name == "get_health" || contract.Name == "create_project" {
 			continue
 		}

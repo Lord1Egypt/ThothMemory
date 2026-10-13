@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Lord1Egypt/ThothMemory/internal/cli"
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
+	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/store"
 	"log/slog"
@@ -125,7 +126,7 @@ func run(ctx context.Context, args []string) error {
 			}
 			return json.NewEncoder(os.Stdout).Encode(v)
 		}
-		ps, e := gateway.LoadCredentials(os.Getenv("THOTH_TOKENS_FILE"))
+		ps, e := mcptools.LoadCredentials(os.Getenv("THOTH_TOKENS_FILE"))
 		if e != nil {
 			return e
 		}

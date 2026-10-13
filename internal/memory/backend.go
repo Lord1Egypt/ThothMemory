@@ -53,6 +53,11 @@ type Backend interface {
 	Begin(ctx context.Context) (Tx, error)
 }
 
+// StatusReporter is implemented by backends that can describe their storage.
+type StatusReporter interface {
+	Status(ctx context.Context) (Row, error)
+}
+
 var ContextSections = []string{"project", "tasks", "sessions", "checkpoints", "handoff", "decisions_and_issues", "evidence"}
 
 // Requirement is the evidence a task state demands: passing evidence of one

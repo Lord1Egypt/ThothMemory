@@ -180,3 +180,16 @@ func anyArgs(v []string) []any {
 func prefixed(alias, cols string) string {
 	return alias + "." + strings.ReplaceAll(cols, ",", ","+alias+".")
 }
+
+// Counts returns row counts of the principal tables.
+func (s *Store) Counts(ctx context.Context) (memory.Row, error) {
+	out := memory.Row{}
+	for _, t := range []string{"projects", "tasks", "sessions", "events", "records", "evidence", "attestations", "imports"} {
+		var n int64
+		if e := s.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+t).Scan(&n); e != nil {
+			return nil, s.D.Wrap(e)
+		}
+		out[t] = float64(n)
+	}
+	return out, nil
+}

@@ -270,3 +270,21 @@ func (s *Store) Bootstrap(ctx context.Context, db, password string) error {
 	}
 	return nil
 }
+
+// Status reports engine, schema, table storage and row counts.
+func (s *Store) Status(ctx context.Context) (memory.Row, error) {
+	var version string
+	var bytes float64
+	if e := s.DB.QueryRowContext(ctx, "SELECT VERSION(),(SELECT COALESCE(SUM(data_length+index_length),0) FROM information_schema.tables WHERE table_schema=DATABASE())").Scan(&version, &bytes); e != nil {
+		return nil, wrap(e)
+	}
+	schemaVersion, e := s.SchemaVersion(ctx)
+	if e != nil {
+		return nil, e
+	}
+	counts, e := s.Counts(ctx)
+	if e != nil {
+		return nil, e
+	}
+	return memory.Row{"engine": "MariaDB " + version, "schema": schemaVersion, "database_bytes": bytes, "counts": counts}, nil
+}

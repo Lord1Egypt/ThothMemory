@@ -1,4 +1,7 @@
-package gateway
+// Package mcptools defines the MCP tool contracts, their input validation and
+// the MCP server of one authenticated principal. It has no HTTP dependency, so
+// headless editions and in-process embeddings use it without a web server.
+package mcptools
 
 import (
 	"bytes"
@@ -8,6 +11,7 @@ import (
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"os"
 	"strings"
 	"time"
 )
@@ -147,4 +151,17 @@ func Server(b memory.Backend, p memory.Principal) *mcp.Server {
 		})
 	}
 	return srv
+}
+
+// LoadCredentials reads and validates the token policy file.
+func LoadCredentials(path string) ([]memory.Principal, error) {
+	b, e := os.ReadFile(path)
+	if e != nil {
+		return nil, errors.New("THOTH_TOKENS_FILE required")
+	}
+	var ps []memory.Principal
+	if e = json.Unmarshal(b, &ps); e != nil {
+		return nil, errors.New("invalid token configuration")
+	}
+	return ps, memory.ValidateCredentials(ps)
 }

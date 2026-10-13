@@ -21,6 +21,7 @@ import (
 	"github.com/Lord1Egypt/ThothMemory/internal/cli"
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
 	"github.com/Lord1Egypt/ThothMemory/internal/mariadb"
+	"github.com/Lord1Egypt/ThothMemory/internal/mcptools"
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 )
 
@@ -154,7 +155,7 @@ func (l Layout) install(ctx context.Context) error {
 // Run initializes on first start, then supervises mariadbd and the service
 // until ctx ends or either process fails.
 func Run(ctx context.Context, l Layout) error {
-	if e := cli.InitSecrets(l.Secrets()); e != nil {
+	if e := cli.InitSecrets(l.Secrets(), true); e != nil {
 		return e
 	}
 	if e := l.ensureInstallID(); e != nil {
@@ -203,7 +204,7 @@ func Run(ctx context.Context, l Layout) error {
 		return e
 	}
 	defer app.Close()
-	ps, e := gateway.LoadCredentials(filepath.Join(l.Secrets(), "tokens.json"))
+	ps, e := mcptools.LoadCredentials(filepath.Join(l.Secrets(), "tokens.json"))
 	if e != nil {
 		return e
 	}
