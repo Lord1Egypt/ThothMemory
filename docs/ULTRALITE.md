@@ -74,6 +74,7 @@ starts an empty memory.
 | `export P > FILE`, `import < FILE` | Portable project transfer with Full and Mini ([format](PORTABILITY.md)). |
 | `attest P EVIDENCE OPERATION STATEMENT` | Owner review of reported evidence. |
 | `permissions PRINCIPAL --projects UUID[,UUID] / --read-only / --write / --revoke` | Narrow or revoke a client. Applies at its next session. |
+| `hooks CLIENT`, `capture …`, `instructions` | Automatic memory; see below. |
 
 ## How SQLite is used
 
@@ -116,8 +117,20 @@ Replace the executable. On first use the new version applies pending migrations
 to the existing file atomically; credentials and memory are kept. Take a
 `backup` first.
 
+## Automatic capture
+
+`hooks claude|codex|opencode` install lifecycle hooks that call `thothmemory-ultralite lifecycle`
+in-process: no service is needed, the hook opens the SQLite file, writes and exits. Modes,
+privacy, the retry queue and what each client really fires are in
+[automatic memory](AUTOMATIC_MEMORY.md); the agent behavior is in the
+[protocol](../THOTHMEMORY_AGENT_PROTOCOL.md). `capture status|set|pending|retry` manage it.
+
 ## Not provided
 
-No dashboard, HTTP endpoint, lifecycle hooks (which need a running service), or
-English stemming dictionaries. Use `export`/`import` to move projects to Full
-when you want the dashboard.
+No dashboard, no web UI, no HTTP endpoint and no network listener of any kind (the
+build is checked in CI to exclude the gateway and web assets). No English stemming
+dictionaries. Use `export`/`import` to move projects to Full when you want the
+dashboard, or read memory with `projects`, `brief`, `search`, `tasks` and `timeline`.
+
+For an Android app embedding UltraLite without a subprocess, see the
+[PocketClaw contract](POCKETCLAW_INTEGRATION.md).

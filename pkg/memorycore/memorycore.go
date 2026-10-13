@@ -96,3 +96,19 @@ func (s *Session) Tools() []Tool {
 	}
 	return out
 }
+
+// Backup writes a consistent, integrity-checked snapshot of the open memory to
+// target (which must not exist) and returns its SHA-256. It is safe to call
+// while other goroutines use the memory.
+func (m *Memory) Backup(ctx context.Context, target string) (string, error) {
+	return m.store.Backup(ctx, target)
+}
+
+// Status reports storage and row counts as JSON.
+func (m *Memory) Status(ctx context.Context) ([]byte, error) {
+	st, e := m.store.Status(ctx)
+	if e != nil {
+		return nil, e
+	}
+	return json.Marshal(st)
+}
