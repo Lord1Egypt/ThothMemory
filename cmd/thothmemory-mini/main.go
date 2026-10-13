@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -188,7 +189,11 @@ func status(ctx context.Context, l mini.Layout) error {
 	if l.Addr != "" {
 		out["database_transport"] = "tcp " + l.Addr
 	} else {
-		out["database_transport"] = "unix socket " + l.Socket() + " (networking disabled)"
+		kind := "unix socket "
+		if strings.HasPrefix(l.Socket(), "@") {
+			kind = "abstract unix socket "
+		}
+		out["database_transport"] = kind + l.Socket() + " (TCP networking disabled)"
 	}
 	if v, e := s.SchemaVersion(ctx); e == nil {
 		out["schema"] = v

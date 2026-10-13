@@ -5,6 +5,8 @@ package mini
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -51,7 +53,37 @@ func env(k, d string) string {
 
 func (l Layout) Secrets() string { return filepath.Join(l.Data, "secrets") }
 func (l Layout) DataDir() string { return filepath.Join(l.Data, "mariadb") }
-func (l Layout) Socket() string  { return filepath.Join(l.Run, "db.sock") }
+
+// Socket is an abstract-namespace Unix socket named after this installation.
+// PRoot rebinds long socket paths inside one tracer only, so a filesystem
+// socket is invisible to `docker exec` under ThothDock; an abstract name is
+// reachable by every process in the network namespace and has no path to
+// translate. THOTH_DB_SOCKET selects a filesystem socket instead.
+func (l Layout) Socket() string {
+	if s := os.Getenv("THOTH_DB_SOCKET"); s != "" {
+		return s
+	}
+	b, _ := os.ReadFile(filepath.Join(l.Data, "install-id"))
+	return "@thothmemory-mini-" + strings.TrimSpace(string(b))
+}
+
+var installID = regexp.MustCompile(`^[0-9a-f]{32}$`)
+
+// ensureInstallID creates the random installation identifier once.
+func (l Layout) ensureInstallID() error {
+	path := filepath.Join(l.Data, "install-id")
+	if b, e := os.ReadFile(path); e == nil {
+		if !installID.Match([]byte(strings.TrimSpace(string(b)))) {
+			return errors.New("invalid install-id; refusing to guess the database socket")
+		}
+		return nil
+	} else if !os.IsNotExist(e) {
+		return e
+	}
+	var b [16]byte
+	_, _ = rand.Read(b[:]) // never fails: Go aborts the process instead
+	return os.WriteFile(path, []byte(hex.EncodeToString(b[:])+"\n"), 0600)
+}
 
 func (l Layout) secret(name string) (string, error) {
 	b, e := os.ReadFile(filepath.Join(l.Secrets(), name))
@@ -123,6 +155,9 @@ func (l Layout) install(ctx context.Context) error {
 // until ctx ends or either process fails.
 func Run(ctx context.Context, l Layout) error {
 	if e := cli.InitSecrets(l.Secrets()); e != nil {
+		return e
+	}
+	if e := l.ensureInstallID(); e != nil {
 		return e
 	}
 	if e := os.MkdirAll(l.Run, 0700); e != nil {
