@@ -502,7 +502,7 @@ func dashboard(t *testing.T, h Harness, url string) {
 	if row["latest_checkpoint"] == nil || row["latest_evidence"] == nil || row["last_activity_at"] == nil {
 		t.Error("overview latest records missing")
 	}
-	if a, _ := row["next_recommended_action"].(string); !strings.Contains(a, "incomplete session") {
+	if a, _ := row["next_recommended_action"].(string); !strings.Contains(a, "unfinished session") {
 		t.Error("next action", a)
 	}
 	for _, v := range []struct {

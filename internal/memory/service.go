@@ -206,6 +206,14 @@ func contains(list []string, v string) bool {
 
 // NextAction derives a deterministic recommendation from overview facts.
 func NextAction(r Row) string {
+	blocked := func(r Row) int {
+		if c, ok := r["task_counts"].(Row); ok {
+			if v, ok := c["blocked"].(float64); ok {
+				return int(v)
+			}
+		}
+		return 0
+	}
 	n := func(k string) int {
 		switch v := r[k].(type) {
 		case float64:
@@ -219,12 +227,12 @@ func NextAction(r Row) string {
 	}
 	switch {
 	case n("incomplete_sessions") > 0:
-		return fmt.Sprintf("Review %d incomplete session(s): resume from the latest checkpoint, then finish or supersede them.", n("incomplete_sessions"))
-	case n("tasks_blocked") > 0:
-		return fmt.Sprintf("Resolve %d blocked task(s) or record why they remain blocked.", n("tasks_blocked"))
+		return plural(n("incomplete_sessions"), "unfinished session has", "unfinished sessions have") + " no final handoff: resume from the latest checkpoint, then finish the session."
+	case blocked(r) > 0:
+		return plural(blocked(r), "task is", "tasks are") + " blocked: resolve the blocker or record why it remains."
 	case n("evidence_awaiting_attestation") > 0:
-		return fmt.Sprintf("Owner review: %d passing test/CI evidence item(s) await attestation.", n("evidence_awaiting_attestation"))
-	case r["latest_handoff_id"] != nil:
+		return plural(n("evidence_awaiting_attestation"), "passing result awaits", "passing results await") + " owner review before work can be marked verified."
+	case r["latest_handoff"] != nil:
 		return "Resume from the latest handoff; compare current HEAD with the last observed revision first."
 	case r["last_activity_at"] == nil:
 		return "No recorded activity: start a session at the current HEAD."
@@ -446,4 +454,11 @@ func EvidenceRequirement(state string) (Requirement, bool) {
 		return Requirement{Kinds: []string{"release"}, Attested: true}, true
 	}
 	return Requirement{}, false
+}
+
+func plural(n int, one, many string) string {
+	if n == 1 {
+		return "1 " + one
+	}
+	return fmt.Sprintf("%d %s", n, many)
 }
