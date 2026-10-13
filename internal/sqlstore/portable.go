@@ -1,4 +1,4 @@
-package mariadb
+package sqlstore
 
 import (
 	"context"
@@ -6,18 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/portable"
 )
 
-func quote(names []string) string {
-	q := make([]string, len(names))
-	for i, n := range names {
-		q[i] = "`" + n + "`"
-	}
-	return strings.Join(q, ",")
-}
+// quote lists identifiers from the fixed portable table specification.
+func quote(names []string) string { return strings.Join(names, ",") }
 
 func scope(t portable.Table) string {
 	if t.Name == "projects" {
@@ -26,46 +22,55 @@ func scope(t portable.Table) string {
 	return "project_id=?"
 }
 
-type reader struct{ *sql.Tx }
+type reader struct {
+	*sql.Tx
+	s *Store
+}
 
 // ExportReader reads every table from one consistent InnoDB snapshot.
 func (s *Store) ExportReader(ctx context.Context) (portable.Reader, error) {
-	t, e := s.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	t, e := s.DB.BeginTx(ctx, s.D.SnapshotTx)
 	if e != nil {
-		return nil, wrap(e)
+		return nil, s.D.Wrap(e)
 	}
-	return reader{t}, nil
+	return reader{t, s}, nil
 }
 
 func (r reader) Select(ctx context.Context, t portable.Table, project string) ([]memory.Row, error) {
-	return rows(ctx, r.Tx, "SELECT "+quote(t.Columns)+" FROM `"+t.Name+"` WHERE "+scope(t), project)
+	return r.s.rows(ctx, r.Tx, "SELECT "+quote(t.Columns)+" FROM "+t.Name+" WHERE "+scope(t), project)
 }
 func (r reader) Close(context.Context) error { return r.Rollback() }
 
-type writer struct{ *sql.Tx }
+type writer struct {
+	*sql.Tx
+	s *Store
+}
 
 func (s *Store) ImportWriter(ctx context.Context) (portable.Writer, error) {
-	t, e := s.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	t, e := s.DB.BeginTx(ctx, s.D.WriteTx)
 	if e != nil {
-		return nil, wrap(e)
+		return nil, s.D.Wrap(e)
 	}
-	return writer{t}, nil
+	return writer{t, s}, nil
 }
 
 func keyWhere(t portable.Table) string {
 	parts := make([]string, len(t.Key))
 	for i, k := range t.Key {
-		parts[i] = "`" + k + "`=?"
+		parts[i] = k + "=?"
 	}
 	return strings.Join(parts, " AND ")
 }
 
-func dbValues(vals []any) []any {
+func (w writer) dbValues(vals []any) []any {
 	out := make([]any, len(vals))
 	for i, v := range vals {
-		if b, ok := v.([]byte); ok {
-			out[i] = string(b)
-		} else {
+		switch x := v.(type) {
+		case []byte:
+			out[i] = string(x)
+		case time.Time:
+			out[i] = w.s.D.Time(x)
+		default:
 			out[i] = v
 		}
 	}
@@ -73,7 +78,7 @@ func dbValues(vals []any) []any {
 }
 
 func (w writer) Get(ctx context.Context, t portable.Table, key []any) (memory.Row, bool, error) {
-	r, e := rows(ctx, w.Tx, "SELECT "+quote(t.Columns)+" FROM `"+t.Name+"` WHERE "+keyWhere(t)+" FOR UPDATE", key...)
+	r, e := w.s.rows(ctx, w.Tx, "SELECT "+quote(t.Columns)+" FROM "+t.Name+" WHERE "+keyWhere(t)+w.s.D.ForUpdate, key...)
 	if e != nil || len(r) == 0 {
 		return nil, false, e
 	}
@@ -93,24 +98,24 @@ func search(t portable.Table, vals []any) (string, bool) {
 	}
 	switch t.Name {
 	case "tasks":
-		return searchText(v("title")), true
+		return memory.SearchText(v("title")), true
 	case "records":
-		return searchText(v("title"), v("body"), v("git_revision")), true
+		return memory.SearchText(v("title"), v("body"), v("git_revision")), true
 	case "evidence":
-		return searchText(v("locator"), v("summary"), v("git_revision"), v("artifact_digest")), true
+		return memory.SearchText(v("locator"), v("summary"), v("git_revision"), v("artifact_digest")), true
 	case "events":
-		return searchText(v("kind"), v("body"), v("git_revision")), true
+		return memory.SearchText(v("kind"), v("body"), v("git_revision")), true
 	}
 	return "", false
 }
 
 func (w writer) Insert(ctx context.Context, t portable.Table, vals []any) error {
-	cols, args := append([]string{}, t.Columns...), dbValues(vals)
+	cols, args := append([]string{}, t.Columns...), w.dbValues(vals)
 	if st, ok := search(t, vals); ok {
 		cols, args = append(cols, "search_text"), append(args, st)
 	}
-	_, e := w.ExecContext(ctx, "INSERT INTO `"+t.Name+"`("+quote(cols)+") VALUES("+in(len(cols))+")", args...)
-	return wrap(e)
+	_, e := w.ExecContext(ctx, "INSERT INTO "+t.Name+"("+quote(cols)+") VALUES("+in(len(cols))+")", args...)
+	return w.s.D.Wrap(e)
 }
 
 func (w writer) Update(ctx context.Context, t portable.Table, vals []any) error {
@@ -119,9 +124,9 @@ func (w writer) Update(ctx context.Context, t portable.Table, vals []any) error 
 	}
 	sets := make([]string, len(t.Columns))
 	for i, c := range t.Columns {
-		sets[i] = "`" + c + "`=?"
+		sets[i] = c + "=?"
 	}
-	args := dbValues(vals)
+	args := w.dbValues(vals)
 	for _, k := range t.Key {
 		for i, c := range t.Columns {
 			if c == k {
@@ -129,36 +134,39 @@ func (w writer) Update(ctx context.Context, t portable.Table, vals []any) error 
 			}
 		}
 	}
-	_, e := w.ExecContext(ctx, "UPDATE `"+t.Name+"` SET "+strings.Join(sets, ",")+" WHERE "+keyWhere(t), args...)
-	return wrap(e)
+	_, e := w.ExecContext(ctx, "UPDATE "+t.Name+" SET "+strings.Join(sets, ",")+" WHERE "+keyWhere(t), args...)
+	return w.s.D.Wrap(e)
 }
 
 func (w writer) EnsurePrincipal(ctx context.Context, id string) error {
-	_, e := w.ExecContext(ctx, "INSERT INTO principals(id) VALUES(?)", id)
-	return ignoreDuplicate(e)
+	_, e := w.ExecContext(ctx, "INSERT INTO principals(id,created_at) VALUES(?,?)", id, w.s.now())
+	return w.s.ignoreDuplicate(e)
 }
 func (w writer) EnsureAgent(ctx context.Context, id string) error {
 	_, e := w.ExecContext(ctx, "INSERT INTO agents(id) VALUES(?)", id)
-	return ignoreDuplicate(e)
+	return w.s.ignoreDuplicate(e)
 }
 func (w writer) Imported(ctx context.Context, project, checksum string) (bool, error) {
 	var ok bool
 	e := w.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM imports WHERE project_id=? AND checksum=?)", project, checksum).Scan(&ok)
-	return ok, wrap(e)
+	return ok, w.s.D.Wrap(e)
 }
 func (w writer) EntityEvents(ctx context.Context, project, column, id string) ([]memory.Row, error) {
 	if column != "task_id" && column != "session_id" {
 		return nil, errors.New("invalid entity column")
 	}
-	return rows(ctx, w.Tx, "SELECT kind,details FROM events WHERE project_id=? AND "+column+"=?", project, id)
+	return w.s.rows(ctx, w.Tx, "SELECT kind,details FROM events WHERE project_id=? AND "+column+"=?", project, id)
 }
 func (w writer) Finish(ctx context.Context, project string, p portable.Provenance) error {
-	if _, e := w.ExecContext(ctx, "UPDATE projects p JOIN (SELECT COUNT(*) n FROM events WHERE project_id=?) c SET p.event_count=c.n,p.event_budget=GREATEST(p.event_budget,LEAST(c.n,10000000)) WHERE p.id=?", project, project); e != nil {
-		return wrap(e)
+	if _, e := w.ExecContext(ctx, "UPDATE projects SET event_count=(SELECT COUNT(*) FROM events WHERE project_id=?) WHERE id=?", project, project); e != nil {
+		return w.s.D.Wrap(e)
+	}
+	if _, e := w.ExecContext(ctx, "UPDATE projects SET event_budget=CASE WHEN event_count>event_budget THEN CASE WHEN event_count>10000000 THEN 10000000 ELSE event_count END ELSE event_budget END WHERE id=?", project); e != nil {
+		return w.s.D.Wrap(e)
 	}
 	counts, _ := json.Marshal(p.Counts)
-	_, e := w.ExecContext(ctx, "INSERT INTO imports(id,project_id,export_id,source_edition,source_version,format_version,checksum,counts,principal_id) VALUES(?,?,?,?,?,?,?,?,?)", newID(), project, p.ExportID, p.SourceEdition, p.SourceVersion, p.FormatVersion, p.Checksum, string(counts), p.Principal)
-	return wrap(e)
+	_, e := w.ExecContext(ctx, "INSERT INTO imports(id,project_id,export_id,source_edition,source_version,format_version,checksum,counts,principal_id,imported_at) VALUES(?,?,?,?,?,?,?,?,?,?)", memory.NewID(), project, p.ExportID, p.SourceEdition, p.SourceVersion, p.FormatVersion, p.Checksum, string(counts), p.Principal, w.s.now())
+	return w.s.D.Wrap(e)
 }
-func (w writer) Commit(context.Context) error   { return wrap(w.Tx.Commit()) }
+func (w writer) Commit(context.Context) error   { return w.s.D.Wrap(w.Tx.Commit()) }
 func (w writer) Rollback(context.Context) error { return w.Tx.Rollback() }

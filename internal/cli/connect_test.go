@@ -42,27 +42,27 @@ func TestJSONCDoesNotCorruptStrings(t *testing.T) {
 
 func TestCodexQuotedAndInlineRegistration(t *testing.T) {
 	for _, input := range []string{"# keep this comment\n[mcp_servers.\"thothmemory\"]\ncommand='thothmemory'\nargs=['bridge','--config','client.json']\nstartup_timeout_sec=30\n", "mcp_servers = {thothmemory = {command='thothmemory', args=['bridge','--config','client.json']}}\n"} {
-		out, e := MergeCodex([]byte(input), "thothmemory", "client.json")
+		out, e := MergeCodex([]byte(input), "thothmemory", []string{"bridge", "--config", "client.json"})
 		if e != nil || string(out) != input {
 			t.Fatal("existing TOML registration not preserved", e, string(out))
 		}
 	}
 	original := "# preserve comment\nmodel='custom'\n[mcp_servers.other]\ncommand='other'\n"
-	out, e := MergeCodex([]byte(original), "thothmemory", "client.json")
+	out, e := MergeCodex([]byte(original), "thothmemory", []string{"bridge", "--config", "client.json"})
 	if e != nil || !strings.HasPrefix(string(out), original) {
 		t.Fatal(e)
 	}
-	again, e := MergeCodex(out, "thothmemory", "client.json")
+	again, e := MergeCodex(out, "thothmemory", []string{"bridge", "--config", "client.json"})
 	if e != nil || string(again) != string(out) {
 		t.Fatal("not idempotent", e)
 	}
-	if _, e = MergeCodex(out, "different", "client.json"); e == nil {
+	if _, e = MergeCodex(out, "different", []string{"bridge", "--config", "client.json"}); e == nil {
 		t.Fatal("conflicting registration overwritten")
 	}
 }
 
 func TestCodexExtendsInlineOtherServer(t *testing.T) {
-	out, e := MergeCodex([]byte("model='custom'\nmcp_servers={other={command='safe'}}\n"), "thothmemory", "client.json")
+	out, e := MergeCodex([]byte("model='custom'\nmcp_servers={other={command='safe'}}\n"), "thothmemory", []string{"bridge", "--config", "client.json"})
 	if e != nil || !strings.Contains(string(out), "safe") || !strings.Contains(string(out), "thothmemory") || !strings.Contains(string(out), "custom") {
 		t.Fatal(e, string(out))
 	}

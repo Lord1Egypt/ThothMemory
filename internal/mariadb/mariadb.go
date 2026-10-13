@@ -5,12 +5,10 @@ package mariadb
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
 	"embed"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -19,13 +17,29 @@ import (
 	"time"
 
 	"github.com/Lord1Egypt/ThothMemory/internal/memory"
+	"github.com/Lord1Egypt/ThothMemory/internal/sqlstore"
 	"github.com/go-sql-driver/mysql"
 )
 
 //go:embed schema/*.sql
 var schema embed.FS
 
-type Store struct{ DB *sql.DB }
+// Store is the shared SQL implementation with the MariaDB dialect.
+type Store struct{ *sqlstore.Store }
+
+var dialect = sqlstore.Dialect{
+	ForUpdate:           " FOR UPDATE",
+	NameCollation:       "name COLLATE utf8mb4_uca1400_ai_ci",
+	ProjectByRepository: "repository_key=UNHEX(SHA2(?,256))",
+	Time:                func(t time.Time) any { return t.UTC() },
+	Wrap:                wrap,
+	Duplicate: func(e error) bool {
+		var me *mysql.MySQLError
+		return errors.As(e, &me) && me.Number == 1062
+	},
+	WriteTx:    &sql.TxOptions{Isolation: sql.LevelReadCommitted},
+	SnapshotTx: &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true},
+}
 
 // Config describes one database login. Socket takes precedence over Addr.
 type Config struct {
@@ -67,7 +81,7 @@ func Open(ctx context.Context, c Config) (*Store, error) {
 		db.Close()
 		return nil, wrap(e)
 	}
-	return &Store{db}, nil
+	return &Store{&sqlstore.Store{DB: db, D: dialect}}, nil
 }
 
 func (s *Store) Close() error { return s.DB.Close() }
@@ -76,26 +90,8 @@ func (s *Store) Info() memory.Info {
 	return memory.Info{Product: "ThothMemory Mini", Edition: "mini", Version: memory.MiniVersion, Database: "mariadb", Capabilities: map[string]bool{"english_stemming": false, "full_text_index": false, "substring_search": true, "dashboard_explorer": true, "export_import": true}}
 }
 
-func (s *Store) Ping(ctx context.Context) error { return wrap(s.DB.PingContext(ctx)) }
-
 func (s *Store) Call(ctx context.Context, p memory.Principal, tool string, a memory.Input) (any, error) {
 	return memory.Call(ctx, s, p, tool, a)
-}
-
-func (s *Store) Register(ctx context.Context, p memory.Principal) error {
-	_, e := s.DB.ExecContext(ctx, "INSERT INTO principals(id) VALUES(?)", p.ID)
-	return ignoreDuplicate(e)
-}
-
-// ignoreDuplicate accepts an existing key. The runtime login has no UPDATE
-// privilege on principals or agents, so ON DUPLICATE KEY UPDATE is not used;
-// InnoDB rolls back only the failed statement, never the transaction.
-func ignoreDuplicate(e error) error {
-	var me *mysql.MySQLError
-	if errors.As(e, &me) && me.Number == 1062 {
-		return nil
-	}
-	return wrap(e)
 }
 
 // wrap hides driver messages (schema names, SQL fragments) behind a typed
@@ -107,128 +103,6 @@ func wrap(e error) error {
 		return &memory.DatabaseError{State: string(me.SQLState[:]), Code: int(me.Number), Retryable: me.Number == 1213 || me.Number == 1205, Err: e}
 	}
 	return e
-}
-
-func newID() string {
-	var b [16]byte
-	_, _ = rand.Read(b[:]) // never fails: Go aborts the process instead
-	b[6] = b[6]&0x0f | 0x40
-	b[8] = b[8]&0x3f | 0x80
-	h := hex.EncodeToString(b[:])
-	return h[0:8] + "-" + h[8:12] + "-" + h[12:16] + "-" + h[16:20] + "-" + h[20:]
-}
-
-// timestamp renders a UTC time exactly as PostgreSQL's to_jsonb does.
-func timestamp(t time.Time) string {
-	return t.UTC().Format("2006-01-02T15:04:05.999999") + "+00:00"
-}
-
-// Column naming conventions shared by every query: these names decode as
-// booleans or nested JSON; every other column is a string, number or time.
-var boolColumns = map[string]bool{"owner_attested": true, "superseded": true, "stale": true}
-var jsonColumns = map[string]bool{"counts": true}
-
-type queryer interface {
-	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
-}
-
-// rows scans a result into JSON-shaped maps identical to the PostgreSQL
-// backend: numbers are float64 and timestamps are PostgreSQL-formatted.
-func rows(ctx context.Context, q queryer, query string, args ...any) ([]memory.Row, error) {
-	r, e := q.QueryContext(ctx, query, args...)
-	if e != nil {
-		return nil, wrap(e)
-	}
-	defer r.Close()
-	types, e := r.ColumnTypes()
-	if e != nil {
-		return nil, e
-	}
-	cols := make([]string, len(types))
-	for i, t := range types {
-		cols[i] = t.Name()
-	}
-	out := []memory.Row{}
-	vals := make([]any, len(cols))
-	ptrs := make([]any, len(cols))
-	for i := range vals {
-		ptrs[i] = &vals[i]
-	}
-	for r.Next() {
-		if e = r.Scan(ptrs...); e != nil {
-			return nil, wrap(e)
-		}
-		m := make(memory.Row, len(cols))
-		for i, c := range cols {
-			m[c] = convert(c, types[i].DatabaseTypeName(), vals[i])
-		}
-		out = append(out, m)
-	}
-	return out, wrap(r.Err())
-}
-
-var numericTypes = map[string]bool{"TINYINT": true, "SMALLINT": true, "MEDIUMINT": true, "INT": true, "BIGINT": true, "DECIMAL": true, "DOUBLE": true, "FLOAT": true}
-
-func convert(col, dbType string, v any) any {
-	switch x := v.(type) {
-	case nil:
-		return nil
-	case []byte:
-		if numericTypes[dbType] {
-			var f float64
-			fmt.Sscan(string(x), &f)
-			if boolColumns[col] {
-				return f != 0
-			}
-			return f
-		}
-		if jsonColumns[col] {
-			var j any
-			if json.Unmarshal(x, &j) == nil {
-				return j
-			}
-		}
-		return string(x)
-	case time.Time:
-		return timestamp(x)
-	case int64:
-		if boolColumns[col] {
-			return x != 0
-		}
-		return float64(x)
-	case float32:
-		return float64(x)
-	}
-	return v
-}
-
-func one(ctx context.Context, q queryer, query string, args ...any) (memory.Row, error) {
-	r, e := rows(ctx, q, query, args...)
-	if e != nil {
-		return nil, e
-	}
-	if len(r) != 1 {
-		return nil, memory.ErrConflict
-	}
-	return r[0], nil
-}
-
-func nullable(v string) any {
-	if v == "" {
-		return nil
-	}
-	return v
-}
-
-// in returns "?,?,..." for n values; callers guarantee n > 0.
-func in(n int) string { return strings.TrimSuffix(strings.Repeat("?,", n), ",") }
-
-func anyArgs(v []string) []any {
-	out := make([]any, len(v))
-	for i, s := range v {
-		out[i] = s
-	}
-	return out
 }
 
 const migrationLock = "thothmemory_mini_migrate"
@@ -363,12 +237,25 @@ func (s *Store) Bootstrap(ctx context.Context, db, password string) error {
 	if !safePassword.MatchString(password) || !regexp.MustCompile(`^[a-z_]{1,32}$`).MatchString(db) {
 		return errors.New("invalid bootstrap parameters")
 	}
-	users, e := rows(ctx, s.DB, "SELECT user,host FROM mysql.global_priv")
+	var users []struct{ name, host string }
+	r, e := s.DB.QueryContext(ctx, "SELECT user,host FROM mysql.global_priv")
+	if e != nil {
+		return wrap(e)
+	}
+	for r.Next() {
+		var u struct{ name, host string }
+		if e = r.Scan(&u.name, &u.host); e != nil {
+			r.Close()
+			return wrap(e)
+		}
+		users = append(users, u)
+	}
+	r.Close()
 	if e != nil {
 		return e
 	}
 	for _, u := range users {
-		name, host := u["user"].(string), u["host"].(string)
+		name, host := u.name, u.host
 		if (name == "root" && host == "localhost") || name == "mariadb.sys" || name == "PUBLIC" {
 			continue
 		}
