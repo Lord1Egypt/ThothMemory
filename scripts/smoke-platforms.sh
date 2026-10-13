@@ -5,10 +5,15 @@ network=thoth-smoke-$(date +%s)-$$
 docker network create "$network" >/dev/null
 container=
 probe=
-cleanup(){ if [[ -n "$probe" ]]; then docker rm -f "$probe" >/dev/null; fi; if [[ -n "$container" ]]; then docker rm -f "$container" >/dev/null; fi; docker rm -f "$network-db" >/dev/null 2>&1 || true; docker network rm "$network" >/dev/null; }
+work=
+cleanup(){ if [[ -n "$probe" ]]; then docker rm -fv "$probe" >/dev/null; fi; if [[ -n "$container" ]]; then docker rm -fv "$container" >/dev/null; fi; docker rm -fv "$network-db" >/dev/null 2>&1 || true; docker network rm "$network" >/dev/null; if [[ -n "$work" ]]; then rm -rf "$work"; fi; }
 trap cleanup EXIT
 docker run -d --name "$network-db" --network "$network" --network-alias db -e POSTGRES_PASSWORD=disposable-smoke-password postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873 >/dev/null
-for ((i=0;i<60;i++)); do if docker exec "$network-db" pg_isready -U postgres >/dev/null 2>&1; then break; fi; sleep 1; done
+ready=0
+# The image's temporary initialization server accepts Unix sockets before initdb
+# finishes. TCP readiness observes the final server, after initialization stops.
+for ((i=0;i<60;i++)); do if docker exec "$network-db" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then ready=1; break; fi; sleep 1; done
+if [[ $ready != 1 ]]; then echo 'PostgreSQL smoke readiness timed out' >&2; exit 1; fi
 work=$(mktemp -d)
 chmod 755 "$work"
 printf '[{"id":"smoke","token":"disposable-smoke-token-00000000000000000000000","write":true,"projects":["*"]}]' > "$work/tokens.json"
