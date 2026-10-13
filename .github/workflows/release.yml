@@ -5,7 +5,31 @@ on:
 permissions:
   contents: read
 jobs:
+  guard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      checks: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Require immutable version and approved source security checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(git rev-parse "$GITHUB_REF_NAME^{commit}")" = "$GITHUB_SHA"
+          if state=$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft 2>/dev/null); then
+            test "$state" = true
+          fi
+          # A merge commit's check is on its reviewed PR head. Never infer
+          # GitGuardian success from our CI's success or absence of a check.
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.merged_at != null and .base.ref == "main")][0].head.sha')
+          test -n "$head" && test "$head" != null
+          gh api "repos/$GITHUB_REPOSITORY/commits/$head/check-runs" --jq '[.check_runs[] | select(.name == "GitGuardian Security Checks")] | length > 0 and all(.conclusion == "success")' | grep -Fx true
   validate:
+    needs: guard
     uses: ./.github/workflows/ci.yml
   artifacts:
     needs: validate
@@ -17,18 +41,14 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: '1.26.9'
-      - name: Cross-compile reproducible native clients
+      - name: Package all Full and UltraLite platforms, installer and source
+        run: bash scripts/package-release.sh
+      - name: Native packaged Linux smoke test
         run: |
-          mkdir -p dist
-          for target in linux/amd64 linux/arm64 windows/amd64 windows/arm64; do
-            export GOOS=${target%/*} GOARCH=${target#*/} CGO_ENABLED=0
-            name=thothmemory-${GOOS}-${GOARCH}
-            if [ "$GOOS" = windows ]; then name=$name.exe; fi
-            go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o dist/$name ./cmd/thothmemory
-          done
-          cd dist
-          sha256sum thothmemory-* > SHA256SUMS
+          dist/thothmemory-linux-amd64
+          dist/thothmemory-ultralite-linux-amd64 --data "$RUNNER_TEMP/release-ul" init
+          dist/thothmemory-ultralite-linux-amd64 --data "$RUNNER_TEMP/release-ul" doctor
       - name: Create draft release awaiting image validation
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --draft --title "ThothMemory $GITHUB_REF_NAME" --notes-file CHANGELOG.md
+        run: bash scripts/stage-release.sh "$GITHUB_REF_NAME"

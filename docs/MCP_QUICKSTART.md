@@ -1,7 +1,11 @@
 # MCP quickstart
 
-Copy-paste setup for each edition. Every command below was run against the built
-binaries; client behavior was checked with Claude Code 2.1.296, Codex CLI 0.162.1 and
+**Install first:** download the matching UltraLite executable from the unified
+v0.2.0 release when published, then follow [Windows/Linux setup](../README.md).
+v0.1.2 contains Full clients only; UltraLite is not an alias for those files.
+Do not assume the downloaded executable is already on PATH.
+
+Client behavior was checked with Claude Code 2.1.296, Codex CLI 0.162.1 and
 OpenCode 1.17.13. Use a Git checkout that has an `origin` remote: that remote is the
 project identity.
 
@@ -36,7 +40,7 @@ each session starts its own short-lived process that exits with the client.
 ## Mini (ThothDock, MariaDB)
 
 ```sh
-scripts/thothmini.sh install --image YOUR_IMAGE@sha256:DIGEST --port 7319 --restart
+sh ./thothmini.sh install --image "$(cat MINI_IMAGE_DIGEST.txt)" --port 7319
 scripts/thothmini.sh clients
 M=~/.thothmemory-mini/thothmemory-mini
 $M connect all --config ~/.thothmemory-mini/client.json --dir ~/code/your-project

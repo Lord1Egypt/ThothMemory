@@ -117,6 +117,15 @@ jobs:
               docker rm "$c" >/dev/null
             done
           done
+      - name: Mini glibc vulnerability analysis
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          image-ref: thoth-memory-mini:ci-glibc-amd64
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
       - name: Acceptance and lifecycle gates (amd64)
         run: |
           set -eu
@@ -176,3 +185,13 @@ jobs:
           # The race detector needs a C toolchain on Windows runners.
           [ "$RUNNER_OS" = Windows ] && race=
           go test $race -count=1 -run 'TestContractSQLite|TestSQLite|TestUltraLite' ./tests
+      - name: Install pinned Codex CLI for real beginner registration
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/quickstart-client" @openai/codex@0.162.1
+          echo "$RUNNER_TEMP/quickstart-client/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Native beginner install, real client registration and persistent write
+        shell: bash
+        run: |
+          exe=./ul; [ "$RUNNER_OS" = Windows ] && exe=./ul.exe
+          python scripts/quickstart-smoke.py "$exe" --client codex

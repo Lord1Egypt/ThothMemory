@@ -13,8 +13,8 @@
 # Touches only the container "thothmemory-mini" and volume
 # "thothmemory-mini-data". Never prunes and never removes other objects.
 set -eu
-NAME=thothmemory-mini
-VOLUME=thothmemory-mini-data
+NAME=${THOTHMINI_NAME:-thothmemory-mini}
+VOLUME=${THOTHMINI_VOLUME:-thothmemory-mini-data}
 CONF=${THOTHMINI_HOME:-$HOME/.thothmemory-mini}
 PORT=7319
 
@@ -25,7 +25,10 @@ need_docker() {
 }
 engine() { docker version --format '{{.Server.Platform.Name}} {{.Server.Version}}' 2>/dev/null || echo unknown; }
 exists() { docker inspect "$NAME" >/dev/null 2>&1; }
-port() { docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$NAME" | sed -n 's/^THOTH_LISTEN=127.0.0.1://p'; }
+port() {
+  value=$(docker inspect -f '{{index .Config.Labels "org.thothmemory.host-port"}}' "$NAME")
+  case "$value" in ''|'<no value>') docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$NAME" | sed -n 's/^THOTH_LISTEN=127.0.0.1://p' ;; *) echo "$value" ;; esac
+}
 ready() {
   p=$(port); i=0
   while [ $i -lt 300 ]; do
@@ -48,7 +51,7 @@ install)
       *) die "unknown option $1" ;;
     esac
   done
-  [ -n "$image" ] || die "pass --image (Mini images are not published yet; use a digest-pinned image you built or the owner published)"
+  [ -n "$image" ] || die "pass --image with the digest-pinned reference from MINI_IMAGE_DIGEST.txt"
   case "$PORT" in *[!0-9]*|'') die "invalid port" ;; esac
   need_docker
   exists && die "$NAME already exists; use start/stop/status (or uninstall first)"
@@ -58,7 +61,10 @@ install)
   # Loopback only. On ThothDock containers share the device network, so the
   # service binds 127.0.0.1 itself; no -p forwarder or LAN listener is used.
   # shellcheck disable=SC2086
-  docker run -d --name "$NAME" $restart -v "$VOLUME:/data" -e "THOTH_LISTEN=127.0.0.1:$PORT" "$image" >/dev/null
+  case "$(engine)" in
+    *ThothDock*) docker run -d --name "$NAME" $restart -v "$VOLUME:/data" --label "org.thothmemory.host-port=$PORT" -e "THOTH_LISTEN=127.0.0.1:$PORT" "$image" >/dev/null ;;
+    *) docker run -d --name "$NAME" $restart -v "$VOLUME:/data" --label "org.thothmemory.host-port=$PORT" -p "127.0.0.1:$PORT:7319" -e THOTH_LISTEN=0.0.0.0:7319 "$image" >/dev/null ;;
+  esac
   echo "Initializing (first start creates the database; allow up to 5 minutes on a phone)..."
   ready || { docker logs --tail 30 "$NAME" >&2; die "service did not become ready"; }
   echo "Ready on http://127.0.0.1:$PORT (MCP: /mcp). Next: thothmini.sh clients"

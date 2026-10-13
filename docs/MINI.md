@@ -1,5 +1,49 @@
 # ThothMemory Mini (MariaDB)
 
+## Start here
+
+Mini gives you the browser dashboard and a persistent memory service in one
+container. MariaDB runs beside the Go application inside that container, using
+a private database socket. UltraLite is simpler if you only need a desktop
+SQLite file and no dashboard.
+
+ThothDock is the Docker-compatible engine bundled with ThothTerm on Android.
+Start that engine in the app first. Mini uses its plain Docker CLI; Compose is
+not required. On ordinary Docker, the installer publishes only host loopback;
+on ThothDock, where containers share the device network, the application itself
+binds loopback and no forwarder is needed.
+
+The unified v0.2.0 release is pending. After publication, download
+`thothmini.sh` and `MINI_IMAGE_DIGEST.txt` from that release. The latter contains
+the immutable reference for `lord1egypt/thoth-memory-mini`, with glibc amd64 and
+ARM64 children. It is separate from Full and never replaces Full's latest tag.
+
+```sh
+sh ./thothmini.sh install --image "$(cat MINI_IMAGE_DIGEST.txt)" --port 7319
+sh ./thothmini.sh clients
+~/.thothmemory-mini/thothmemory-mini connect all --config ~/.thothmemory-mini/client.json
+~/.thothmemory-mini/thothmemory-mini instructions --dir /path/to/project
+sh ./thothmini.sh doctor
+sh ./thothmini.sh stop
+sh ./thothmini.sh start
+sh ./thothmini.sh backup /path/to/independent-backups
+```
+
+Open http://127.0.0.1:7319 after readiness. Client files and private token files
+are under `~/.thothmemory-mini`; database/credentials persist in the named volume
+`thothmemory-mini-data`. `sh ./thothmini.sh restore FILE.sql` checks the checksum
+and restores into a new database. Follow its printed activation command only
+after reviewing the restore. `sh ./thothmini.sh uninstall` removes the container
+but **keeps memory**. Never use `--delete-data` as routine maintenance.
+
+Historical Samsung SM-A165F evidence: 11/11 MCP and 14/14 lifecycle gates;
+MariaDB VmSize about 1,609 MiB, three added processes. The final public digest's
+physical-device retest is **BLOCKED while no phone is connected**. Treat Android
+as a preview: short tests only, no multi-hour background/Doze or battery proof,
+process-budget pressure, functional rather than kernel-grade PRoot isolation.
+See [the exact device evidence](ANDROID_GATE.md). Alpine ARM64 is not the
+validated Android variant. [Upgrade and recovery](UPGRADE.md).
+
 One container: the Go service supervises a private `mariadbd` (11.4 LTS, pinned by
 digest in the glibc variant, by package version in the Alpine variant). MariaDB has
 **TCP networking disabled**; the service reaches it through an abstract Unix socket
@@ -17,11 +61,11 @@ MCP and the dashboard, and nothing else runs.
 Alpine's musl `mariadbd` for arm64 did not finish `mariadb-install-db` under QEMU in
 more than 15 minutes, while the glibc build did. QEMU is not an Android phone, so
 whichever you choose, the Android gate in [ANDROID_GATE.md](ANDROID_GATE.md) decides.
-No Mini image is published; the owner builds and pushes one (`docker buildx build
---platform linux/arm64 -f Dockerfile.mini-glibc …`) and pins it by digest. ThothDock
+Publication status is recorded above. The release workflow builds and validates
+the glibc distribution and supplies MINI_IMAGE_DIGEST.txt. ThothDock
 cannot pull zstd layers: confirm your registry serves gzip.
 
-## Install (ThothDock or any Docker-compatible CLI; no Compose)
+## Installer reference (source checkout)
 
 ```sh
 scripts/thothmini.sh install --image REGISTRY/thoth-memory-mini@sha256:DIGEST --port 7319 --restart

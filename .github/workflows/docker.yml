@@ -71,6 +71,29 @@ jobs:
           docker cp "$id:/usr/local/bin/thothmemory" bin/thothmemory
           docker rm "$id"
           chmod +x bin/thothmemory
+      - name: Build separate glibc Mini candidate (gzip layers for ThothDock)
+        id: mini
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: Dockerfile.mini-glibc
+          platforms: linux/amd64,linux/arm64
+          outputs: type=image,name=${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory-mini:candidate-${{ steps.version.outputs.sha }},push=true,compression=gzip,force-compression=true
+          sbom: true
+          provenance: mode=max
+      - name: Scan the exact Mini candidate
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory-mini@${{ steps.mini.outputs.digest }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+      - name: Mini architectures, MCP, persistence, crash recovery and backup/restore
+        env:
+          MINI_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory-mini@${{ steps.mini.outputs.digest }}
+        run: bash scripts/smoke-mini-platforms.sh
       - name: Smoke-test both architectures using the published digest
         env:
           IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory@${{ steps.image.outputs.digest }}
@@ -80,16 +103,38 @@ jobs:
           THOTH_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory@${{ steps.image.outputs.digest }}
         run: |
           ./scripts/acceptance.sh
-      - name: Promote latest and publish the validated draft
+      - name: Verify complete downloads, publish versioned images, then publish release
         env:
           IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory
           DIGEST: ${{ steps.image.outputs.digest }}
+          MINI_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/thoth-memory-mini
+          MINI_DIGEST: ${{ steps.mini.outputs.digest }}
           TAG: ${{ steps.version.outputs.tag }}
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
-          docker buildx imagetools create -t "$IMAGE:${TAG#v}" "$IMAGE@$DIGEST"
-          docker buildx imagetools create -t "$IMAGE:latest" "$IMAGE@$DIGEST"
+          # Refuse existing immutable version tags unless they already resolve
+          # to this exact candidate (safe resumption of a partial publication).
+          for spec in "$IMAGE:${TAG#v}|$DIGEST" "$MINI_IMAGE:0.1.0|$MINI_DIGEST"; do
+            ref=${spec%|*}; expected=${spec#*|}
+            if existing=$(docker buildx imagetools inspect "$ref" --format '{{.Manifest.Digest}}' 2>/dev/null); then
+              test "$existing" = "$expected"
+            fi
+          done
+          mkdir -p downloads metadata
+          gh release download "$TAG" --dir downloads
+          (cd downloads && sha256sum -c SHA256SUMS)
+          for name in thothmemory-ultralite-windows-amd64.exe thothmemory-ultralite-linux-amd64 thothmemory-ultralite-linux-arm64 thothmemory-linux-amd64 thothmemory-linux-arm64 thothmemory-windows-amd64.exe thothmemory-windows-arm64.exe "thothmemory-$TAG-source.tar.gz" thothmini.sh PLATFORMS.md RELEASE_NOTES.md; do
+            test -s "downloads/$name"
+          done
           printf '%s\n' "$IMAGE@$DIGEST" > IMAGE_DIGEST.txt
-          gh release upload "$TAG" IMAGE_DIGEST.txt
+          printf '%s\n' "$MINI_IMAGE@$MINI_DIGEST" > MINI_IMAGE_DIGEST.txt
+          for name in IMAGE_DIGEST.txt MINI_IMAGE_DIGEST.txt; do
+            if test -f "downloads/$name"; then cmp "$name" "downloads/$name"; else gh release upload "$TAG" "$name"; fi
+          done
+          docker buildx imagetools create -t "$IMAGE:${TAG#v}" "$IMAGE@$DIGEST"
+          docker buildx imagetools create -t "$MINI_IMAGE:0.1.0" "$MINI_IMAGE@$MINI_DIGEST"
+          # Mini intentionally has no Full-repository tag or latest promotion.
+          docker buildx imagetools create -t "$IMAGE:latest" "$IMAGE@$DIGEST"
           gh release edit "$TAG" --draft=false --latest
