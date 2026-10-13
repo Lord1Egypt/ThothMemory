@@ -8,7 +8,7 @@ the production fingerprint; 12 projects).
 
 | Branch / PR | Purpose | Head | CI |
 |---|---|---|---|
-| `patch/0.1.2-arm64-fix`, Draft PR #9 → `main` | ARM64 container fix only | see below | **green**: [run 38441187422](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38441187422) incl. ELF checks, GitGuardian pass |
+| `patch/0.1.2-arm64-fix`, Draft PR #9 → `main` | ARM64 container fix only | `ef4867f2d3fc642dd91cee41c77177fcbda2ba94` | **green**: [run 38441187422](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38441187422) incl. ELF checks, GitGuardian pass |
 | `nextgen/full-and-mini`, Draft PR #8 → `audit/preproduction-0.1.2` | Full + Mini + UltraLite + automatic memory | this branch tip | **green except GitGuardian**: [run 38440745131](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38440745131) |
 | PR #2 `audit/preproduction-0.1.2` | audit hardening | `ecb8415` | green, unmerged |
 
