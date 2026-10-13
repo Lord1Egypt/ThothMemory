@@ -33,8 +33,8 @@ Everything below was executed on the phone; nothing is a host or QEMU result. Ra
 | Cleanup | Only my container, volume and image removed; user containers unchanged; 0 MariaDB processes left |
 
 Resources (whole engine tree, `measure.py`, same device, minutes apart): before Mini 13
-processes / 36 threads / 124 MiB PSS (engine + the owner's node and nginx); with Mini 16 /
-64 / 189 MiB, so Mini added **3 processes**. Mini's own idle over 60 s: service 10 ms CPU,
+processes / 36 threads / 121.5 MiB PSS (engine + the owner's node and nginx); with Mini 16 /
+64 / 184.5 MiB, so Mini added **3 processes**. Mini's own idle over 60 s: service 10 ms CPU,
 MariaDB 50 ms, 16 and 9 threads, PSS 15.8 MiB and 36.2 MiB. The remaining CPU in that window
 belonged to the owner's own node app (15.5 s), not to Mini. ThothDock's Process Guard printed
 "ThothTerm currently has 21 processes" while Mini fixtures ran; the engine was never killed.
