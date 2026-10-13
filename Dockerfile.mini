@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1.7
+# ThothMemory Mini: the Go service and a private MariaDB in one small image.
+FROM --platform=$BUILDPLATFORM golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade AS build
+ARG TARGETOS
+ARG TARGETARCH
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+COPY . .
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o /out/thothmemory-mini ./cmd/thothmemory-mini
+
+# The distribution package carries an embedded server, test, Aria/MyISAM and
+# RocksDB tools and 25 languages. Keep only what this service executes.
+FROM alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8 AS mariadb
+RUN apk add --no-cache mariadb=11.4.12-r0 mariadb-client=11.4.12-r0
+RUN set -eu; \
+    mkdir -p /slim/usr/bin /slim/usr/lib /slim/usr/share/mariadb; \
+    for b in mariadbd mariadb mariadb-dump mariadb-install-db my_print_defaults; do cp -a /usr/bin/$b /slim/usr/bin/; done; \
+    for b in mariadbd mariadb mariadb-dump my_print_defaults; do ldd /usr/bin/$b; done \
+      | awk '$3 ~ /^\/usr\/lib\// {print $3}' | sort -u | while read -r lib; do cp -L "$lib" /slim/usr/lib/; done; \
+    cp -a /usr/share/mariadb/english /usr/share/mariadb/charsets /slim/usr/share/mariadb/; \
+    cp /usr/share/mariadb/mariadb_system_tables.sql /usr/share/mariadb/mariadb_system_tables_data.sql \
+       /usr/share/mariadb/mariadb_performance_tables.sql /usr/share/mariadb/maria_add_gis_sp_bootstrap.sql /usr/share/mariadb/mariadb_test_db.sql /slim/usr/share/mariadb/; \
+    # mariadb-install-db requires these files; help text and the sys schema
+    # (views over the disabled performance schema) are intentionally empty.
+    : > /slim/usr/share/mariadb/fill_help_tables.sql; : > /slim/usr/share/mariadb/mariadb_sys_schema.sql
+
+FROM alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
+LABEL org.opencontainers.image.title="ThothMemory Mini" org.opencontainers.image.description="Lightweight shared agent memory with a private MariaDB, for ThothDock on Android" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.0-rc.1"
+COPY --from=mariadb /slim/ /
+COPY --from=build /out/thothmemory-mini /usr/local/bin/thothmemory-mini
+COPY deploy/mini/my.cnf /etc/thothmini/my.cnf
+COPY LICENSE /licenses/ThothMemory.txt
+COPY third_party/ /licenses/dependencies/
+RUN adduser -D -H -u 65532 -s /sbin/nologin thoth && mkdir -p /data /run/thothmini && chown 65532:65532 /data /run/thothmini && chmod 700 /data /run/thothmini
+USER 65532:65532
+ENV THOTH_LISTEN=127.0.0.1:7319
+EXPOSE 7319
+STOPSIGNAL SIGTERM
+ENTRYPOINT ["/usr/local/bin/thothmemory-mini"]
+CMD ["run"]

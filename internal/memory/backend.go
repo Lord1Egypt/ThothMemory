@@ -105,6 +105,7 @@ type Tx interface {
 // SQL, schema names or server messages to clients.
 type DatabaseError struct {
 	State     string
+	Code      int
 	Retryable bool
 	Err       error
 }
@@ -121,8 +122,12 @@ func SafeError(err error) string {
 		return "operation timed out; retry with the same operation_id"
 	}
 	var de *DatabaseError
-	if errors.As(err, &de) && de.Retryable {
-		return "transient database conflict; retry with the same operation_id"
+	if errors.As(err, &de) {
+		if de.Retryable {
+			return "transient database conflict; retry with the same operation_id"
+		}
+		// Codes only: server messages can quote SQL text or stored values.
+		return fmt.Sprintf("database rejected operation: constraint or availability failure (SQLSTATE %s, code %d)", de.State, de.Code)
 	}
 	var pe interface{ SQLState() string }
 	if errors.As(err, &pe) {

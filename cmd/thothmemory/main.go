@@ -18,22 +18,11 @@ import (
 	"syscall"
 )
 
-func secret(name string) (string, error) {
-	if p := os.Getenv(name + "_FILE"); p != "" {
-		b, e := os.ReadFile(p)
-		return strings.TrimSpace(string(b)), e
-	}
-	v := os.Getenv(name)
-	if v == "" {
-		return "", errors.New(name + " or " + name + "_FILE required")
-	}
-	return v, nil
-}
 func dsn() (string, error) {
 	if v := os.Getenv("DATABASE_URL"); v != "" {
 		return v, nil
 	}
-	pw, e := secret("THOTH_DB_PASSWORD")
+	pw, e := cli.Secret("THOTH_DB_PASSWORD")
 	if e != nil {
 		return "", e
 	}
@@ -61,39 +50,15 @@ func run(ctx context.Context, args []string) error {
 		return nil
 	}
 	cmd := args[0]
-	path := "client.json"
-	rest := []string{}
-	for i := 1; i < len(args); i++ {
-		if args[i] == "--config" && i+1 < len(args) {
-			i++
-			path = args[i]
-		} else {
-			rest = append(rest, args[i])
-		}
+	path, rest := cli.SplitConfig(args[1:])
+	if ok, e := cli.ClientCommand(ctx, cmd, path, rest); ok {
+		return e
 	}
 	switch cmd {
-	case "permissions":
-		return cli.Permissions(rest)
 	case "init-config":
 		return cli.InitConfig()
-	case "bridge":
-		return cli.Bridge(ctx, path)
-	case "preflight":
-		return cli.Preflight(ctx, path)
-	case "doctor":
-		return cli.Doctor(ctx, path)
-	case "connect":
-		return cli.Connect(ctx, path, rest)
-	case "hooks":
-		return cli.Hooks(ctx, path, rest)
-	case "instructions":
-		return cli.Instructions(rest)
 	case "backup", "restore":
 		return cli.BackupRestore(ctx, cmd, rest)
-	case "lifecycle":
-		return cli.Lifecycle(ctx, path, rest)
-	case "demo":
-		return cli.Demo(ctx, path)
 	case "healthcheck":
 		r, e := http.Get("http://127.0.0.1:7319/healthz")
 		if e != nil {
@@ -118,7 +83,7 @@ func run(ctx context.Context, args []string) error {
 			if e = s.Migrate(ctx); e != nil {
 				return e
 			}
-			pw, e := secret("THOTH_RUNTIME_PASSWORD")
+			pw, e := cli.Secret("THOTH_RUNTIME_PASSWORD")
 			if e != nil {
 				return e
 			}

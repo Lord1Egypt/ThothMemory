@@ -12,14 +12,23 @@ import (
 )
 
 func InitConfig() error {
-	if e := os.MkdirAll(".secrets", 0700); e != nil {
+	if e := InitSecrets(".secrets"); e != nil {
 		return e
 	}
-	if e := privatePath(".secrets", true); e != nil {
+	return initClients()
+}
+
+// InitSecrets creates missing random credentials and the default token policy
+// in dir. Existing secrets and policy are authoritative and never replaced.
+func InitSecrets(dir string) error {
+	if e := os.MkdirAll(dir, 0700); e != nil {
+		return e
+	}
+	if e := privatePath(dir, true); e != nil {
 		return e
 	}
 	for _, name := range []string{"db_owner_password", "db_app_password", "agent_token", "read_token", "codex_token", "claude_token", "opencode_token"} {
-		p := filepath.Join(".secrets", name)
+		p := filepath.Join(dir, name)
 		if b, e := os.ReadFile(p); e == nil {
 			if len(b) < 32 {
 				return errors.New("existing secret is invalid; refusing automatic replacement")
@@ -38,7 +47,7 @@ func InitConfig() error {
 	}
 	var ps []map[string]any
 	existingPermissions := false
-	path := ".secrets/tokens.json"
+	path := filepath.Join(dir, "tokens.json")
 	if b, e := os.ReadFile(path); e == nil {
 		existingPermissions = true
 		if e = json.Unmarshal(b, &ps); e != nil || ps == nil {
@@ -65,7 +74,7 @@ func InitConfig() error {
 		if found {
 			continue
 		}
-		token, e := os.ReadFile(filepath.Join(".secrets", item.file))
+		token, e := os.ReadFile(filepath.Join(dir, item.file))
 		if e != nil {
 			return e
 		}
@@ -73,10 +82,12 @@ func InitConfig() error {
 		changed = true
 	}
 	if changed {
-		if e := save(path, jsonBytes(ps)); e != nil {
-			return e
-		}
+		return save(path, jsonBytes(ps))
 	}
+	return nil
+}
+
+func initClients() error {
 	image := os.Getenv("THOTH_IMAGE")
 	if image == "" {
 		image = "lord1egypt/thoth-memory:0.1.1"
