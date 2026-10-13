@@ -298,7 +298,7 @@ func Read(r io.Reader) (*Document, error) {
 	if doc.Format != Format || doc.FormatVersion != FormatVersion {
 		return nil, fmt.Errorf("unsupported export format %q version %d", doc.Format, doc.FormatVersion)
 	}
-	if doc.Source.Edition != "full" && doc.Source.Edition != "mini" || len(doc.Source.Version) == 0 || len(doc.Source.Version) > 50 || !memory.UUID(doc.ExportID) || !memory.UUID(doc.ProjectID) {
+	if doc.Source.Edition != "full" && doc.Source.Edition != "mini" && doc.Source.Edition != "ultralite" || len(doc.Source.Version) == 0 || len(doc.Source.Version) > 50 || !memory.UUID(doc.ExportID) || !memory.UUID(doc.ProjectID) {
 		return nil, errors.New("invalid export header")
 	}
 	known := map[string]bool{}

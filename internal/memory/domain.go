@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	FullVersion = "0.2.0-rc.1"
-	MiniVersion = "0.1.0-rc.1"
+	FullVersion      = "0.2.0-rc.1"
+	MiniVersion      = "0.1.0-rc.1"
+	UltraLiteVersion = "0.1.0-rc.1"
 )
 
 type Principal struct {

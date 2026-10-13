@@ -51,9 +51,20 @@ func normalized(v any) any {
 	return out
 }
 
-func TestPortableFullMiniRoundTrip(t *testing.T) {
-	pgH, miniH := postgresHarness(t), mariaHarness(t)
-	full, mini := pgH.Backend.(portable.Backend), miniH.Backend.(portable.Backend)
+func TestPortableFullMini(t *testing.T) {
+	roundTrip(t, postgresHarness(t).Backend.(portable.Backend), mariaHarness(t).Backend.(portable.Backend))
+}
+func TestPortableFullUltraLite(t *testing.T) {
+	roundTrip(t, postgresHarness(t).Backend.(portable.Backend), sqliteHarness(t).Backend.(portable.Backend))
+}
+func TestPortableMiniUltraLite(t *testing.T) {
+	roundTrip(t, mariaHarness(t).Backend.(portable.Backend), sqliteHarness(t).Backend.(portable.Backend))
+}
+
+// roundTrip moves a project from full (the source edition) to mini (the
+// target edition), compares reads, continues work on the target and
+// fast-forwards it back, then checks stale and divergent imports.
+func roundTrip(t *testing.T, full, mini portable.Backend) {
 	ctx := context.Background()
 	for _, b := range []memory.Backend{full, mini} {
 		for _, p := range []memory.Principal{contract.Agent, contract.Owner} {

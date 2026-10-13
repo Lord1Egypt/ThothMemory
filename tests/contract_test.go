@@ -173,13 +173,15 @@ func mariaHarness(t *testing.T) contract.Harness {
 func TestContractPostgreSQL(t *testing.T) { contract.Run(t, postgresHarness(t)) }
 func TestContractMariaDB(t *testing.T)    { contract.Run(t, mariaHarness(t)) }
 
-// Both editions must return identical response shapes for every read.
+// All editions must return identical response shapes for every read.
 func TestContractShapeParity(t *testing.T) {
-	pg, mdb := postgresHarness(t), mariaHarness(t)
-	full, mini := contract.Shapes(t, pg), contract.Shapes(t, mdb)
-	for tool, shape := range full {
-		if mini[tool] != shape {
-			t.Errorf("%s shape differs\nfull: %s\nmini: %s", tool, shape, mini[tool])
+	full := contract.Shapes(t, postgresHarness(t))
+	for name, h := range map[string]contract.Harness{"mini": mariaHarness(t), "ultralite": sqliteHarness(t)} {
+		other := contract.Shapes(t, h)
+		for tool, shape := range full {
+			if other[tool] != shape {
+				t.Errorf("%s: %s shape differs\nfull: %s\n%s: %s", name, tool, shape, name, other[tool])
+			}
 		}
 	}
 }
