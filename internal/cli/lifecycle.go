@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Lord1Egypt/ThothMemory/internal/store"
+	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"os"
 	"os/exec"
@@ -53,7 +53,7 @@ func Lifecycle(ctx context.Context, path string, args []string) error {
 	if e != nil {
 		return errors.New("no origin remote; select local identity explicitly")
 	}
-	repo, e := store.CanonicalRepository(strings.TrimSpace(string(remote)))
+	repo, e := memory.CanonicalRepository(strings.TrimSpace(string(remote)))
 	if e != nil {
 		return e
 	}

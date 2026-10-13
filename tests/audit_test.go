@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
+	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/store"
 	"net/http/httptest"
 	"strings"
@@ -14,9 +15,9 @@ import (
 	"unicode/utf8"
 )
 
-func auditProject(t *testing.T, s *store.Store, p store.Principal, label string) string {
+func auditProject(t *testing.T, s *store.Store, p memory.Principal, label string) string {
 	t.Helper()
-	v, e := s.Call(context.Background(), p, "create_project", store.Input{Name: "SIMULATED " + label, Repository: fmt.Sprintf("https://github.com/thothmemory-example/%s-%d", label, time.Now().UnixNano())})
+	v, e := s.Call(context.Background(), p, "create_project", memory.Input{Name: "SIMULATED " + label, Repository: fmt.Sprintf("https://github.com/thothmemory-example/%s-%d", label, time.Now().UnixNano())})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -62,23 +63,23 @@ func TestAuditProjectAssociationsAndExpiredClaims(t *testing.T) {
 	a := auditProject(t, s, p, "scope-a")
 	b := auditProject(t, s, p, "scope-b")
 	head := strings.Repeat("e", 40)
-	task, e := s.Call(ctx, p, "create_task", store.Input{ProjectID: a, OperationID: "scope-task-create", Title: "Boundary task"})
+	task, e := s.Call(ctx, p, "create_task", memory.Input{ProjectID: a, OperationID: "scope-task-create", Title: "Boundary task"})
 	if e != nil {
 		t.Fatal(e)
 	}
-	session, e := s.Call(ctx, p, "start_session", store.Input{ProjectID: a, OperationID: "scope-session-start", Agent: "simulated-claude", GitRevision: head})
+	session, e := s.Call(ctx, p, "start_session", memory.Input{ProjectID: a, OperationID: "scope-session-start", Agent: "simulated-claude", GitRevision: head})
 	if e != nil {
 		t.Fatal(e)
 	}
-	evidence, e := s.Call(ctx, p, "attach_evidence", store.Input{ProjectID: a, OperationID: "scope-evidence-create", SourceKind: "test", Outcome: "pass", GitRevision: head, Locator: "test://simulated", Body: "Reported fixture"})
+	evidence, e := s.Call(ctx, p, "attach_evidence", memory.Input{ProjectID: a, OperationID: "scope-evidence-create", SourceKind: "test", Outcome: "pass", GitRevision: head, Locator: "test://simulated", Body: "Reported fixture"})
 	if e != nil {
 		t.Fatal(e)
 	}
-	scoped := store.Principal{ID: "audit-scoped", Token: strings.Repeat("s", 64), Write: true, Projects: []string{a}}
+	scoped := memory.Principal{ID: "audit-scoped", Token: strings.Repeat("s", 64), Write: true, Projects: []string{a}}
 	if e = s.Register(ctx, scoped); e != nil {
 		t.Fatal(e)
 	}
-	scopedServer := httptest.NewServer(gateway.Handler(s, []store.Principal{scoped}))
+	scopedServer := httptest.NewServer(gateway.Handler(s, []memory.Principal{scoped}))
 	defer scopedServer.Close()
 	c := client(t, scopedServer, scoped.Token, "scoped-agent")
 	invoke(t, c, "get_project_context", map[string]any{"project_id": b}, true)
@@ -90,11 +91,11 @@ func TestAuditProjectAssociationsAndExpiredClaims(t *testing.T) {
 		if contract.Name == "list_projects" || contract.Name == "get_health" || contract.Name == "create_project" {
 			continue
 		}
-		if _, err := s.Call(ctx, scoped, contract.Name, store.Input{ProjectID: b}); !errors.Is(err, store.ErrForbidden) {
+		if _, err := s.Call(ctx, scoped, contract.Name, memory.Input{ProjectID: b}); !errors.Is(err, memory.ErrForbidden) {
 			t.Errorf("%s unauthorized result: %v", contract.Name, err)
 		}
 	}
-	for i, input := range []store.Input{{TaskID: id(task)}, {SessionID: id(session)}, {EvidenceID: id(evidence)}} {
+	for i, input := range []memory.Input{{TaskID: id(task)}, {SessionID: id(session)}, {EvidenceID: id(evidence)}} {
 		input.ProjectID = b
 		input.OperationID = fmt.Sprintf("cross-association-%d", i)
 		input.Title = "no crossing"
@@ -103,16 +104,16 @@ func TestAuditProjectAssociationsAndExpiredClaims(t *testing.T) {
 			t.Errorf("cross-project association accepted: %d", i)
 		}
 	}
-	if _, e = s.Call(ctx, p, "claim_task", store.Input{ProjectID: a, TaskID: id(task), OperationID: "lease-first-claim", ExpectedRevision: 1}); e != nil {
+	if _, e = s.Call(ctx, p, "claim_task", memory.Input{ProjectID: a, TaskID: id(task), OperationID: "lease-first-claim", ExpectedRevision: 1}); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Call(ctx, scoped, "claim_task", store.Input{ProjectID: a, TaskID: id(task), OperationID: "lease-stolen-claim", ExpectedRevision: 2}); e == nil {
+	if _, e = s.Call(ctx, scoped, "claim_task", memory.Input{ProjectID: a, TaskID: id(task), OperationID: "lease-stolen-claim", ExpectedRevision: 2}); e == nil {
 		t.Fatal("active claim stolen")
 	}
 	if _, e = s.Pool.Exec(ctx, "UPDATE tasks SET claim_expires_at=now()-interval '1 second' WHERE id=$1", id(task)); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Call(ctx, scoped, "claim_task", store.Input{ProjectID: a, TaskID: id(task), OperationID: "lease-expired-claim", ExpectedRevision: 2}); e != nil {
+	if _, e = s.Call(ctx, scoped, "claim_task", memory.Input{ProjectID: a, TaskID: id(task), OperationID: "lease-expired-claim", ExpectedRevision: 2}); e != nil {
 		t.Fatal("expired claim not reclaimable", e)
 	}
 	// Interrupt a write while it is blocked inside a real transaction.
@@ -126,7 +127,7 @@ func TestAuditProjectAssociationsAndExpiredClaims(t *testing.T) {
 	}
 	interrupted, cancel := context.WithTimeout(ctx, 50*time.Millisecond)
 	defer cancel()
-	if _, e = s.Call(interrupted, p, "append_event", store.Input{ProjectID: a, OperationID: "interrupted-in-flight", Body: "must roll back"}); e == nil {
+	if _, e = s.Call(interrupted, p, "append_event", memory.Input{ProjectID: a, OperationID: "interrupted-in-flight", Body: "must roll back"}); e == nil {
 		t.Fatal("interrupted write accepted")
 	}
 	blocker.Rollback(ctx)
@@ -140,9 +141,9 @@ func TestAuditRealisticFourSessionEngineeringHandoff(t *testing.T) {
 	s, _, owner := setup(t)
 	ctx := context.Background()
 	project := auditProject(t, s, owner, "engineering-handoff")
-	actors := []store.Principal{}
+	actors := []memory.Principal{}
 	for i, name := range []string{"claude", "codex", "opencode"} {
-		p := store.Principal{ID: "audit-" + name, Token: strings.Repeat(fmt.Sprint(i+1), 64), Write: true, Projects: []string{project}}
+		p := memory.Principal{ID: "audit-" + name, Token: strings.Repeat(fmt.Sprint(i+1), 64), Write: true, Projects: []string{project}}
 		if e := s.Register(ctx, p); e != nil {
 			t.Fatal(e)
 		}
@@ -201,11 +202,11 @@ func TestAuditBriefingPreservesUnicodeBoundary(t *testing.T) {
 	s, _, p := setup(t)
 	project := auditProject(t, s, p, "unicode-briefing")
 	text := "x" + strings.Repeat("ع", 800)
-	_, err := s.Call(context.Background(), p, "record_issue", store.Input{ProjectID: project, OperationID: "unicode-boundary-issue", Title: "Unicode", Body: text})
+	_, err := s.Call(context.Background(), p, "record_issue", memory.Input{ProjectID: project, OperationID: "unicode-boundary-issue", Title: "Unicode", Body: text})
 	if err != nil {
 		t.Fatal(err)
 	}
-	brief, err := s.Call(context.Background(), p, "get_project_context", store.Input{ProjectID: project})
+	brief, err := s.Call(context.Background(), p, "get_project_context", memory.Input{ProjectID: project})
 	if err != nil {
 		t.Fatal(err)
 	}

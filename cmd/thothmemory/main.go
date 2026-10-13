@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Lord1Egypt/ThothMemory/internal/cli"
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
+	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/store"
 	"log/slog"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 )
 
 func secret(name string) (string, error) {
@@ -57,7 +57,7 @@ func dsn() (string, error) {
 }
 func run(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		fmt.Println("ThothMemory 0.1.2-rc.1\nCommands: serve, migrate, bridge, doctor, connect, instructions, permissions, backup, restore, attest, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
+		fmt.Println("ThothMemory " + memory.FullVersion + "\nCommands: serve, migrate, bridge, doctor, connect, instructions, permissions, backup, restore, attest, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
 		return nil
 	}
 	cmd := args[0]
@@ -147,55 +147,25 @@ func run(ctx context.Context, args []string) error {
 			if len(rest) != 4 {
 				return errors.New("attest PROJECT_ID EVIDENCE_ID OPERATION_ID STATEMENT; run via privileged migrate service")
 			}
-			p := store.Principal{ID: "local-owner", Owner: true, Write: true, Projects: []string{"*"}}
+			p := memory.Principal{ID: "local-owner", Owner: true, Write: true, Projects: []string{"*"}}
 			if e = s.Register(ctx, p); e != nil {
 				return e
 			}
-			v, e := s.Call(ctx, p, "attest_evidence", store.Input{ProjectID: rest[0], EvidenceID: rest[1], OperationID: rest[2], Body: rest[3]})
+			v, e := s.Call(ctx, p, "attest_evidence", memory.Input{ProjectID: rest[0], EvidenceID: rest[1], OperationID: rest[2], Body: rest[3]})
 			if e != nil {
 				return e
 			}
 			return json.NewEncoder(os.Stdout).Encode(v)
 		}
-		b, e := os.ReadFile(os.Getenv("THOTH_TOKENS_FILE"))
+		ps, e := gateway.LoadCredentials(os.Getenv("THOTH_TOKENS_FILE"))
 		if e != nil {
-			return errors.New("THOTH_TOKENS_FILE required")
-		}
-		var ps []store.Principal
-		if e = json.Unmarshal(b, &ps); e != nil {
-			return errors.New("invalid token configuration")
-		}
-		if len(ps) == 0 {
-			return errors.New("at least one credential required")
-		}
-		seen := map[string]bool{}
-		for _, p := range ps {
-			if len(p.Token) < 32 || p.ID == "" || p.Owner || len(p.Projects) == 0 || seen[p.Token] || seen["principal:"+p.ID] {
-				return errors.New("invalid or duplicate agent credential; owner privileges forbidden on HTTP")
-			}
-			seen[p.Token] = true
-			seen["principal:"+p.ID] = true
-			if e = s.Register(ctx, p); e != nil {
-				return e
-			}
+			return e
 		}
 		addr := os.Getenv("THOTH_LISTEN")
 		if addr == "" {
 			addr = "127.0.0.1:7319"
 		}
-		srv := &http.Server{Addr: addr, Handler: gateway.Handler(s, ps), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10}
-		go func() {
-			<-ctx.Done()
-			c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			_ = srv.Shutdown(c)
-		}()
-		slog.Info("ThothMemory ready", "address", addr, "version", "0.1.2-rc.1")
-		e = srv.ListenAndServe()
-		if errors.Is(e, http.ErrServerClosed) {
-			return nil
-		}
-		return e
+		return gateway.Serve(ctx, s, ps, addr)
 	}
 	return fmt.Errorf("unknown command %q", cmd)
 }
@@ -203,7 +173,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	if e := run(ctx, os.Args[1:]); e != nil {
-		slog.Error("operation failed", "error", store.SafeError(e))
+		slog.Error("operation failed", "error", memory.SafeError(e))
 		os.Exit(1)
 	}
 }

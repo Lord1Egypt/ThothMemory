@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Lord1Egypt/ThothMemory/internal/store"
+	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"os"
 	"strings"
 )
@@ -44,7 +44,7 @@ func Permissions(args []string) error {
 	list := strings.Split(projects, ",")
 	if !revoke {
 		for _, project := range list {
-			if !store.UUID(project) && project != "*" {
+			if !memory.UUID(project) && project != "*" {
 				return errors.New("projects must be UUIDs or an explicit wildcard")
 			}
 		}

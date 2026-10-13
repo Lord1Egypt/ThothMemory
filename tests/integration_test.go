@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Lord1Egypt/ThothMemory/internal/gateway"
+	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/store"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"net/http"
@@ -23,7 +24,7 @@ func (a authTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	r.Header.Set("Authorization", "Bearer "+a.token)
 	return http.DefaultTransport.RoundTrip(r)
 }
-func setup(t *testing.T) (*store.Store, *httptest.Server, store.Principal) {
+func setup(t *testing.T) (*store.Store, *httptest.Server, memory.Principal) {
 	t.Helper()
 	dsn := os.Getenv("THOTH_TEST_DATABASE_URL")
 	if dsn == "" {
@@ -41,15 +42,15 @@ func setup(t *testing.T) (*store.Store, *httptest.Server, store.Principal) {
 	if e = s.Migrate(ctx); e != nil {
 		t.Fatal(e)
 	}
-	p := store.Principal{ID: "test-agent", Token: strings.Repeat("a", 64), Write: true, Projects: []string{"*"}}
+	p := memory.Principal{ID: "test-agent", Token: strings.Repeat("a", 64), Write: true, Projects: []string{"*"}}
 	if e = s.Register(ctx, p); e != nil {
 		t.Fatal(e)
 	}
-	reader := store.Principal{ID: "test-reader", Token: strings.Repeat("b", 64), Projects: []string{"*"}}
+	reader := memory.Principal{ID: "test-reader", Token: strings.Repeat("b", 64), Projects: []string{"*"}}
 	if e = s.Register(ctx, reader); e != nil {
 		t.Fatal(e)
 	}
-	srv := httptest.NewServer(gateway.Handler(s, []store.Principal{p, reader}))
+	srv := httptest.NewServer(gateway.Handler(s, []memory.Principal{p, reader}))
 	t.Cleanup(srv.Close)
 	return s, srv, p
 }
@@ -125,11 +126,11 @@ func TestRealMCPThreeAgentHandoff(t *testing.T) {
 	invoke(t, codex, "update_task", map[string]any{"project_id": project, "task_id": task, "operation_id": "codex-tested-001", "expected_revision": 1, "state": "tested", "git_revision": head}, false)
 	invoke(t, open, "get_task", map[string]any{"project_id": project, "task_id": task}, false)
 	invoke(t, open, "update_task", map[string]any{"project_id": project, "task_id": task, "operation_id": "open-stale-001", "expected_revision": 1, "state": "implemented"}, true)
-	owner := store.Principal{ID: "test-owner", Owner: true, Write: true, Projects: []string{"*"}}
+	owner := memory.Principal{ID: "test-owner", Owner: true, Write: true, Projects: []string{"*"}}
 	if e = s.Register(ctx, owner); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Call(ctx, owner, "attest_evidence", store.Input{ProjectID: project, OperationID: "owner-attest-001", EvidenceID: evidence, Body: "Test owner reviewed evidence"}); e != nil {
+	if _, e = s.Call(ctx, owner, "attest_evidence", memory.Input{ProjectID: project, OperationID: "owner-attest-001", EvidenceID: evidence, Body: "Test owner reviewed evidence"}); e != nil {
 		t.Fatal(e)
 	}
 	invoke(t, open, "update_task", map[string]any{"project_id": project, "task_id": task, "operation_id": "open-wrong-rev-001", "expected_revision": 2, "state": "verified", "git_revision": strings.Repeat("b", 40)}, true)
@@ -166,7 +167,7 @@ func TestConcurrencyIsolationRollbackAndHistory(t *testing.T) {
 	s, srv, p := setup(t)
 	ctx := context.Background()
 	create := func(name string) string {
-		v, e := s.Call(ctx, p, "create_project", store.Input{Name: name, Repository: "https://github.com/tests/" + name + fmt.Sprint(time.Now().UnixNano())})
+		v, e := s.Call(ctx, p, "create_project", memory.Input{Name: name, Repository: "https://github.com/tests/" + name + fmt.Sprint(time.Now().UnixNano())})
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -174,7 +175,7 @@ func TestConcurrencyIsolationRollbackAndHistory(t *testing.T) {
 	}
 	project := create("race")
 	other := create("other")
-	v, e := s.Call(ctx, p, "create_task", store.Input{ProjectID: project, OperationID: "race-create-001", Title: "Concurrent task"})
+	v, e := s.Call(ctx, p, "create_task", memory.Input{ProjectID: project, OperationID: "race-create-001", Title: "Concurrent task"})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -185,7 +186,7 @@ func TestConcurrencyIsolationRollbackAndHistory(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			_, e := s.Call(ctx, p, "update_task", store.Input{ProjectID: project, OperationID: fmt.Sprintf("race-update-%d", i), TaskID: task, ExpectedRevision: 1, State: "implemented"})
+			_, e := s.Call(ctx, p, "update_task", memory.Input{ProjectID: project, OperationID: fmt.Sprintf("race-update-%d", i), TaskID: task, ExpectedRevision: 1, State: "implemented"})
 			errs <- e
 		}(i)
 	}
@@ -200,7 +201,7 @@ func TestConcurrencyIsolationRollbackAndHistory(t *testing.T) {
 	if success != 1 {
 		t.Fatalf("successful conflicting writers = %d", success)
 	}
-	if _, e = s.Call(ctx, p, "attach_evidence", store.Input{ProjectID: other, TaskID: task, OperationID: "cross-project-001", SourceKind: "test", Locator: "log:test", GitRevision: strings.Repeat("a", 40), Outcome: "pass", Body: "cross project"}); e == nil {
+	if _, e = s.Call(ctx, p, "attach_evidence", memory.Input{ProjectID: other, TaskID: task, OperationID: "cross-project-001", SourceKind: "test", Locator: "log:test", GitRevision: strings.Repeat("a", 40), Outcome: "pass", Body: "cross project"}); e == nil {
 		t.Fatal("cross-project evidence accepted")
 	}
 	var n int
@@ -214,10 +215,10 @@ func TestConcurrencyIsolationRollbackAndHistory(t *testing.T) {
 	}
 	restricted := p
 	restricted.Projects = []string{other}
-	if _, e = s.Call(ctx, restricted, "get_task", store.Input{ProjectID: project, TaskID: task}); e == nil {
+	if _, e = s.Call(ctx, restricted, "get_task", memory.Input{ProjectID: project, TaskID: task}); e == nil {
 		t.Fatal("project authorization bypass")
 	}
-	if _, e = s.Call(ctx, restricted, "create_project", store.Input{Name: "forbidden", Repository: "https://github.com/tests/forbidden"}); e == nil {
+	if _, e = s.Call(ctx, restricted, "create_project", memory.Input{Name: "forbidden", Repository: "https://github.com/tests/forbidden"}); e == nil {
 		t.Fatal("scoped credential created project")
 	}
 	reader := client(t, srv, strings.Repeat("b", 64), "reader")
@@ -226,7 +227,7 @@ func TestConcurrencyIsolationRollbackAndHistory(t *testing.T) {
 	// Cancelled transaction cannot create a durable operation.
 	dead, cancel := context.WithCancel(ctx)
 	cancel()
-	if _, e = s.Call(dead, p, "append_event", store.Input{ProjectID: project, OperationID: "cancelled-001", Body: "should fail"}); e == nil {
+	if _, e = s.Call(dead, p, "append_event", memory.Input{ProjectID: project, OperationID: "cancelled-001", Body: "should fail"}); e == nil {
 		t.Fatal("cancelled write succeeded")
 	}
 }
@@ -266,16 +267,16 @@ func BenchmarkMCPContext(b *testing.B) {
 		b.Fatal(e)
 	}
 	defer s.Pool.Close()
-	p := store.Principal{ID: "bench", Write: true, Projects: []string{"*"}}
+	p := memory.Principal{ID: "bench", Write: true, Projects: []string{"*"}}
 	_ = s.Register(ctx, p)
-	v, e := s.Call(ctx, p, "create_project", store.Input{Name: "bench", Repository: "https://github.com/tests/benchmark"})
+	v, e := s.Call(ctx, p, "create_project", memory.Input{Name: "bench", Repository: "https://github.com/tests/benchmark"})
 	if e != nil {
 		b.Fatal(e)
 	}
 	project := id(v)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if _, e = s.Call(ctx, p, "get_project_context", store.Input{ProjectID: project}); e != nil {
+		if _, e = s.Call(ctx, p, "get_project_context", memory.Input{ProjectID: project}); e != nil {
 			b.Fatal(e)
 		}
 	}
@@ -284,39 +285,39 @@ func BenchmarkMCPContext(b *testing.B) {
 func TestClaimOwnershipAndBudgetRollback(t *testing.T) {
 	s, _, p := setup(t)
 	ctx := context.Background()
-	v, e := s.Call(ctx, p, "create_project", store.Input{Name: "Claim fixture", Repository: "https://github.com/tests/claims-" + fmt.Sprint(time.Now().UnixNano())})
+	v, e := s.Call(ctx, p, "create_project", memory.Input{Name: "Claim fixture", Repository: "https://github.com/tests/claims-" + fmt.Sprint(time.Now().UnixNano())})
 	if e != nil {
 		t.Fatal(e)
 	}
 	project := id(v)
-	v, e = s.Call(ctx, p, "create_task", store.Input{ProjectID: project, OperationID: "claim-task-create", Title: "Claim task"})
+	v, e = s.Call(ctx, p, "create_task", memory.Input{ProjectID: project, OperationID: "claim-task-create", Title: "Claim task"})
 	if e != nil {
 		t.Fatal(e)
 	}
 	task := id(v)
-	if _, e = s.Call(ctx, p, "claim_task", store.Input{ProjectID: project, TaskID: task, OperationID: "claim-first-agent", ExpectedRevision: 1}); e != nil {
+	if _, e = s.Call(ctx, p, "claim_task", memory.Input{ProjectID: project, TaskID: task, OperationID: "claim-first-agent", ExpectedRevision: 1}); e != nil {
 		t.Fatal(e)
 	}
-	other := store.Principal{ID: "claim-other", Write: true, Projects: []string{project}}
+	other := memory.Principal{ID: "claim-other", Write: true, Projects: []string{project}}
 	if e = s.Register(ctx, other); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Call(ctx, other, "claim_task", store.Input{ProjectID: project, TaskID: task, OperationID: "claim-second-agent", ExpectedRevision: 2}); e == nil {
+	if _, e = s.Call(ctx, other, "claim_task", memory.Input{ProjectID: project, TaskID: task, OperationID: "claim-second-agent", ExpectedRevision: 2}); e == nil {
 		t.Fatal("other agent stole claim")
 	}
-	if _, e = s.Call(ctx, other, "release_task", store.Input{ProjectID: project, TaskID: task, OperationID: "release-other-agent", ExpectedRevision: 2}); e == nil {
+	if _, e = s.Call(ctx, other, "release_task", memory.Input{ProjectID: project, TaskID: task, OperationID: "release-other-agent", ExpectedRevision: 2}); e == nil {
 		t.Fatal("other agent released claim")
 	}
-	if _, e = s.Call(ctx, p, "release_task", store.Input{ProjectID: project, TaskID: task, OperationID: "release-first-agent", ExpectedRevision: 2}); e != nil {
+	if _, e = s.Call(ctx, p, "release_task", memory.Input{ProjectID: project, TaskID: task, OperationID: "release-first-agent", ExpectedRevision: 2}); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Call(ctx, other, "claim_task", store.Input{ProjectID: project, TaskID: task, OperationID: "claim-after-release", ExpectedRevision: 3}); e != nil {
+	if _, e = s.Call(ctx, other, "claim_task", memory.Input{ProjectID: project, TaskID: task, OperationID: "claim-after-release", ExpectedRevision: 3}); e != nil {
 		t.Fatal(e)
 	}
 	if _, e = s.Pool.Exec(ctx, "UPDATE projects SET event_budget=100,event_count=100 WHERE id=$1", project); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Call(ctx, p, "append_event", store.Input{ProjectID: project, OperationID: "budget-reject-001", Body: "over quota"}); e == nil {
+	if _, e = s.Call(ctx, p, "append_event", memory.Input{ProjectID: project, OperationID: "budget-reject-001", Body: "over quota"}); e == nil {
 		t.Fatal("event budget not enforced")
 	}
 	var n int

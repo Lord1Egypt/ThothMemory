@@ -1,3 +1,4 @@
+// Package store is the PostgreSQL backend of ThothMemory Full.
 package store
 
 import (
@@ -7,33 +8,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/migrations"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Store struct{ Pool *pgxpool.Pool }
-type Principal struct {
-	ID       string   `json:"id"`
-	Token    string   `json:"token"`
-	Write    bool     `json:"write"`
-	Owner    bool     `json:"owner"`
-	Projects []string `json:"projects"`
-}
 
-func (p Principal) Allows(id string) bool {
-	for _, v := range p.Projects {
-		if v == "*" || v == id {
-			return true
-		}
-	}
-	return false
-}
 func Open(ctx context.Context, dsn string) (*Store, error) {
 	c, e := pgxpool.ParseConfig(dsn)
 	if e != nil {
@@ -53,6 +39,18 @@ func Open(ctx context.Context, dsn string) (*Store, error) {
 	}
 	return &Store{p}, nil
 }
+
+func (s *Store) Info() memory.Info {
+	return memory.Info{Product: "ThothMemory", Edition: "full", Version: memory.FullVersion, Database: "postgresql", Capabilities: map[string]bool{"english_stemming": true, "full_text_index": true, "substring_search": true, "dashboard_explorer": true, "export_import": true}}
+}
+
+func (s *Store) Ping(ctx context.Context) error { return s.Pool.Ping(ctx) }
+
+// Call executes one tool through the shared domain service.
+func (s *Store) Call(ctx context.Context, p memory.Principal, tool string, a memory.Input) (any, error) {
+	return memory.Call(ctx, s, p, tool, a)
+}
+
 func (s *Store) Migrate(ctx context.Context) error {
 	tx, e := s.Pool.Begin(ctx)
 	if e != nil {
@@ -97,54 +95,12 @@ func (s *Store) Migrate(ctx context.Context) error {
 	}
 	return tx.Commit(ctx)
 }
-func CanonicalRepository(raw string) (string, error) {
-	raw = strings.TrimSpace(raw)
-	if strings.HasPrefix(raw, "local:") {
-		if !UUID(strings.TrimPrefix(raw, "local:")) {
-			return "", errors.New("local identity must be local:<uuid>")
-		}
-		return raw, nil
-	}
-	if strings.HasPrefix(raw, "git@") {
-		raw = "ssh://git@" + strings.Replace(strings.TrimPrefix(raw, "git@"), ":", "/", 1)
-	}
-	u, e := url.Parse(raw)
-	if e != nil || u.Hostname() == "" || (u.Scheme != "https" && u.Scheme != "ssh") {
-		return "", errors.New("use canonical https/ssh remote or explicit local:<uuid>")
-	}
-	if u.RawQuery != "" || u.Fragment != "" || u.Port() != "" {
-		return "", errors.New("remote must not contain query, fragment or custom port")
-	}
-	path := strings.TrimSuffix(strings.Trim(u.Path, "/"), ".git")
-	if path == "" || strings.Contains(path, "..") {
-		return "", errors.New("invalid repository path")
-	}
-	if strings.EqualFold(u.Hostname(), "github.com") {
-		path = strings.ToLower(path)
-	}
-	return strings.ToLower(u.Hostname()) + "/" + path, nil
-}
-func UUID(s string) bool {
-	if len(s) != 36 {
-		return false
-	}
-	for i, c := range s {
-		if i == 8 || i == 13 || i == 18 || i == 23 {
-			if c != '-' {
-				return false
-			}
-		} else if !strings.ContainsRune("0123456789abcdefABCDEF", c) {
-			return false
-		}
-	}
-	return true
-}
-func Revision(s string) bool {
-	if len(s) != 40 && len(s) != 64 {
-		return false
-	}
-	_, e := hex.DecodeString(s)
-	return e == nil
+
+// SchemaVersion returns the newest applied migration.
+func (s *Store) SchemaVersion(ctx context.Context) (string, error) {
+	var v string
+	e := s.Pool.QueryRow(ctx, "SELECT COALESCE(max(version),'') FROM schema_migrations").Scan(&v)
+	return v, e
 }
 
 type Queryer interface {
@@ -171,7 +127,8 @@ func Rows(ctx context.Context, q Queryer, sql string, args ...any) ([]map[string
 	}
 	return out, r.Err()
 }
-func (s *Store) Register(ctx context.Context, p Principal) error {
+
+func (s *Store) Register(ctx context.Context, p memory.Principal) error {
 	_, e := s.Pool.Exec(ctx, "INSERT INTO principals(id) VALUES($1) ON CONFLICT DO NOTHING", p.ID)
 	return e
 }
