@@ -28,10 +28,8 @@ Three editions on one shared core. Nothing here is released, merged or deployed.
 - Fixes found on the way: lowercase UUID/revision lookups; hook registration used the
   canonical form instead of the remote URL; QEMU/musl MariaDB bootstrap (glibc variant).
 
-## Unreleased — 0.1.2 candidate
+## Security hardening included in 0.2.0
 
-- Correct Docker automatic target arguments so arm64 images contain ARM executables;
-  inspect ELF architectures and run both platform servers in PR CI.
 - Preserve scoped/revoked credential policy across setup; add local permissions CLI.
 - Protect Windows secrets, configuration backups and database dumps using owner ACLs.
 - Honor isolated/global client homes consistently for instructions and hooks.
@@ -45,6 +43,18 @@ Three editions on one shared core. Nothing here is released, merged or deployed.
   Windows regressions; report measured audit results under docs/audits.
 
 No release or production upgrade is performed by this audit branch.
+
+## 0.1.2: ARM64 container fix only
+
+- **Fix (high):** the published 0.1.1 `linux/arm64` container held the x86-64 server binary
+  (an explicit `ARG TARGETARCH=amd64` default overrode BuildKit's automatic value). The
+  Dockerfile now takes the automatic target values, and the platform smoke test inspects the
+  ELF `e_machine` of the executable inside each image (62 for amd64, 183 for arm64) before
+  running it, so an x86 binary that merely runs on an x86 host can no longer pass.
+- Smoke test waits on the final PostgreSQL server's TCP readiness instead of the temporary
+  initialization server's socket.
+- No schema, migration, API, dashboard or behavior change. Version strings and default image
+  tag move to 0.1.2. The published 0.1.1 tag and image digests are not modified.
 
 ## 0.1.1
 
