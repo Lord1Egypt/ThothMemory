@@ -83,8 +83,10 @@ func (s *Store) Search(ctx context.Context, project string, q memory.SearchQuery
 	where := []string{"TRUE"}
 	var matchArgs []any
 	if phrase, terms := searchTerms(q.Text); phrase != "" {
-		rank = "CASE WHEN u.st LIKE ? THEN 2 ELSE 1 END"
-		args = append(args, likePattern(phrase))
+		// Deterministic: every match scores 1, the whole phrase adds 1, and the
+		// phrase in a record or task title adds 1 (an event's title is its tool name).
+		rank = "1+(u.st LIKE ?)+(u.kind<>'event' AND LOWER(u.title) LIKE ?)"
+		args = append(args, likePattern(phrase), likePattern(phrase))
 		all := make([]string, len(terms))
 		for i, t := range terms {
 			all[i] = "u.st LIKE ?"
@@ -187,6 +189,9 @@ func (s *Store) Overview(ctx context.Context, all bool, ids []string) ([]memory.
 		}
 		for _, r := range found {
 			byID[k+r["id"].(string)] = r
+			if k == "observed_ref" {
+				delete(r, "id") // PostgreSQL reports the event as source_id only
+			}
 		}
 	}
 	counts, e := rows(ctx, s.DB, "SELECT project_id,state,COUNT(*) AS n FROM tasks WHERE project_id IN ("+in(len(projects))+") GROUP BY project_id,state", anyArgs(projects)...)
