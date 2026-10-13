@@ -51,6 +51,16 @@ jobs:
         env:
           THOTH_IMAGE: thoth-memory:ci
         run: ./scripts/acceptance.sh
+      - name: Enable arm64 emulation for actual candidate validation
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - name: Verify executable architectures and exercise both candidate servers
+        env:
+          IMAGE: thoth-memory:ci-platform
+          SMOKE_LOCAL_IMAGES: '1'
+        run: |
+          docker tag thoth-memory:ci "$IMAGE-amd64"
+          docker build --platform linux/arm64 -t "$IMAGE-arm64" .
+          ./scripts/smoke-platforms.sh
       - if: always()
         run: docker compose logs --no-color
   windows:

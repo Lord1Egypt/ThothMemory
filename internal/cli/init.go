@@ -70,7 +70,7 @@ func InitConfig() error {
 	}
 	image := os.Getenv("THOTH_IMAGE")
 	if image == "" {
-		image = "lord1egypt/thoth-memory:0.1.1"
+		image = "lord1egypt/thoth-memory:0.1.2"
 	}
 	port := os.Getenv("THOTH_PORT")
 	if port == "" {
