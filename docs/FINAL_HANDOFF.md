@@ -1,5 +1,51 @@
 # Verified engineering checkpoint — 2026-10-13
 
+## Current product launch checkpoint: external security gate blocked
+
+The owner now conditionally authorizes PR #2/#8 merges and unified v0.2.0
+publication after required CI/security success. Production remains excluded.
+PR #2 integration head a211b973bddd686e1f87253fa6abd498395d8570 passed CI and
+GitGuardian and merged as c6a78e5412bc7ddc569382bcd7299a5b80511216.
+Its main CI 38462178511 passed. No intermediate v0.1.3 release was published.
+
+PR #8 targets main and retains the shared core while incorporating that history
+without rewriting or cherry-picking duplicate commits. Product packaging,
+beginner-first README, English/Arabic tutorials and safe upgrade documentation
+are implemented. Unified release scripts stage all Full/UltraLite assets and
+separate Full/Mini registry candidates before publishing the primary release.
+Versions prepared: Full 0.2.0, Mini/UltraLite 0.1.0. Historical v0.1.2 unchanged.
+
+Engineering revision 7aec0c02451a7467fa4bfdb59c958dfa03c20766 passed all six
+jobs in https://github.com/Lord1Egypt/ThothMemory/actions/runs/38463262041 .
+Includes native newcomer tests on Windows amd64/Linux amd64/Linux ARM64 with
+actual Codex CLI registration and real MCP stdio idea persistence/backup/restore.
+Mini's newly added scan initially found CVE-2026-84782 in libssl3t64 3.15;
+the pinned 3.16 fix passed the fresh scan. No vulnerability suppression.
+
+Local integration/race/static tests, nine-binary packaging checksums, workflow
+lint, Full/Mini installer/recovery scenarios and 12-project historical dashboard
+passed. Original fields/counts survived migrations 005–007 (new generated search
+fields excluded). Dashboard: 84 routes, no JS errors/overflow, dark mobile.
+Candidate evidence/assets live in .validation/launch-* and bin/launch-dist/.
+The final release must rebuild from its tag; no v0.2.0 public asset is claimed.
+
+GitGuardian remains FAILURE on historical synthetic fixture incident 38171534.
+Owner action was requested through the UI and remains unanswered; elapsed time
+does not clear this gate. Do not merge PR #8 or tag/publish v0.2.0 until the
+actual check succeeds. Direct incident URL and complete resume steps are in
+[LAUNCH_STATUS.md](LAUNCH_STATUS.md). No further publication permission is
+needed within the owner's conditional scope once mandatory checks pass.
+
+ADB is empty; final Mini digest/device retest remains BLOCKED. Historical
+Samsung pass is preserved, and Android publication is allowed only as the
+documented preview. No battery/endurance claim. Original production containers
+retain their stop timestamps; no credentials/configuration/data were changed.
+
+Next action: owner reviews/marks the synthetic fixture false positive in
+GitGuardian; inspect the updated PR check, finalize release-facing availability
+wording, obtain green checks on that head, then merge/tag/publish/verify the
+complete family. Do not describe the launch as complete while blocked.
+
 ## Current release status: v0.1.2 completed
 
 Owner approved PR #9 merge and conditional v0.1.2 publication. PR #9 merged as

@@ -5,7 +5,8 @@ tag=${1:?tag}; out=${2:-dist}
 if state=$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null); then
   [[ $state == true ]] || { echo 'Published versions are immutable' >&2; exit 1; }
   existing=$(mktemp -d); trap 'rm -rf "$existing"' EXIT
-  gh release download "$tag" --dir "$existing"
+  count=$(gh release view "$tag" --json assets --jq '.assets | length')
+  if [[ $count -gt 0 ]]; then gh release download "$tag" --dir "$existing"; fi
   for asset in "$out"/*; do
     name=${asset##*/}
     if [[ -f $existing/$name ]]; then cmp "$asset" "$existing/$name"; else gh release upload "$tag" "$asset"; fi
