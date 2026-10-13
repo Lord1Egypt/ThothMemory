@@ -65,3 +65,15 @@ stderr fallback. A missing executable callback was reproduced silently failing o
 baseline; [the regression](evidence/plugin-failure-after.txt) verifies visible unsynced
 reporting without credential/config/error details. [Actual client excerpts](evidence/client-results.txt)
 and [native Windows acceptance](evidence/windows-acceptance.txt) and [native CLI suite](evidence/windows-unit-tests.txt) preserve precise scope.
+
+## Next-generation update, 2026-10-13 (installed: Claude Code 2.1.296, Codex 0.162.1, OpenCode 1.17.13)
+
+| Capability | Claude Code | Codex CLI | OpenCode (legacy) |
+|---|---|---|---|
+| MCP over stdio to UltraLite | REAL: `claude mcp list` ✔ Connected (user scope; project scope waits for human approval) | Registered, stdio; project config needs folder trust | REAL: `opencode mcp list` ✓ connected |
+| Real-model memory write from `AGENTS.md` reference only | REAL: added a note under its own credential | REAL: recorded a PROPOSED idea and a "deferred, unverified" handoff | not run |
+| Real cross-agent retrieval | REAL: retrieved Codex's idea and handoff with no shared chat | n/a (author) | not run |
+| `SessionStart`, `UserPromptSubmit`, `Stop`, `SessionEnd` into memory | REAL, all four | **Not verified**: hooks need folder trust and hook review in Codex's UI; no events observed | plugin fixture only |
+| `PreCompact` into memory | REAL (`/compact`) | not verified | plugin fixture only |
+| Windows command hooks | unsupported (use instructions and MCP writes) | unsupported | plugin works |
+Evidence: [real-client-handoff.md](evidence/real-client-handoff.md).

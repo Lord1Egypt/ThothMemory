@@ -184,12 +184,13 @@ What is **proven** to be captured, by whom:
 |---|---|---|
 | Project registered from the canonical `origin`, session started or resumed, context printed | `SessionStart` hook | Real Claude Code; hook command strings for Codex |
 | Your request stored as a note (opt-in, secrets skipped, duplicates suppressed) | `UserPromptSubmit` hook | Real Claude Code |
-| Compaction marker on the same session | `PreCompact` hook | Hook command only; not triggered in a real session yet |
+| Compaction marker on the same session | `PreCompact` hook | Real Claude Code (`/compact`) |
 | Idle (rate-limited), error, session end | `Stop`, `SessionEnd` | Real Claude Code |
 | Ideas, notes, decisions, issues, tasks, test results, checkpoints, handoffs | The agent, through MCP tools, following the protocol | **Real Codex and real Claude Code** |
 
-Not proven: real Codex firing hooks (it needs hook review in its UI and none arrived in our
-runs), and real-model OpenCode sessions. Hooks cannot infer meaning; **semantic memory comes
+Not proven: real Codex firing hooks (it loads project hooks only after you trust the folder and
+review the hooks in its own UI; see [automatic memory](docs/AUTOMATIC_MEMORY.md)), and
+real-model OpenCode sessions. Hooks cannot infer meaning; **semantic memory comes
 from the agent writing through MCP**, which is exactly what the protocol asks. Details,
 privacy rules and limits: [automatic memory](docs/AUTOMATIC_MEMORY.md).
 

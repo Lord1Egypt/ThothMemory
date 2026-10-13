@@ -15,19 +15,29 @@ happen, and neither is a promise written in a prompt.
 |---|---|---|---|
 | Session start | `SessionStart` hook / OpenCode plugin | Project registered from canonical `origin` (once), one durable session started or resumed per agent, untrusted context printed for the agent | Real Claude Code run; `TestAutomaticMemoryEndToEnd` |
 | Your request | `UserPromptSubmit` hook, **opt-in** | Note "User request" (≤2,000 characters), linked to the session; duplicates and one-word prompts skipped; credential-looking prompts skipped | Real Claude Code run; end-to-end test |
-| Before compaction | `PreCompact` hook | Checkpoint on the same session: metadata and a reminder, never a made-up summary | Hook command in the end-to-end test; **not yet triggered in a real session** |
+| Before compaction | `PreCompact` hook | Checkpoint on the same session: metadata and a reminder, never a made-up summary | **Real Claude Code** (`claude -p --continue "/compact"`) and the end-to-end test |
 | Idle (end of a turn) | `Stop` hook / OpenCode `session.idle` | One lifecycle event, at most every 10 minutes or when HEAD changed | Real Claude Code run; end-to-end test |
 | Error | OpenCode `session.error` | Lifecycle event | Plugin fixture only |
 | Session end | `SessionEnd` hook | Checkpoint "session ended"; the session stays *unfinished* unless the agent finished it | Real Claude Code run |
 | Ideas, notes, decisions, issues, tasks, tests, checkpoints, handoffs | The agent via `memory_record_*` and friends | The agent's concise records | Real Codex run and real Claude Code run |
 
-Per client: **Claude Code** exposes every event above. **Codex** has the same hook
-events but requires you to review the hook commands in its own UI first; in our runs
-no Codex hook ever reached memory even with trust bypassed (cause not isolated), so
-treat Codex as *MCP writes plus instructions* until you have seen `capture` activity
-yourself. **OpenCode** has a plugin with context, idle, error and compaction
-callbacks but no prompt event we could rely on. Where a client gives no event, the
-protocol makes the agent persist that information explicitly.
+Per client:
+
+- **Claude Code** exposes every event above; all five fired from the real client.
+- **Codex** (0.162.1) has the same hook model (`hooks` is a stable feature, `hooks.json`, per-hook
+  `trusted_hash`), but **project hooks only load once you trust the folder and review the hooks
+  in Codex itself**. In our runs Codex emitted no hook activity at all, and its `-c projects.<path>`
+  override is ignored by design, so we could not verify real firing without bypassing its trust
+  control, which we will not do. To enable: run `codex` interactively in the project, accept the
+  folder trust, open `/hooks`, review and approve the ThothMemory commands, then check
+  `TM capture status` and `TM projects` after a short session. Until you have seen it work, rely
+  on the fallback that always works: **instructions + the agent's own MCP writes** (verified with
+  real Codex).
+- **OpenCode** has a plugin with context, idle, error and compaction callbacks but no prompt
+  event we could rely on. Its connection is verified (`opencode mcp list`); a real-model session
+  was not exercised.
+
+Where a client gives no event, the protocol makes the agent persist that information explicitly.
 
 ## Capture modes
 

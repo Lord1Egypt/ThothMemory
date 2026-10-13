@@ -38,8 +38,8 @@ Proven with **deterministic fixtures and real binaries** (`TestAutomaticMemoryEn
 all 20 requested scenarios, including a locked database, queue replay without duplication,
 secret refusal, scoped credentials and disabling.
 
-**Not proven**: real Codex firing hooks (none reached memory even with trust bypassed;
-cause not isolated), a real `PreCompact` event, a real-model OpenCode session, any
+**Not proven**: real Codex firing hooks (Codex loads project hooks only after folder trust and hook
+review in its own UI, which only the owner can grant), a real-model OpenCode session, any
 Windows command hook (unsupported), and long-running behavior.
 
 ## Open risks and limits
