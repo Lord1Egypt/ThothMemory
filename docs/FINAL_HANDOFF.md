@@ -1,5 +1,77 @@
 # Verified engineering checkpoint — 2026-10-13
 
+## Release execution checkpoint
+
+Current release action is **awaiting explicit owner approval**, as required by
+section 3 of the owner's final integration mission. No approval was inferred.
+Rechecked PR #9 at `ef4867f2d3fc642dd91cee41c77177fcbda2ba94`: Draft/open,
+MERGEABLE/CLEAN; test, Windows and GitGuardian all SUCCESS on its actual head.
+Main remains `88a4a3bf419dce13994b56063f5c925160ee63f2`. Its 3 patch commits
+change 15 files with no migrations, web assets or database dependency changes.
+Retained image archive checksum and both architecture/MCP smoke logs verified.
+No unchanged binary was rebuilt and no successful suite was rerun.
+
+Origin tags remain v0.1.0 `4839a2e1d1049ce5daf9df123b23b598488b46fe` and
+v0.1.1 `854cb758489dfa4fd0dd2ba3b6d129773f8d39a2` (annotated tag objects).
+v0.1.2 is absent; GitHub currently exposes only the v0.1.1 release. Docker Hub
+secret names are configured; their validity is not claimed until publication.
+
+The two separate approval actions are:
+
+1. Ready PR #9 and merge its verified head into main using a merge commit;
+   record the resulting SHA and require successful CI on that merge.
+2. After that success, annotate/push v0.1.2 on the approved merge SHA. This
+   publishes a public candidate image, tests its immutable digest, publishes
+   version 0.1.2 and GitHub assets, and promotes Full's latest tag. Follow through
+   with independent release/checksum/index/child-ELF/startup verification.
+
+Executable resume after action 1 is explicitly approved:
+
+```sh
+cd /home/lordegypt/DataBase/ThothMemory-arm64patch
+gh pr ready 9
+gh pr merge 9 --merge --match-head-commit ef4867f2d3fc642dd91cee41c77177fcbda2ba94
+gh api repos/Lord1Egypt/ThothMemory/pulls/9 --jq .merge_commit_sha
+```
+
+Fetch the merge and record its exact SHA, inspect its main-branch CI, and only
+after action 2 approval use `git tag -a v0.1.2 <APPROVED_MERGE_SHA> -m
+"ThothMemory 0.1.2: ARM64 container fix"` and `git push origin refs/tags/v0.1.2`.
+The Release→Docker workflow chain owns publication; do not dispatch it a second
+time while it runs. See RELEASE_PLAN.md for verification and corrected rollback.
+
+| Product | Version/tag | Prepared / CI verified | Approved / published / public verified / deployed |
+|---|---|---|---|
+| ARM64 fix | v0.1.2 | yes / yes at PR #9 head | no / no / no / no |
+| Audit hardening | v0.1.3 | existing branch / pre-integration only | no / no / no / no |
+| Full | v0.2.0 | candidate / pre-integration only | no / no / no / no |
+| Mini | mini-v0.1.0 | glibc ARM64 candidate / host+QEMU verified | no / no / no / no |
+| UltraLite | ultralite-v0.1.0 | five native artifacts / existing native CI | no / no / no / no |
+
+Mini's proposed image namespace is `lord1egypt/thoth-memory-mini:0.1.0`;
+Full keeps `lord1egypt/thoth-memory`. UltraLite assets use existing explicit
+`thothmemory-ultralite-OS-ARCH` names plus SHA256SUMS. The edition tags do not
+match the current Full release trigger. Edition publication automation must be
+implemented and validated after integration, before approving those tag pushes;
+the names here reserve distinct identities and do not claim working triggers.
+
+PR #8 engineering CI at c9b852a is SUCCESS, all six jobs, run 38452588196.
+GitGuardian remains FAILURE on synthetic test fixture incident 38171534:
+https://dashboard.gitguardian.com/workspace/668579/incidents/38171534?occurrence=303908630
+Owner: inspect the test-only occurrence, mark false positive with reason
+"synthetic secret-rejection fixture; no credential authenticates against a service",
+then recheck the PR status. Current source constructs the fixture at runtime.
+Existing secret-history audit found no real credentials; no new evidence contradicts it.
+Do not bypass or globally disable this check.
+
+ADB still has no device. Final Mini digest retest remains BLOCKED; preserve the
+historical physical-device pass and all documented endurance/process limitations.
+Production containers retain their original stop timestamps; backup and original
+volume preserved. Further integration follows the owner's order: PR #2 after #9
+merges, then PR #8 after #2 merges. Each merge/release has its own approval.
+
+## Prior engineering verification
+
 This follow-up began at `d391f0b247dd83f595f079945fa11af41a68914c`, not the older
 `fd23809` checkpoint. PR #8 already existed as a Draft targeting PR #2's branch.
 PR #2 remains open at `ecb841547d5365524cb718d6443f171820692d92`; independent

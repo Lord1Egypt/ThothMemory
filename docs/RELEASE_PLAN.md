@@ -40,7 +40,7 @@ when it succeeds, `docker.yml` (workflow_run) builds `linux/amd64,linux/arm64`, 
 Before Gate 2 (tag):
 - [ ] Gate 1 done; fresh CI on the merge commit in `main` is green.
 - [ ] Docker Hub secrets exist (`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`: present).
-- [ ] Record the rollback target: index `sha256:0edd6990289b12099a5c4d44525e9e5bf03fc52934ba09dfb43f293ed4bf9e63` (v0.1.1, amd64 content in both child manifests).
+- [ ] Record the historical index `sha256:0edd6990289b12099a5c4d44525e9e5bf03fc52934ba09dfb43f293ed4bf9e63`; it is an amd64-only fallback, never an ARM64 recovery target.
 - [ ] `git tag -a v0.1.2 -m "ThothMemory 0.1.2: ARM64 container fix"` on the merge commit (annotated).
 
 After the workflow (verify before announcing; each command is read-only):
@@ -52,11 +52,16 @@ After the workflow (verify before announcing; each command is read-only):
 
 Rollback:
 - Before tag: revert the merge (new commit). Nothing published.
-- After tag, image problem: re-point tags to the previous digest (needs your Docker Hub credentials):
-  `docker buildx imagetools create -t lord1egypt/thoth-memory:latest lord1egypt/thoth-memory@sha256:0edd6990…e63`
-  (this restores the arm64 defect for `latest` users) and `gh release edit v0.1.2 --draft`.
-  Do **not** delete or move the `v0.1.2` tag or overwrite `0.1.1`; ship `0.1.3` instead.
-- Users: pin `THOTH_IMAGE=lord1egypt/thoth-memory:0.1.1` (amd64 only). No schema change, so data is unaffected either way.
+- After publication, preserve semantic-version tags and assets. Record the failing
+  index/child digests and workflow logs; prepare a new corrective patch version.
+  Do not repoint the multi-platform `latest` to v0.1.1: that would restore its ARM64 defect.
+- For an affected disposable ARM64 deployment: stop its application container,
+  preserve its data volume, and resume only with an independently verified ARM64
+  digest or the corrective release. No verified older ARM64 rollback image exists.
+  Never use `down -v`. Changing production requires separate owner authorization.
+- amd64 users may explicitly pin the historical digest above as an amd64-only
+  fallback; this patch has no schema change. Once v0.1.2 is independently verified,
+  record its index and both child digests as the recovery baseline for later releases.
 
 ## 3. What PR #2 needs after PR #9 merges
 

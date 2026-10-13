@@ -9,7 +9,7 @@ the production fingerprint; 12 projects).
 | Branch / PR | Purpose | Head | CI |
 |---|---|---|---|
 | `patch/0.1.2-arm64-fix`, Draft PR #9 → `main` | ARM64 container fix only | `ef4867f2d3fc642dd91cee41c77177fcbda2ba94` | **green**: [run 38441187422](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38441187422) incl. ELF checks, GitGuardian pass |
-| `nextgen/full-and-mini`, Draft PR #8 → `audit/preproduction-0.1.2` | Full + Mini + UltraLite + automatic memory | this branch tip | **green except GitGuardian**: [run 38440745131](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38440745131) |
+| `nextgen/full-and-mini`, Draft PR #8 → `audit/preproduction-0.1.2` | Full + Mini + UltraLite + automatic memory | tested engineering revision `c9b852adbcf9820eb8d6a5ecff0c1edefb84846a` | **six CI jobs green; GitGuardian separately failed**: [run 38452588196](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38452588196) |
 | PR #2 `audit/preproduction-0.1.2` | audit hardening | `ecb8415` | green, unmerged |
 
 GitGuardian reports one synthetic password fixture introduced in commit `1aeacc34`,
@@ -25,8 +25,9 @@ Scope 15 files including release notes, no migration, no behavior change ([notes
 published arm64 image holds the amd64 binary (`e_machine` 62, identical SHA-256). Candidate: amd64
 executable `d7b9c3fa…`, e_machine 62; arm64 `573e4c1c…`, e_machine **183**. Tests, govulncheck, real
 server smoke on both platforms pass (arm64 under QEMU locally; CI repeats it). **Ready for owner
-review.** Needs: merge, tag `v0.1.2`, run the publication workflow, verify child-manifest ELF types by
-digest, then promote `latest`.
+review.** Needs separate merge and tag/publication approvals. The tag starts the Release
+workflow; Docker publication follows automatically, validates the candidate by digest, then
+promotes `latest`. Independently verify public assets and child-manifest ELF types afterward.
 
 ## 2. Full (PostgreSQL), version proposal 0.2.0
 
