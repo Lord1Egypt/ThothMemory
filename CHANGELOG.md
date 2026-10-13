@@ -1,6 +1,23 @@
 # Changelog
 
-## 0.1.2 (proposed, unreleased): ARM64 container fix only
+## Unreleased — 0.2.0 security hardening
+
+
+- Preserve scoped/revoked credential policy across setup; add local permissions CLI.
+- Protect Windows secrets, configuration backups and database dumps using owner ACLs.
+- Honor isolated/global client homes consistently for instructions and hooks.
+- Add migration 005 for NFC/simple search and literal technical/Arabic substrings.
+- Evaluate search query representations once in PostgreSQL generic prepared plans.
+- Include durable checkpoints and incomplete sessions in briefings; preserve UTF-8.
+- Resolve existing image/port choices correctly in Windows bootstrap.
+- Report failed OpenCode lifecycle metadata writes as sanitized unsynced warnings.
+- Guard unverified OpenCode V2 registration and serialize draft-only publication.
+- Add project boundary, cancellation, realistic handoff, migration rollback and native
+  Windows regressions; report measured audit results under docs/audits.
+
+No release or production upgrade is performed by this audit branch.
+
+## 0.1.2: ARM64 container fix only
 
 - **Fix (high):** the published 0.1.1 `linux/arm64` container held the x86-64 server binary
   (an explicit `ARG TARGETARCH=amd64` default overrode BuildKit's automatic value). The

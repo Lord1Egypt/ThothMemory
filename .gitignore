@@ -17,3 +17,6 @@ coverage.out
 opencode.json
 opencode.jsonc
 .opencode/plugins/thothmemory.js
+
+# Python audit helper bytecode
+__pycache__/

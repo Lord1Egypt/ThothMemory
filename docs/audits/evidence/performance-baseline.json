@@ -1,0 +1,213 @@
+{
+  "dataset_records": {
+    "empty": 0,
+    "small": 100,
+    "moderate": 2500
+  },
+  "workloads": {
+    "empty": {
+      "context": {
+        "n": 60,
+        "median_ms": 5.357,
+        "p95_ms": 7.293,
+        "max_ms": 30.377
+      },
+      "search": {
+        "n": 60,
+        "median_ms": 3.02,
+        "p95_ms": 5.567,
+        "max_ms": 13.471
+      },
+      "write": {
+        "n": 60,
+        "median_ms": 4.927,
+        "p95_ms": 7.263,
+        "max_ms": 10.578
+      }
+    },
+    "small": {
+      "context": {
+        "n": 60,
+        "median_ms": 3.741,
+        "p95_ms": 4.891,
+        "max_ms": 5.782
+      },
+      "search": {
+        "n": 60,
+        "median_ms": 7.402,
+        "p95_ms": 9.018,
+        "max_ms": 11.123
+      },
+      "write": {
+        "n": 60,
+        "median_ms": 5.519,
+        "p95_ms": 7.579,
+        "max_ms": 8.911
+      }
+    },
+    "moderate": {
+      "context": {
+        "n": 60,
+        "median_ms": 5.055,
+        "p95_ms": 6.577,
+        "max_ms": 7.83
+      },
+      "search": {
+        "n": 60,
+        "median_ms": 41.816,
+        "p95_ms": 81.531,
+        "max_ms": 99.65
+      },
+      "write": {
+        "n": 60,
+        "median_ms": 5.536,
+        "p95_ms": 7.129,
+        "max_ms": 8.637
+      }
+    }
+  },
+  "concurrent_120_events_ms": 410.438,
+  "database": {
+    "database_bytes": 23000767,
+    "connections": 9,
+    "events": 2908,
+    "records": 2608
+  },
+  "restart_ready_ms": 1123.773,
+  "idle_samples": [
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.781
+      },
+      "postgres": {
+        "cpu_percent": 3.83,
+        "memory_mib": 91.55
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.773
+      },
+      "postgres": {
+        "cpu_percent": 4.28,
+        "memory_mib": 92.16
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.922
+      },
+      "postgres": {
+        "cpu_percent": 4.66,
+        "memory_mib": 91.04
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.918
+      },
+      "postgres": {
+        "cpu_percent": 0.46,
+        "memory_mib": 94.61
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.918
+      },
+      "postgres": {
+        "cpu_percent": 0.03,
+        "memory_mib": 94.01
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.918
+      },
+      "postgres": {
+        "cpu_percent": 0.03,
+        "memory_mib": 94.84
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 4.67,
+        "memory_mib": 10.96
+      },
+      "postgres": {
+        "cpu_percent": 0.02,
+        "memory_mib": 94.29
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.918
+      },
+      "postgres": {
+        "cpu_percent": 0.02,
+        "memory_mib": 93.86
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.918
+      },
+      "postgres": {
+        "cpu_percent": 0.05,
+        "memory_mib": 94.77
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.918
+      },
+      "postgres": {
+        "cpu_percent": 0.05,
+        "memory_mib": 93.66
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 9.918
+      },
+      "postgres": {
+        "cpu_percent": 0.03,
+        "memory_mib": 93.94
+      }
+    },
+    {
+      "app": {
+        "cpu_percent": 0.0,
+        "memory_mib": 10.47
+      },
+      "postgres": {
+        "cpu_percent": 0.03,
+        "memory_mib": 93.48
+      }
+    }
+  ],
+  "processes": {
+    "app": {
+      "count": 1,
+      "parent_rss_kib": 21036,
+      "parent_threads": 16,
+      "parent_fd_count": 15
+    },
+    "db": {
+      "count": 17,
+      "parent_rss_kib": 30204,
+      "parent_threads": 1,
+      "parent_fd_count": 10
+    }
+  }
+}

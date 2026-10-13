@@ -82,3 +82,6 @@ jobs:
           $before = Get-FileHash .secrets/agent_token
           ./bin/thothmemory.exe init-config
           if ((Get-FileHash .secrets/agent_token).Hash -ne $before.Hash) { throw 'Credentials rotated unexpectedly' }
+      - name: Windows existing image selection regression
+        shell: pwsh
+        run: ./tests/windows-image-selection.ps1 -SetupPath (Join-Path $PWD 'setup.ps1')

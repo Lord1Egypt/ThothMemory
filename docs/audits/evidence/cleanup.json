@@ -1,0 +1,18 @@
+{
+  "removed": {
+    "audit_containers": 27,
+    "audit_named_volumes": 9,
+    "audit_networks": 9,
+    "candidate_image_tags": 6
+  },
+  "audit_compose_containers_remaining": 0,
+  "original_production_containers_unchanged": true,
+  "unrelated_running_workloads_preserved": 4,
+  "selection": "Compose project label thoth-audit-*; candidate repository tags thoth-memory:audit-* only; three exact pre-existing ThothMemory validation project labels with temporary-directory configuration",
+  "global_prune_used": false,
+  "earlier_temporary_validation_environments_removed": {
+    "containers": 9,
+    "volumes": 3,
+    "networks": 3
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "initial_cross_project_access": true,
+  "startup_policy_until_explicit_reload": true,
+  "narrowed_after_reload": true,
+  "readonly_discovery": 9,
+  "readonly_write_rejected": true,
+  "revoked_after_setup_and_reload": true
+}

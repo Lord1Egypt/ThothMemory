@@ -1,0 +1,16 @@
+{
+  "amd64": {
+    "image_binary_sha256": "28dc690b962556a9dd462b631be65f035034656de44835440c24653f29b391d8",
+    "release_binary_sha256": "28dc690b962556a9dd462b631be65f035034656de44835440c24653f29b391d8",
+    "identical": true
+  },
+  "arm64": {
+    "image_binary_sha256": "28dc690b962556a9dd462b631be65f035034656de44835440c24653f29b391d8",
+    "release_binary_sha256": "b3bd0c8671bdeb869d93255b2abfa37fe0000027a9fc509c8ceef09a82dda1bd",
+    "identical": false,
+    "manifest_architecture": "arm64",
+    "actual_elf_machine": "x86-64 (62)",
+    "expected_elf_machine": "AArch64 (183)",
+    "direct_child_manifest_confirmed": true
+  }
+}

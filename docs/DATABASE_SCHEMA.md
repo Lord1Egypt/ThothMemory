@@ -40,8 +40,8 @@ Composite foreign keys prevent project mixing. Supersession is one replacement p
 record; replacing that replacement forms a preserved chain. Dependencies may only
 refer to existing tasks when a new task is created, preventing dependency cycles.
 History tables have rejecting triggers; runtime cannot insert owner attestations.
-JSONB is limited to idempotent response snapshots; core entities are typed columns.
-Generated tsvector columns have GIN indexes; project/state/time indexes bound queries.
+JSONB holds idempotent response snapshots and transactional event details; core entities are typed columns.
+Generated English and simple tsvector columns have GIN indexes; project/state/time indexes bound queries. Migration 005 adds NFC-normalized text and simple vectors without changing immutable history. Literal substring search complements full-text retrieval.
 
 Mutations reserve an event budget slot, lock idempotency, compare revisions, update
 state and append history in one transaction. Failed operations roll back the budget

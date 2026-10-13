@@ -14,6 +14,29 @@ import (
 	"time"
 )
 
+// ClientHome honors the same documented profile overrides for registration,
+// instructions and hooks. Tests and custom profiles must never fall back to normal homes.
+func ClientHome(client string) string {
+	home, _ := os.UserHomeDir()
+	switch client {
+	case "codex":
+		if v := os.Getenv("CODEX_HOME"); v != "" {
+			return v
+		}
+		return filepath.Join(home, ".codex")
+	case "claude":
+		if v := os.Getenv("CLAUDE_CONFIG_DIR"); v != "" {
+			return v
+		}
+		return filepath.Join(home, ".claude")
+	default:
+		if v := os.Getenv("XDG_CONFIG_HOME"); v != "" {
+			return filepath.Join(v, "opencode")
+		}
+		return filepath.Join(home, ".config", "opencode")
+	}
+}
+
 func confirm(targets []string, yes bool) error {
 	fmt.Println("Target files:")
 	for _, p := range targets {
@@ -35,7 +58,7 @@ func save(path string, b []byte) error {
 		if string(old) == string(b) {
 			return nil
 		}
-		if e = os.WriteFile(path+".thoth-backup-"+time.Now().UTC().Format("20060102T150405.000000000"), old, 0600); e != nil {
+		if e = exclusive(path+".thoth-backup-"+time.Now().UTC().Format("20060102T150405.000000000"), old); e != nil {
 			return e
 		}
 	} else if !os.IsNotExist(e) {
@@ -44,15 +67,13 @@ func save(path string, b []byte) error {
 	if e = os.MkdirAll(filepath.Dir(path), 0700); e != nil {
 		return e
 	}
-	f, e := os.CreateTemp(filepath.Dir(path), ".thoth-*")
+	f, e := privateCreate(filepath.Join(filepath.Dir(path), ".thoth-"+operation()))
 	if e != nil {
 		return e
 	}
 	tmp := f.Name()
 	defer os.Remove(tmp)
-	if e = f.Chmod(0600); e == nil {
-		_, e = f.Write(b)
-	}
+	_, e = f.Write(b)
 	closeErr := f.Close()
 	if e != nil {
 		return e
@@ -241,15 +262,18 @@ func MergeOpenCode(m map[string]any, command []string) (string, error) {
 }
 func Connect(ctx context.Context, config string, args []string) error {
 	if len(args) == 0 || args[0] == "--help" {
-		fmt.Println("connect codex|claude|opencode|all [--scope project|user] [--dir PATH] [--yes]\nDefault: project scope, current directory. User scope asks consent. --yes is explicit consent for automation. Configs contain a bridge command and token file path, never raw tokens.")
+		fmt.Println("connect codex|claude|opencode|all [--scope project|user] [--dir PATH] [--yes] [--allow-unverified-v2]\nDefault: project scope, current directory. User scope asks consent. --yes is explicit consent for automation. Configs contain a bridge command and token file path, never raw tokens.")
 		return nil
 	}
 	agent := args[0]
 	scope := "project"
+	allowUnverifiedV2 := false
 	dir, _ := os.Getwd()
 	yes := false
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
+		case "--allow-unverified-v2":
+			allowUnverifiedV2 = true
 		case "--scope":
 			i++
 			if i >= len(args) {
@@ -378,7 +402,13 @@ func Connect(ctx context.Context, config string, args []string) error {
 			if e != nil {
 				return e
 			}
+			if schema == "v2" && !allowUnverifiedV2 {
+				return errors.New("OpenCode V2 configuration detected: audited 1.17.13 default run rejects V2 keys. No registration written. Use a legacy project configuration, or --allow-unverified-v2 only for an independently validated V2 runtime; backend doctor cannot validate client runtime compatibility")
+			}
 			fmt.Println("OpenCode MCP schema: " + schema)
+			if schema == "v2" {
+				fmt.Println("Experimental V2 registration only; client runtime connectivity is NOT verified.")
+			}
 			edits = append(edits, edit{path, jsonBytes(m)})
 		}
 	}
@@ -451,10 +481,9 @@ func Instructions(args []string) error {
 			return errors.New("unknown instructions option")
 		}
 	}
-	home, _ := os.UserHomeDir()
 	targets := []string{filepath.Join(dir, "AGENTS.md"), filepath.Join(dir, "CLAUDE.md"), filepath.Join(dir, "docs", "AGENT_MEMORY_PROTOCOL.md")}
 	if scope == "user" {
-		targets = []string{filepath.Join(home, ".codex", "AGENTS.md"), filepath.Join(home, ".claude", "CLAUDE.md"), filepath.Join(home, ".config", "opencode", "AGENTS.md")}
+		targets = []string{filepath.Join(ClientHome("codex"), "AGENTS.md"), filepath.Join(ClientHome("claude"), "CLAUDE.md"), filepath.Join(ClientHome("opencode"), "AGENTS.md")}
 	} else if scope != "project" {
 		return errors.New("invalid scope")
 	}

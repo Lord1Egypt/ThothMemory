@@ -49,11 +49,10 @@ func Hooks(ctx context.Context, config string, args []string) error {
 	if e != nil {
 		return e
 	}
-	home, _ := os.UserHomeDir()
 	if agent == "opencode" {
 		base := filepath.Join(dir, ".opencode", "plugins")
 		if scope == "user" {
-			base = filepath.Join(home, ".config", "opencode", "plugins")
+			base = filepath.Join(ClientHome("opencode"), "plugins")
 		}
 		target := filepath.Join(base, "thothmemory.js")
 		if e = confirm([]string{target}, yes); e != nil {
@@ -72,9 +71,9 @@ func Hooks(ctx context.Context, config string, args []string) error {
 		target = filepath.Join(dir, ".codex", "hooks.json")
 	}
 	if scope == "user" {
-		target = filepath.Join(home, "."+agent, "settings.json")
+		target = filepath.Join(ClientHome(agent), "settings.json")
 		if agent == "codex" {
-			target = filepath.Join(home, ".codex", "hooks.json")
+			target = filepath.Join(ClientHome("codex"), "hooks.json")
 		}
 	}
 	m, e := loadObject(target)
@@ -136,10 +135,17 @@ func OpenCodePlugin(exe, config string) string {
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const execute = promisify(execFile);
-export const ThothMemory = async ({ directory }) => {
+export const ThothMemory = async ({ directory, client }) => {
   const run = async phase => {
     try { return (await execute(%s, ['lifecycle','opencode',phase,'--config',%s], { cwd:directory, timeout:20000, maxBuffer:131072 })).stdout; }
-    catch { return 'ThothMemory unavailable or project unregistered. Record unsynced progress honestly.'; }
+    catch {
+      const message = 'ThothMemory unavailable or project unregistered. Record unsynced progress honestly.';
+      try {
+        if (client?.app?.log) await client.app.log({ body: { service:'thothmemory', level:'warn', message } });
+        else console.warn(message);
+      } catch { console.warn(message); }
+      return message;
+    }
   };
   return {
     'experimental.chat.system.transform': async (_input, output) => {

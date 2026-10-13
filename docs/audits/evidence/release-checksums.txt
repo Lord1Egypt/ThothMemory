@@ -1,0 +1,4 @@
+thothmemory-linux-amd64: OK
+thothmemory-linux-arm64: OK
+thothmemory-windows-amd64.exe: OK
+thothmemory-windows-arm64.exe: OK

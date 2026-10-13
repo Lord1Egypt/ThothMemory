@@ -37,3 +37,10 @@ payload; transaction commit and the stored response make retries safe. Conflicti
 revision writes require reloading state. If PostgreSQL is unavailable, readiness
 fails; clients report the failure and should retry checkpoints after recovery. App
 pool connections recover when PostgreSQL returns. No in-memory queue claims success.
+
+Candidate Windows CLI protects dump files with explicit owner ACLs before writing.
+Backups/volumes are not encrypted by ThothMemory; use encrypted host storage for
+at-rest protection. A SHA-256 sidecar is corruption detection, not authenticity.
+For a schema downgrade use a pre-upgrade dump restored into a new database and the
+retained old image. Do not manually delete migration columns/checksums. See the
+[owner acceptance and rollback procedure](audits/FIRST-RUN-ACCEPTANCE.md).

@@ -1,0 +1,37 @@
+{
+  "source_database_retained": true,
+  "all_table_counts_and_content_hashes_equal": true,
+  "tables_compared": [
+    "projects",
+    "principals",
+    "agents",
+    "sessions",
+    "tasks",
+    "task_dependencies",
+    "evidence",
+    "attestations",
+    "events",
+    "records",
+    "operations",
+    "schema_migrations"
+  ],
+  "corrupt_archive_rejected_before_create": true,
+  "activated_mcp_authenticated_read": true,
+  "activated_mcp_write": true,
+  "second_backup_contains_activated_sentinel": true,
+  "original_unchanged": true,
+  "source_counts": {
+    "projects": 8,
+    "principals": 5,
+    "agents": 3,
+    "sessions": 4,
+    "tasks": 2,
+    "task_dependencies": 0,
+    "evidence": 1,
+    "attestations": 0,
+    "events": 2935,
+    "records": 2613,
+    "operations": 2935,
+    "schema_migrations": 5
+  }
+}

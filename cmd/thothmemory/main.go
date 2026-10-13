@@ -57,7 +57,7 @@ func dsn() (string, error) {
 }
 func run(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		fmt.Println("ThothMemory 0.1.2\nCommands: serve, migrate, bridge, doctor, connect, instructions, backup, restore, attest, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
+		fmt.Println("ThothMemory 0.2.0-rc.1\nCommands: serve, migrate, bridge, doctor, connect, instructions, permissions, backup, restore, attest, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
 		return nil
 	}
 	cmd := args[0]
@@ -72,6 +72,8 @@ func run(ctx context.Context, args []string) error {
 		}
 	}
 	switch cmd {
+	case "permissions":
+		return cli.Permissions(rest)
 	case "init-config":
 		return cli.InitConfig()
 	case "bridge":
@@ -188,7 +190,7 @@ func run(ctx context.Context, args []string) error {
 			defer cancel()
 			_ = srv.Shutdown(c)
 		}()
-		slog.Info("ThothMemory ready", "address", addr, "version", "0.1.2")
+		slog.Info("ThothMemory ready", "address", addr, "version", "0.2.0-rc.1")
 		e = srv.ListenAndServe()
 		if errors.Is(e, http.ErrServerClosed) {
 			return nil

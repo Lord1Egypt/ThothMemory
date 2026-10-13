@@ -6,8 +6,17 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw 'Install Do
 if ($LASTEXITCODE -ne 0) { throw 'Start Docker Desktop and retry.' }
 & docker compose version
 if ($LASTEXITCODE -ne 0) { throw 'Docker Compose is required.' }
-$image = if ($env:THOTH_IMAGE) { $env:THOTH_IMAGE } else { 'lord1egypt/thoth-memory:0.1.2' }
-if ($Build) { $image = 'thoth-memory:dev'; $env:THOTH_IMAGE = $image; & docker build -t $image . } else { & docker pull $image }
+# Follow Compose's existing nonsecret settings without executing the file.
+if (Test-Path .env) {
+    foreach ($line in Get-Content .env) {
+        $pair = $line -split '=', 2
+        if ($pair.Count -ne 2) { continue }
+        if ($pair[0] -eq 'THOTH_IMAGE' -and -not $env:THOTH_IMAGE -and -not $Build) { $env:THOTH_IMAGE = $pair[1].Trim() }
+        if ($pair[0] -eq 'THOTH_PORT' -and -not $env:THOTH_PORT) { $env:THOTH_PORT = $pair[1].Trim() }
+    }
+}
+$image = if ($env:THOTH_IMAGE) { $env:THOTH_IMAGE } elseif ($Build) { 'thoth-memory:dev' } else { 'lord1egypt/thoth-memory:0.1.2' }
+if ($Build) { $env:THOTH_IMAGE = $image; & docker build -t $image . } else { & docker pull $image }
 if ($LASTEXITCODE -ne 0) { throw 'Image retrieval failed.' }
 New-Item -ItemType Directory -Force bin | Out-Null
 $container = (& docker create $image).Trim()
@@ -20,9 +29,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Port preflight failed.' }
 $me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 & icacls .secrets /inheritance:r /grant:r "${me}:(OI)(CI)F" | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Secret directory ACL protection failed.' }
-$port = 7319
+$port = if ($env:THOTH_PORT) { [int]$env:THOTH_PORT } else { 7319 }
 $portLine = Get-Content .env | Where-Object { $_ -match '^THOTH_PORT=' }
-if ($portLine) { $port = [int]($portLine -split '=',2)[1] }
+if ($portLine -and -not $env:THOTH_PORT) { $port = [int]($portLine -split '=',2)[1] }
 $occupied = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
 if ($occupied) { Write-Host "Port $port is in use; Compose will verify whether this is the existing installation." }
 & docker compose up -d --no-build --wait --wait-timeout 120

@@ -50,7 +50,7 @@ func Client(ctx context.Context, path string) (*mcp.ClientSession, error) {
 	if e != nil {
 		return nil, e
 	}
-	client := mcp.NewClient(&mcp.Implementation{Name: "thothmemory-cli", Version: "0.1.2"}, nil)
+	client := mcp.NewClient(&mcp.Implementation{Name: "thothmemory-cli", Version: "0.2.0-rc.1"}, nil)
 	return client.Connect(ctx, &mcp.StreamableClientTransport{Endpoint: c.Endpoint, HTTPClient: &http.Client{Transport: bearer{token}, Timeout: 20 * time.Second}}, nil)
 }
 func Doctor(ctx context.Context, path string) error {
@@ -83,7 +83,7 @@ func Bridge(ctx context.Context, path string) error {
 	if e != nil {
 		return e
 	}
-	srv := mcp.NewServer(&mcp.Implementation{Name: "ThothMemory-bridge", Version: "0.1.2"}, nil)
+	srv := mcp.NewServer(&mcp.Implementation{Name: "ThothMemory-bridge", Version: "0.2.0-rc.1"}, nil)
 	for _, tool := range ls.Tools {
 		srv.AddTool(tool, func(ctx context.Context, r *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			return cs.CallTool(ctx, &mcp.CallToolParams{Name: r.Params.Name, Arguments: r.Params.Arguments})

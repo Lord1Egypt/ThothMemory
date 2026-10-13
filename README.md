@@ -26,6 +26,12 @@ an auditable record of tasks, decisions, problems and test evidence.
 
 *Screenshot from the running application with explicitly simulated agent sessions.*
 
+> Pre-production patch candidate: see the [2026-10-12 audit](docs/audits/PREPRODUCTION-AUDIT.md).
+> Published deployment remains 0.1.1. Candidate fixes are not a live upgrade.
+> OpenCode 1.17.13 legacy is tested; normal V2 runtime rejects V2 keys.
+> Audit correction: published 0.1.1 Docker arm64 contains an x86-64 binary. Its
+> standalone arm64 binary is correct. The container fix awaits an approved patch release.
+
 ## Install in one step
 
 Install and start Docker Desktop with Linux containers (Windows/WSL2), or Docker
@@ -79,7 +85,7 @@ bridge command and config path. Restart clients and accept their project trust p
 |---|---|---|
 | Codex CLI | `thothmemory connect codex` | `.codex/config.toml`; project must be trusted |
 | Claude Code | `thothmemory connect claude` | `.mcp.json`; approve server on launch |
-| OpenCode | `thothmemory connect opencode` | `opencode.json` / `.jsonc`; detects legacy or V2 layout |
+| OpenCode | `thothmemory connect opencode` | `opencode.json` / `.jsonc`; legacy tested; V2 detected and guarded as unverified |
 
 Use `--scope user` for global configuration, `--dir PATH` for project configuration,
 and `--yes` only after reviewing targets when automating. Existing conflicting
@@ -101,7 +107,7 @@ Codex hooks require `--enable hooks`. Command hooks target Linux/WSL; native Win
 uses the shared instructions. The OpenCode plugin loads context, records lifecycle
 metadata and requests a checkpoint before compaction; it does not invent a semantic
 handoff. See [the shared protocol](docs/AGENT_MEMORY_PROTOCOL.md) and
-[actual client validation](docs/VALIDATION.md) for supported versions and limitations.
+[current client compatibility matrix](docs/audits/AGENT-COMPATIBILITY-MATRIX.md) for supported versions and limitations.
 
 For clients preferring direct HTTP, register `http://127.0.0.1:7319/mcp` with a bearer
 token read from your environment or secure file. Never commit a raw token. Codex

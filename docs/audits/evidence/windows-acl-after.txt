@@ -1,0 +1,3 @@
+=== RUN   TestPrivateWindowsFilesRejectInheritedReaders
+--- PASS: TestPrivateWindowsFilesRejectInheritedReaders (0.01s)
+PASS

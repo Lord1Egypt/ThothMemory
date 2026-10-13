@@ -50,7 +50,7 @@ func backup(ctx context.Context, path, db string) error {
 	if e := os.MkdirAll(filepath.Dir(path), 0700); e != nil {
 		return e
 	}
-	f, e := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	f, e := privateCreate(path)
 	if e != nil {
 		return e
 	}
@@ -74,7 +74,7 @@ func backup(ctx context.Context, path, db string) error {
 	if e = f.Close(); e != nil {
 		return e
 	}
-	if e = os.WriteFile(path+".sha256", []byte(hex.EncodeToString(h.Sum(nil))+"\n"), 0600); e != nil {
+	if e = exclusive(path+".sha256", []byte(hex.EncodeToString(h.Sum(nil))+"\n")); e != nil {
 		return e
 	}
 	ok = true

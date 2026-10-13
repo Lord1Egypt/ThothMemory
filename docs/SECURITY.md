@@ -20,7 +20,7 @@ Compose's database logins separate schema migration owner from runtime DML.
 .secrets/tokens.json defines id, token, write and projects (UUID allowlist, or '*').
 Initial local-agent, codex, claude and opencode credentials explicitly cover all
 projects; local-reader is read-only. To isolate clients, narrow their project lists,
-then restart the application. Read-only credentials discover only read tools, and
+then explicitly recreate the application container (see candidate details below). Read-only credentials discover only read tools, and
 writes are also checked in the core. Owner=true is rejected on the HTTP service.
 Use distinct principal IDs for independent claim ownership. Possession of a token
 establishes identity; an agent-supplied name is a reported label, not authentication.
@@ -56,3 +56,27 @@ use needs TLS, suitable authorization lifecycle and a separate security review.
 Backups are sensitive and unencrypted: use OS disk encryption or encrypt them before
 moving to untrusted storage. SHA-256 detects accidental corruption, not a malicious
 replacement of both archive and checksum. Restore only trusted archives.
+
+## Patch candidate authorization and file protection
+
+The pre-production patch retains single-owner trusted-workspace onboarding: default
+per-agent tokens authorize all projects. For explicit project isolation, register
+projects first, then use local `permissions PRINCIPAL --projects UUID[,UUID]`, with
+optional `--read-only` / `--write`, or `permissions PRINCIPAL --revoke`. This command
+asks consent, backs up the policy and preserves token values. Wildcard access is
+intentional opt-in when restoring broader access (`--projects '*'` on Unix shells).
+Scoped tokens cannot create projects. Existing policy, including removed principals,
+is authoritative across repeated setup; the 0.1.1 recreation defect is fixed.
+
+The app loads policy at startup. After review, explicitly recreate only app using
+`docker compose up -d --no-deps --force-recreate app`. Atomic policy replacement can
+leave an existing bind mount on the old inode; restart alone is not the documented
+reload mechanism. In-flight requests retain startup policy until reload.
+
+Windows candidate CLI sets protected owner-only DACLs atomically at creation for secret/config
+backup/dump bytes; Unix uses private directory/file modes. Docker-mounted files may
+need mode 644 inside a private directory for the non-root runtime. This is not a
+multi-user daemon and does not defend against the owner, administrators or Docker
+administrators. Dumps and volumes are unencrypted unless the host/storage encrypts
+them. SHA-256 sidecars detect accidental corruption, not malicious replacement.
+See [the audit](audits/PREPRODUCTION-AUDIT.md) for native Windows reproduction and tests.

@@ -35,7 +35,7 @@ All project writes except natural-key project creation require operation_id (8â€
 characters). UUIDs are validated; Git revisions must be full 40/64 hex characters.
 Body maximum 8,000, title 500, locator 2,000, query 500. Default limit 20, maximum
 100; offset maximum 10,000. Context limits tasks to 12, decisions/issues and evidence
-to 8 each, sessions to 4, handoff to 1, and truncates long bodies with retrieval IDs.
+to 8 each, sessions and checkpoints to 4 each, handoff to 1, and truncates long bodies with retrieval IDs.
 Search returns provenance, ranking, superseded status and stale=true for a different
 recorded revision. Without a supplied current revision, stale is unknown (null).
 For intentional cross-project searches, list authorized projects then query each.
@@ -54,3 +54,9 @@ docker compose run --rm migrate attest PROJECT_UUID EVIDENCE_UUID OPERATION_ID \
 
 Inspect the evidence before attesting. Agent inferences and reported output must
 never be upgraded to independently verified facts by assumption.
+
+Candidate search combines English stemming, simple tokens and NFC-normalized literal
+substrings, including revisions and evidence locators/digests. Query representations
+are materialized once for cached PostgreSQL plans. Arabic morphology/translation is
+not provided. Sessions without a final write are reported incomplete, not completed.
+See [audit evidence](audits/PREPRODUCTION-AUDIT.md).

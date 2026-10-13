@@ -1,0 +1,14 @@
+{
+  "linux/amd64": {
+    "revision": "76176f761f0ade77175d30a5d9add0ffdba5dfd8",
+    "source": "https://github.com/Lord1Egypt/ThothMemory",
+    "spdx_version": "SPDX-2.3",
+    "packages": 36
+  },
+  "linux/arm64": {
+    "revision": "76176f761f0ade77175d30a5d9add0ffdba5dfd8",
+    "source": "https://github.com/Lord1Egypt/ThothMemory",
+    "spdx_version": "SPDX-2.3",
+    "packages": 36
+  }
+}
