@@ -1,88 +1,86 @@
-# Release readiness: next-generation candidate
+# Release readiness (final assessment, 2026-10-13)
 
-**Nothing has been merged, tagged, published or deployed.** Production (v0.1.1) is
-unchanged: its two containers still show the same stop time and its named volume and
-secret files carry their original timestamps. Everything below was tested on disposable
-databases, containers and directories. A release needs the owner's decision.
+**Nothing is merged, tagged, published or deployed.** Production v0.1.1 is untouched: its two
+containers show their original stop time (`2026-10-13T13:37:28Z`), and a **verified cold backup**
+of the volume exists (`~/ThothMemory-production-backup-20261013/`, SHA-256 `14bb3cce…8612bc`,
+restored into a disposable PostgreSQL where every table's row count and content hash matched
+the production fingerprint; 12 projects).
 
-Source: branch `nextgen/full-and-mini`, stacked on PR #2 head `ecb8415`. Code commit
-reproduced below; later commits are documentation only.
+| Branch / PR | Purpose | Head | CI |
+|---|---|---|---|
+| `patch/0.1.2-arm64-fix`, Draft PR #9 → `main` | ARM64 container fix only | see below | **green**: [run 38441187422](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38441187422) incl. ELF checks, GitGuardian pass |
+| `nextgen/full-and-mini`, Draft PR #8 → `audit/preproduction-0.1.2` | Full + Mini + UltraLite + automatic memory | this branch tip | **green except GitGuardian**: [run 38440745131](https://github.com/Lord1Egypt/ThothMemory/actions/runs/38440745131) |
+| PR #2 `audit/preproduction-0.1.2` | audit hardening | `ecb8415` | green, unmerged |
 
-## Verdict by area
+GitGuardian reports 1 secret in PR #8's history: an earlier commit of test fixtures that
+deliberately contain credential-shaped strings (the AWS documentation example key and similar).
+The latest commit builds them at runtime; the history still holds the literals. It needs
+"mark as false positive" in GitGuardian (owner), or a history rewrite of this unmerged branch,
+which I did not do.
 
-| Area | State | Basis |
-|---|---|---|
-| Full (PostgreSQL) correctness and security | **Verified** on host | PR #2 suite unchanged and green; shared contract on PostgreSQL; clone of the production volume migrated 001→005 with history fingerprints identical; 006→007 applied to a live compose stack |
-| Full dashboard (projects register, explorers) | **Verified** in Chromium (desktop, phone width, dark) on Mini and parity-tested API on all editions | screenshots in `docs/screenshots`; not re-screenshotted against Full |
-| Mini (MariaDB) on Linux host | **Verified** | contract suite, 11 MCP gates, 14 lifecycle gates, runtime-privilege and migration tests, amd64 |
-| Mini on ThothDock v0.2.1 + Garden PRoot | **Verified on a Linux host only** | install/clients/hooks/backup/restore/uninstall scripts, restart/SIGKILL/recreate |
-| Mini on Android hardware | **PASS WITH DOCUMENTED LIMITATIONS** (Samsung SM-A165F, real ThothDock 0.2.1 in ThothTerm 0.4.1: install, 11/11 MCP gates, 14/14 lifecycle gates incl. SIGKILL) | [ANDROID_GATE.md](ANDROID_GATE.md) |
-| Mini arm64 | glibc image passed 11 gates under QEMU; Alpine arm64 failed to bootstrap there | choose per device gate |
-| UltraLite (SQLite, headless) | **Verified** Linux amd64 (all tests, race), Windows x64 (native init/doctor/ACLs), Linux arm64 (QEMU init/doctor) | macOS and Android binaries built, not run |
-| Automatic memory | **Partly verified** | see below |
-| Portability | **Verified** on all three pairs and through real Compose/Docker entry points | `tests/portable_test.go` |
-| Backup/restore | **Verified** per edition on disposable data | Full by PR #2 suite; Mini 14 gates; UltraLite tests incl. backup during writes and restore refusal |
-| Performance | **Measured on host** | [BENCHMARKS.md](BENCHMARKS.md); no Android numbers |
-| Docs | Complete for the requested set | README section, quickstart, automatic memory, handoff, protocol |
+## 1. ARM64 patch release (v0.1.2)
 
-## Automatic memory: what is and is not proven
+Scope 14 files, no migration, no behavior change ([notes](RELEASE_0.1.2.md)). Reproduced defect:
+published arm64 image holds the amd64 binary (`e_machine` 62, identical SHA-256). Candidate: amd64
+executable `d7b9c3fa…`, e_machine 62; arm64 `573e4c1c…`, e_machine **183**. Tests, govulncheck, real
+server smoke on both platforms pass (arm64 under QEMU locally; CI repeats it). **Ready for owner
+review.** Needs: merge, tag `v0.1.2`, run the publication workflow, verify child-manifest ELF types by
+digest, then promote `latest`.
 
-Proven with **real** clients and models: Codex recorded an idea and an honest
-"deferred, unverified" handoff from nothing but an `AGENTS.md` reference; a separate real
-Claude Code session retrieved it, named the author and added a note under its own
-credential. Real Claude Code fired `SessionStart`, `UserPromptSubmit`, `Stop` and
-`SessionEnd` hooks into memory. Genuine client connections: Claude (`✔ Connected`),
-OpenCode (`✓ connected`), Codex (registered, stdio).
+## 2. Full (PostgreSQL), version proposal 0.2.0
 
-Proven with **deterministic fixtures and real binaries** (`TestAutomaticMemoryEndToEnd`):
-all 20 requested scenarios, including a locked database, queue replay without duplication,
-secret refusal, scoped credentials and disabling.
+Revision: PR #8 tip. Platforms: linux amd64 (arm64 after the 0.1.2 fix). Evidence: full suite incl.
+race on PostgreSQL 18; migrations 001→007 applied to a clone of the production volume with history
+fingerprints identical through 005 and to a live Compose stack for 006/007; contract and API shape
+parity; dashboard screenshots (desktop, phone, dark); real MCP; backup/restore (PR #2 suite).
+Dashboard was checked against synthetic projects and a Mini instance, not against screenshots of
+the production-sized history. Risks: search semantics differ from Mini/UltraLite; production upgrade
+needs its own validated backup/rollback (backup now exists), explicit approval. Owner actions: merge
+order (#9, #2, #8), release approval.
 
-**Not proven**: real Codex firing hooks (Codex loads project hooks only after folder trust and hook
-review in its own UI, which only the owner can grant), a real-model OpenCode session, any
-Windows command hook (unsupported), and long-running behavior.
+## 3. Mini (MariaDB), version proposal 0.1.0
 
-## Open risks and limits
+Images: glibc `sha256:1a87a62e…cef9a` (recommended for arm64) and Alpine `sha256:cf6218b3…23340`
+(local build IDs, not registry digests). Verified: contract, 11 MCP gates, 14 lifecycle gates on
+Linux; **on the owner's Samsung SM-A165F with the released ThothDock 0.2.1 in ThothTerm 0.4.1:
+install by digest, 11/11 MCP gates, 14/14 lifecycle gates including SIGKILL recovery, loopback-only
+listener, abstract-socket database, MariaDB 1.6 GiB virtual (default 8 TiB)**
+([ANDROID_GATE](ANDROID_GATE.md)). Verdict: **PASS WITH DOCUMENTED LIMITATIONS**. Not shown:
+soak/background-kill behavior, battery, SELinux audit logs, the Alpine arm64 image on the phone.
+**Production-ready only after** a digest-pinned image is published to a registry the phone
+trusts, and the owner accepts these limits. Do not claim more.
 
-1. **MariaDB on a 39-bit Android kernel** was a real risk (default 8 TiB reservation). It is
-   capped, but only a device run can confirm MariaDB starts there.
-2. **Search differs by edition** (stemming and operators); documented, ranking not equal.
-3. **Codex hooks** may not work in your version; fall back to instructions plus MCP writes.
-4. **Secret screening is pattern-based**; it refuses obvious credentials, not all secrets.
-5. **UltraLite trust boundary is the OS account**; another process as the same user can read
-   the database file.
-6. Pre-existing from PR #2: published 0.1.1 arm64 image is x86-64 (fixed in the candidate,
-   awaiting an approved patch release); OpenCode V2 runtime unsupported.
-7. CI changes (MariaDB, Mini images, UltraLite matrix, Windows race exclusion) were written
-   and YAML-validated but **have not run on GitHub**.
-8. No Mini image is published; no `latest` promotion or release artifact exists.
-9. The dashboard has no live-edit features by design; Full/Mini dashboard code was not
-   run against a populated production-sized dataset.
+## 4. UltraLite (SQLite, headless), version proposal 0.1.0
 
-## Release candidate artifacts (reproducible)
-
-UltraLite built twice from the same tree with `CGO_ENABLED=0 -trimpath -ldflags='-s -w -buildid='`:
-identical SHA-256 both times ([sums](audits/evidence/rc-ultralite-SHA256SUMS.txt)).
-
-| Artifact | SHA-256 / image ID |
+| Artifact | SHA-256 |
 |---|---|
-| thothmemory-ultralite-linux-amd64 | `b77149d1d215e94cde29c7d27f845a420599aa8a717356632e67514365eb0758` |
-| thothmemory-ultralite-linux-arm64 | `d01f93ac0015086719c9ad14ba43c97cefbb9848b80ad40927029084d4ae02e2` |
-| thothmemory-ultralite-windows-amd64.exe | `66ae344e3a54611e95fc38654b781d0e1c7efdfb691195df274f37f1b582eb40` |
-| thothmemory-ultralite-darwin-arm64 (untested) | `ce8c6af4bd562d867715821a22ae90aedf829a492121b11df2e310da86158e85` |
-| thothmemory-ultralite-android-arm64 (untested) | `33d6a9eb55ebe6ea376fa961633bcb6a77b15201b6a737912ab23f17e0ebe16f` |
-| Mini (Alpine) local image ID | `sha256:2f4e3967bf1ff35bd66e4ae90dd5f973fb8138b7d6d86a1cdaf066290cc50e74` |
-| Mini (glibc) local image ID | `sha256:f97f80342892a4e8ba69ee7373d135fded334d59e4d5d9dc0792e016eace3dff` |
-| Full local image ID | `sha256:670b5ed51fa0a6115329d6585ba6b5a5d225fa1af2b2aca0f8c823d477ff445b` |
+| linux-amd64 | `b77149d1d215e94cde29c7d27f845a420599aa8a717356632e67514365eb0758` |
+| linux-arm64 | `d01f93ac0015086719c9ad14ba43c97cefbb9848b80ad40927029084d4ae02e2` |
+| windows-amd64.exe | `66ae344e3a54611e95fc38654b781d0e1c7efdfb691195df274f37f1b582eb40` |
+| darwin-arm64 (built, never run) | `ce8c6af4bd562d867715821a22ae90aedf829a492121b11df2e310da86158e85` |
+| android-arm64 (**run on the phone**) | `33d6a9eb55ebe6ea376fa961633bcb6a77b15201b6a737912ab23f17e0ebe16f` |
 
-Image IDs are local build identities, not registry digests (nothing was pushed to a public
-registry). Windows and macOS binaries are unsigned.
+Reproducible (two builds identical). Verified: contract suite, multi-process races, SIGKILL recovery,
+backup during writes, restore refusal, export/import, native CLI + stdio test, Linux and Windows
+CI jobs (all green), Windows x64 native with owner-only ACLs, Linux arm64 native CI, Android arm64
+on the phone (init, doctor, 10k-event load: context 7.5 ms, search 51 ms, write 8.9 ms). The build
+excludes the HTTP gateway and web assets (checked in CI). Unsigned binaries; macOS untested.
+**Ready for owner review.**
 
-## Needed from the owner
+## 5. Automatic memory (all editions)
 
-1. Review the branch; decide whether to open a PR (not opened) and how it relates to PR #2.
-2. Run the Android gate on the Samsung device (or choose UltraLite-in-PocketClaw instead).
-3. Run `scripts/real-client-handoff.sh` yourself if you want to see the Codex→Claude flow.
-4. Approve (or not): merging, a patch release for the arm64 fix, publishing Mini images,
-   upgrading production (back up first; migrations 005–007 are additive and were applied
-   only to disposable clones).
+Real Claude Code fired SessionStart, UserPromptSubmit, Stop, SessionEnd and PreCompact into memory.
+Real Codex and real Claude Code exchanged an idea/handoff. Codex hooks: **not verified**; Codex loads
+project hooks only after folder trust and hook review in its own UI (documented enable steps;
+fallback verified). OpenCode: connection verified, real-model session not run. Windows command
+hooks unsupported.
+
+## 6. Remaining owner decisions
+
+1. Mark the GitGuardian finding a false positive (or approve a history rewrite).
+2. Approve merging in order: #9 (patch), then #2, then #8 as appropriate; renumber PR #2's
+   `0.1.2-rc.1` after #9.
+3. Approve publishing: v0.1.2 patch images; a Mini image to a trusted registry; UltraLite
+   binaries (consider signing).
+4. Approve a production upgrade only after rehearsing it on the verified backup.
+5. Optional: trust a project in Codex and approve its hooks to confirm Codex hook capture.
