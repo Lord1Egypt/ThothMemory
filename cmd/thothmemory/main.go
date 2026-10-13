@@ -46,7 +46,7 @@ func dsn() (string, error) {
 }
 func run(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		fmt.Println("ThothMemory " + memory.FullVersion + "\nCommands: serve, migrate, bridge, doctor, connect, instructions, permissions, backup, restore, attest, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
+		fmt.Println("ThothMemory " + memory.FullVersion + "\nCommands: serve, migrate, bridge, doctor, connect, instructions, permissions, backup, restore, attest, export, import, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
 		return nil
 	}
 	cmd := args[0]
@@ -69,7 +69,7 @@ func run(ctx context.Context, args []string) error {
 			return errors.New("not ready")
 		}
 		return nil
-	case "serve", "migrate", "attest":
+	case "serve", "migrate", "attest", "export", "import":
 		conn, e := dsn()
 		if e != nil {
 			return e
@@ -107,6 +107,9 @@ func run(ctx context.Context, args []string) error {
 			}
 			_, e = s.Pool.Exec(ctx, "GRANT CONNECT ON DATABASE "+`"`+strings.ReplaceAll(databaseName, `"`, `""`)+`"`+" TO thoth_app; GRANT USAGE ON SCHEMA public TO thoth_app; GRANT SELECT ON ALL TABLES IN SCHEMA public TO thoth_app; GRANT INSERT ON principals,projects,agents,sessions,tasks,task_dependencies,evidence,events,records,operations TO thoth_app; GRANT UPDATE ON projects,sessions,tasks TO thoth_app")
 			return e
+		}
+		if cmd == "export" || cmd == "import" {
+			return cli.Portable(ctx, s, cmd, rest)
 		}
 		if cmd == "attest" {
 			if len(rest) != 4 {

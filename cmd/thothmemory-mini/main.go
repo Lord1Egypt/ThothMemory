@@ -29,6 +29,8 @@ Owner, inside the container (docker exec):
             backup > FILE            (prints sha256 to stderr)
             restore --sha256 HEX < FILE
             activate DATABASE        (takes effect at next start)
+            export PROJECT > FILE    (portable, checksummed project export)
+            import < FILE            (fast-forward only; never overwrites newer state)
             token PRINCIPAL > FILE   (for client configuration)
             self-export > FILE       (writes this executable)
 Clients:    doctor | bridge | connect | instructions | hooks | lifecycle | demo [--config client.json]
@@ -102,6 +104,13 @@ func run(ctx context.Context, args []string) error {
 			return e
 		}
 		return json.NewEncoder(os.Stdout).Encode(v)
+	case "export", "import":
+		s, e := l.Owner(ctx)
+		if e != nil {
+			return e
+		}
+		defer s.Close()
+		return cli.Portable(ctx, s, cmd, rest)
 	case "backup":
 		if interactive(os.Stdout) {
 			return errors.New("redirect the backup to a file: backup > thothmini.sql")
