@@ -18,8 +18,18 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres" --health-interval 3s
           --health-timeout 3s --health-retries 30
+      mariadb:
+        image: mariadb:11.4.12@sha256:4f1d8d202fcf7bcb3902f63af09f9c1a050c2922a89652f22abaec0d4f015e83
+        env:
+          MARIADB_ROOT_PASSWORD: ci-disposable-password
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized" --health-interval 3s
+          --health-timeout 3s --health-retries 40
     env:
       THOTH_TEST_DATABASE_URL: postgres://postgres:ci-disposable-password@localhost:5432/postgres?sslmode=disable
+      THOTH_TEST_MARIADB_ADDR: 127.0.0.1:3306
+      THOTH_TEST_MARIADB_ROOT_PASSWORD: ci-disposable-password
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
@@ -85,3 +95,74 @@ jobs:
       - name: Windows existing image selection regression
         shell: pwsh
         run: ./tests/windows-image-selection.ps1 -SetupPath (Join-Path $PWD 'setup.ps1')
+  mini:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - name: Build Mini images and verify executable architectures
+        run: |
+          set -eu
+          for variant in "" "-glibc"; do
+            for arch in amd64 arm64; do
+              tag=thoth-memory-mini:ci$variant-$arch
+              docker build --platform linux/$arch -f Dockerfile.mini$variant -t $tag .
+              c=$(docker create --platform linux/$arch $tag)
+              for f in /usr/local/bin/thothmemory-mini $(docker run --rm --platform linux/$arch --entrypoint sh $tag -c 'command -v mariadbd'); do
+                docker cp "$c:$f" bin.elf
+                want=62; [ $arch = arm64 ] && want=183
+                got=$(python3 -c "import struct;print(struct.unpack('<H',open('bin.elf','rb').read(20)[18:20])[0])")
+                echo "$tag $f machine=$got"; test "$got" = "$want"
+              done
+              docker rm "$c" >/dev/null
+            done
+          done
+      - name: Acceptance and lifecycle gates (amd64)
+        run: |
+          set -eu
+          docker run -d --name ci-mini -p 127.0.0.1:7319:7319 -e THOTH_LISTEN=0.0.0.0:7319 -v ci-mini:/data thoth-memory-mini:ci-amd64
+          for i in $(seq 120); do curl -sf http://127.0.0.1:7319/healthz && break; sleep 1; done
+          umask 077
+          docker exec ci-mini thothmemory-mini token local-agent > agent_token
+          docker exec ci-mini thothmemory-mini token local-reader > read_token
+          python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7319/mcp --token-file agent_token --reader-token-file read_token
+          docker rm -f ci-mini
+          scripts/mini-lifecycle.sh ci-mini-lifecycle ci-mini thoth-memory-mini:ci-amd64 7319
+      - name: Emulated arm64 gates (glibc image; musl mariadbd does not bootstrap under QEMU)
+        run: |
+          set -eu
+          docker run -d --platform linux/arm64 --name ci-arm -p 127.0.0.1:7320:7319 -e THOTH_LISTEN=0.0.0.0:7319 thoth-memory-mini:ci-glibc-arm64
+          for i in $(seq 600); do curl -sf http://127.0.0.1:7320/healthz && break; sleep 1; done
+          umask 077
+          docker exec ci-arm thothmemory-mini token local-agent > arm_token
+          python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7320/mcp --token-file arm_token
+  ultralite:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.26.9'
+      - name: Build without CGO and check the headless boundary
+        shell: bash
+        run: |
+          set -eu
+          CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o ul ./cmd/thothmemory-ultralite
+          ! go list -deps ./cmd/thothmemory-ultralite | grep -E 'internal/(gateway|web|store|mariadb|mini)$'
+      - name: Native init, repeat init and doctor
+        shell: bash
+        run: |
+          ./ul --data "$RUNNER_TEMP/ultralite home" init
+          ./ul --data "$RUNNER_TEMP/ultralite home" init
+          ./ul --data "$RUNNER_TEMP/ultralite home" doctor
+      - name: SQLite contract, process, crash and native CLI tests
+        shell: bash
+        run: |
+          race=-race
+          # The race detector needs a C toolchain on Windows runners.
+          [ "$RUNNER_OS" = Windows ] && race=
+          go test $race -count=1 -run 'TestContractSQLite|TestSQLite|TestUltraLite' ./tests

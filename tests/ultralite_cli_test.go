@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -31,6 +32,9 @@ func ultralite(t *testing.T) string {
 			return
 		}
 		ultraliteBuild.path = filepath.Join(dir, "thothmemory-ultralite")
+		if runtime.GOOS == "windows" {
+			ultraliteBuild.path += ".exe"
+		}
 		out, e := exec.Command("go", "build", "-buildvcs=false", "-o", ultraliteBuild.path, "../cmd/thothmemory-ultralite").CombinedOutput()
 		if e != nil {
 			ultraliteBuild.err = e

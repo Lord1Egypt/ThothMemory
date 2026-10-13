@@ -1,0 +1,78 @@
+{
+ "label": "ultralite-sqlite-stdio",
+ "server": {
+  "name": "ThothMemory UltraLite",
+  "version": "0.1.0-rc.1"
+ },
+ "connect_and_initialize_ms": 9.3,
+ "sizes": [
+  {
+   "events": 250,
+   "fill_events_per_s": 285.6,
+   "context": {
+    "n": 50,
+    "median_ms": 1.09,
+    "p95_ms": 1.82,
+    "max_ms": 2.0
+   },
+   "search": {
+    "n": 50,
+    "median_ms": 2.42,
+    "p95_ms": 3.77,
+    "max_ms": 4.43
+   },
+   "write": {
+    "n": 50,
+    "median_ms": 3.54,
+    "p95_ms": 5.1,
+    "max_ms": 7.47
+   }
+  },
+  {
+   "events": 2050,
+   "fill_events_per_s": 340.3,
+   "context": {
+    "n": 50,
+    "median_ms": 1.12,
+    "p95_ms": 1.69,
+    "max_ms": 1.82
+   },
+   "search": {
+    "n": 50,
+    "median_ms": 4.9,
+    "p95_ms": 5.89,
+    "max_ms": 10.61
+   },
+   "write": {
+    "n": 50,
+    "median_ms": 3.74,
+    "p95_ms": 4.63,
+    "max_ms": 4.82
+   }
+  },
+  {
+   "events": 10050,
+   "fill_events_per_s": 322.5,
+   "context": {
+    "n": 50,
+    "median_ms": 1.2,
+    "p95_ms": 1.95,
+    "max_ms": 2.28
+   },
+   "search": {
+    "n": 50,
+    "median_ms": 19.08,
+    "p95_ms": 21.45,
+    "max_ms": 26.9
+   },
+   "write": {
+    "n": 50,
+    "median_ms": 4.01,
+    "p95_ms": 5.75,
+    "max_ms": 9.2
+   }
+  }
+ ],
+ "stdio_exit_code_after_disconnect": 0,
+ "project": "726cc4c8-f98b-4582-a98d-d79562a4fa58"
+}
