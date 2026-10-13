@@ -128,6 +128,13 @@ jobs:
           python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7319/mcp --token-file agent_token --reader-token-file read_token
           docker rm -f ci-mini
           scripts/mini-lifecycle.sh ci-mini-lifecycle ci-mini thoth-memory-mini:ci-amd64 7319
+      - name: TCP-loopback fallback mode (runtimes that cannot use the socket)
+        run: |
+          set -eu
+          docker run -d --name ci-tcp -e THOTH_DB_TCP=127.0.0.1:33306 -e THOTH_LISTEN=127.0.0.1:7319 thoth-memory-mini:ci-amd64
+          for i in $(seq 120); do docker exec ci-tcp thothmemory-mini healthcheck && break; sleep 1; done
+          docker exec ci-tcp thothmemory-mini healthcheck
+          docker rm -f ci-tcp
       - name: Emulated arm64 gates (glibc image; musl mariadbd does not bootstrap under QEMU)
         run: |
           set -eu
@@ -151,14 +158,16 @@ jobs:
         shell: bash
         run: |
           set -eu
-          CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o ul ./cmd/thothmemory-ultralite
+          exe=ul; [ "$RUNNER_OS" = Windows ] && exe=ul.exe
+          CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o $exe ./cmd/thothmemory-ultralite
           ! go list -deps ./cmd/thothmemory-ultralite | grep -E 'internal/(gateway|web|store|mariadb|mini)$'
       - name: Native init, repeat init and doctor
         shell: bash
         run: |
-          ./ul --data "$RUNNER_TEMP/ultralite home" init
-          ./ul --data "$RUNNER_TEMP/ultralite home" init
-          ./ul --data "$RUNNER_TEMP/ultralite home" doctor
+          exe=./ul; [ "$RUNNER_OS" = Windows ] && exe=./ul.exe
+          $exe --data "$RUNNER_TEMP/ultralite home" init
+          $exe --data "$RUNNER_TEMP/ultralite home" init
+          $exe --data "$RUNNER_TEMP/ultralite home" doctor
       - name: SQLite contract, process, crash and native CLI tests
         shell: bash
         run: |

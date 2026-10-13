@@ -1,0 +1,73 @@
+{
+ "connect_and_initialize_ms": 54.88,
+ "label": "ultralite-samsung",
+ "sizes": [
+  {
+   "context": {
+    "max_ms": 21.88,
+    "median_ms": 7.27,
+    "n": 50,
+    "p95_ms": 14.88
+   },
+   "events": 250,
+   "fill_events_per_s": 117.02,
+   "search": {
+    "max_ms": 18.86,
+    "median_ms": 11.42,
+    "n": 50,
+    "p95_ms": 17.34
+   },
+   "write": {
+    "max_ms": 15.92,
+    "median_ms": 9.13,
+    "n": 50,
+    "p95_ms": 13.34
+   }
+  },
+  {
+   "context": {
+    "max_ms": 15.04,
+    "median_ms": 6.34,
+    "n": 50,
+    "p95_ms": 12.9
+   },
+   "events": 2050,
+   "fill_events_per_s": 109.48,
+   "search": {
+    "max_ms": 35.04,
+    "median_ms": 19.54,
+    "n": 50,
+    "p95_ms": 29.79
+   },
+   "write": {
+    "max_ms": 15.84,
+    "median_ms": 8.89,
+    "n": 50,
+    "p95_ms": 14.05
+   }
+  },
+  {
+   "context": {
+    "max_ms": 13.06,
+    "median_ms": 7.51,
+    "n": 50,
+    "p95_ms": 10.89
+   },
+   "events": 10050,
+   "fill_events_per_s": 118.44,
+   "search": {
+    "max_ms": 197.88,
+    "median_ms": 51.1,
+    "n": 50,
+    "p95_ms": 73.26
+   },
+   "write": {
+    "max_ms": 56.59,
+    "median_ms": 8.87,
+    "n": 50,
+    "p95_ms": 35.41
+   }
+  }
+ ],
+ "stdio_exit_ok_after_disconnect": true
+}

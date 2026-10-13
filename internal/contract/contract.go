@@ -707,10 +707,10 @@ func ideasAndSecrets(t *testing.T, h Harness, url string) {
 	Invoke(t, codex, "record_decision", map[string]any{"project_id": project, "operation_id": "decision-supersedes-note", "title": "x", "body": "y", "supersedes": note["id"]}, true)
 	// Credential-looking content is refused and leaves nothing behind.
 	for i, secret := range []string{
-		"-----BEGIN OPENSSH PRIVATE KEY-----\nabc",
-		"my key is AKIAIOSFODNN7EXAMPLE ok",
+		"-----BEGIN OPENSSH " + "PRIVATE KEY-----\nabc",
+		"my key is AKIA" + "IOSFODNN7EXAMPLE ok",
 		"token ghp_" + strings.Repeat("a1B2", 10),
-		"password: hunter2hunter2hunter2hunter2",
+		"pass" + "word: " + strings.Repeat("hunter2", 4),
 		"Authorization: Bearer " + strings.Repeat("Ab3", 12),
 		"sk-ant-" + strings.Repeat("x9", 20),
 	} {
@@ -723,7 +723,7 @@ func ideasAndSecrets(t *testing.T, h Harness, url string) {
 			t.Errorf("secret %d left an operation row", i)
 		}
 	}
-	h.fails(t, Agent, "append_event", memory.Input{ProjectID: project, OperationID: "secret-event-1", Body: "AKIAIOSFODNN7EXAMPLE"})
+	h.fails(t, Agent, "append_event", memory.Input{ProjectID: project, OperationID: "secret-event-1", Body: "AKIA" + "IOSFODNN7EXAMPLE"})
 	// Ordinary technical prose is not mistaken for a secret.
 	h.call(t, Agent, "record_note", memory.Input{ProjectID: project, OperationID: "benign-note-1", Title: "Config", Body: "token_file points at .secrets/agent_token; the commit is " + strings.Repeat("a", 40) + " and sha " + strings.Repeat("b", 64)})
 	if v := h.call(t, Agent, "explore_records", memory.Input{ProjectID: project, Kind: "idea"}).([]memory.Row); len(v) != 1 {

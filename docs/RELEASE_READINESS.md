@@ -16,7 +16,7 @@ reproduced below; later commits are documentation only.
 | Full dashboard (projects register, explorers) | **Verified** in Chromium (desktop, phone width, dark) on Mini and parity-tested API on all editions | screenshots in `docs/screenshots`; not re-screenshotted against Full |
 | Mini (MariaDB) on Linux host | **Verified** | contract suite, 11 MCP gates, 14 lifecycle gates, runtime-privilege and migration tests, amd64 |
 | Mini on ThothDock v0.2.1 + Garden PRoot | **Verified on a Linux host only** | install/clients/hooks/backup/restore/uninstall scripts, restart/SIGKILL/recreate |
-| Mini on Android hardware | **BLOCKED, no device** | [ANDROID_GATE.md](ANDROID_GATE.md) runbook |
+| Mini on Android hardware | **PASS WITH DOCUMENTED LIMITATIONS** (Samsung SM-A165F, real ThothDock 0.2.1 in ThothTerm 0.4.1: install, 11/11 MCP gates, 14/14 lifecycle gates incl. SIGKILL) | [ANDROID_GATE.md](ANDROID_GATE.md) |
 | Mini arm64 | glibc image passed 11 gates under QEMU; Alpine arm64 failed to bootstrap there | choose per device gate |
 | UltraLite (SQLite, headless) | **Verified** Linux amd64 (all tests, race), Windows x64 (native init/doctor/ACLs), Linux arm64 (QEMU init/doctor) | macOS and Android binaries built, not run |
 | Automatic memory | **Partly verified** | see below |

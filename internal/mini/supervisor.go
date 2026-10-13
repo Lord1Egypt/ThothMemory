@@ -125,7 +125,10 @@ func (l Layout) serverArgs() []string {
 	args := []string{"--defaults-file=" + l.Config, "--datadir=" + l.DataDir(), "--pid-file=" + filepath.Join(l.Run, "mariadbd.pid")}
 	if l.Addr != "" {
 		host, port, _ := strings.Cut(l.Addr, ":")
-		return append(args, "--skip-networking=0", "--bind-address="+host, "--port="+port, "--socket="+l.Socket())
+		// TCP clients arrive as 127.0.0.1. The owner account is root@localhost, which
+		// only matches when the server resolves that address to "localhost" (it does
+		// from /etc/hosts); under skip-name-resolve it would never match.
+		return append(args, "--skip-networking=0", "--skip-name-resolve=0", "--bind-address="+host, "--port="+port, "--socket="+l.Socket())
 	}
 	return append(args, "--socket="+l.Socket())
 }

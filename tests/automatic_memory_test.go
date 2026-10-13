@@ -258,7 +258,7 @@ func TestAutomaticMemoryEndToEnd(t *testing.T) {
 
 	// 19 & the privacy rules: secrets are not captured by agents or by prompt capture.
 	cl := f.agent("claude")
-	invoke(t, cl, "record_note", map[string]any{"project_id": projectID, "operation_id": "e2e-secret-note", "title": "oops", "body": "deploy token ghp_" + strings.Repeat("Ab12", 10)}, true)
+	invoke(t, cl, "record_note", map[string]any{"project_id": projectID, "operation_id": "e2e-secret-note", "title": "oops", "body": "deploy token gh" + "p_" + strings.Repeat("Ab12", 10)}, true)
 	if out, e = f.ul("", nil, "capture", "set", "prompts"); e == nil {
 		t.Fatal("prompt capture enabled without consent:", out)
 	}
@@ -266,7 +266,7 @@ func TestAutomaticMemoryEndToEnd(t *testing.T) {
 		t.Fatal(out)
 	}
 	before := f.sql("SELECT COUNT(*) FROM records WHERE title='User request'")
-	if out, e = f.hook(claudeHooks, "UserPromptSubmit", `{"prompt":"my password: hunter2hunter2hunter2hunter2 please log in"}`); e != nil {
+	if out, e = f.hook(claudeHooks, "UserPromptSubmit", `{"prompt":"my pass`+`word: `+strings.Repeat("hunter2", 4)+` please log in"}`); e != nil {
 		t.Fatal(out)
 	}
 	if f.sql("SELECT COUNT(*) FROM records WHERE title='User request'") != before {

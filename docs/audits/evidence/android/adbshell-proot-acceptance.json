@@ -1,0 +1,73 @@
+{
+ "endpoint": "http://127.0.0.1:27319/mcp",
+ "results": [
+  {
+   "gate": "health",
+   "result": "PASS",
+   "detail": "mini 0.1.0-rc.1",
+   "ms": 73.4
+  },
+  {
+   "gate": "mcp handshake and discovery",
+   "result": "PASS",
+   "detail": "ThothMemory Mini 0.1.0-rc.1, 25 tools",
+   "ms": 51.9
+  },
+  {
+   "gate": "authentication rejects bad token",
+   "result": "PASS",
+   "detail": "HTTP 401",
+   "ms": 14.1
+  },
+  {
+   "gate": "crud and read-back",
+   "result": "PASS",
+   "detail": "project, task, session, decision written and read back",
+   "ms": 327.4
+  },
+  {
+   "gate": "transaction rollback",
+   "result": "PASS",
+   "detail": "foreign-key failure rolled back event and operation",
+   "ms": 158.5
+  },
+  {
+   "gate": "optimistic concurrency",
+   "result": "PASS",
+   "detail": "8 concurrent writers, exactly 1 succeeded",
+   "ms": 194.2
+  },
+  {
+   "gate": "idempotency",
+   "result": "PASS",
+   "detail": "replay identical, changed payload refused",
+   "ms": 103.4
+  },
+  {
+   "gate": "evidence gates",
+   "result": "PASS",
+   "detail": "tested allowed, verified refused without owner attestation",
+   "ms": 168.3
+  },
+  {
+   "gate": "multilingual search",
+   "result": "PASS",
+   "detail": "Arabic substring and commit prefix found; stale flags set",
+   "ms": 69.3
+  },
+  {
+   "gate": "read-only credential",
+   "result": "PASS",
+   "detail": "write tool not even discoverable by read credential",
+   "ms": 15.2
+  },
+  {
+   "gate": "session handoff",
+   "result": "PASS",
+   "detail": "handoff recorded and retrieved",
+   "ms": 80.0
+  }
+ ],
+ "bench": {},
+ "project": "7d71cf73-80f1-4a86-948a-1008bebcbb27"
+}

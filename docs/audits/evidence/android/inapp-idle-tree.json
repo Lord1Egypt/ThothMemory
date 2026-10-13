@@ -1,0 +1,173 @@
+{
+ "idle_seconds": 60.0,
+ "processes": 16,
+ "total": {
+  "rss_kib": 229572,
+  "pss_kib": 188974,
+  "threads": 64,
+  "cpu_ms_idle": 16380,
+  "switches_idle": 14021
+ },
+ "rows": [
+  {
+   "pid": 7172,
+   "comm": "libproot.so",
+   "rss_kib": 9680,
+   "pss_kib": 538,
+   "threads": 1,
+   "cpu_ms_idle": 740,
+   "switches_idle": 5100,
+   "threads_started": 0
+  },
+  {
+   "pid": 7173,
+   "comm": "libproot.so",
+   "rss_kib": 9336,
+   "pss_kib": 292,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7176,
+   "comm": "nginx",
+   "rss_kib": 528,
+   "pss_kib": 10,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7177,
+   "comm": "node",
+   "rss_kib": 114404,
+   "pss_kib": 114444,
+   "threads": 11,
+   "cpu_ms_idle": 15520,
+   "switches_idle": 8409,
+   "threads_started": 0
+  },
+  {
+   "pid": 7202,
+   "comm": "nginx",
+   "rss_kib": 300,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7203,
+   "comm": "nginx",
+   "rss_kib": 380,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7204,
+   "comm": "nginx",
+   "rss_kib": 524,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7205,
+   "comm": "nginx",
+   "rss_kib": 120,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7206,
+   "comm": "nginx",
+   "rss_kib": 416,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7207,
+   "comm": "nginx",
+   "rss_kib": 68,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7208,
+   "comm": "nginx",
+   "rss_kib": 212,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7209,
+   "comm": "nginx",
+   "rss_kib": 496,
+   "pss_kib": 68,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 8795,
+   "comm": "libproot.so",
+   "rss_kib": 30040,
+   "pss_kib": 9178,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 7,
+   "threads_started": 0
+  },
+  {
+   "pid": 8826,
+   "comm": "thothmemory-min",
+   "rss_kib": 15592,
+   "pss_kib": 15764,
+   "threads": 16,
+   "cpu_ms_idle": 10,
+   "switches_idle": 50,
+   "threads_started": 0
+  },
+  {
+   "pid": 8922,
+   "comm": "mariadbd",
+   "rss_kib": 35884,
+   "pss_kib": 36172,
+   "threads": 9,
+   "cpu_ms_idle": 50,
+   "switches_idle": 190,
+   "threads_started": 0
+  },
+  {
+   "pid": 16329,
+   "comm": "libthothdock.so",
+   "rss_kib": 11592,
+   "pss_kib": 12032,
+   "threads": 16,
+   "cpu_ms_idle": 60,
+   "switches_idle": 265,
+   "threads_started": 0
+  }
+ ]
+}

@@ -23,7 +23,9 @@ ready() {
   return 1
 }
 counts() { docker exec "$name" thothmemory-mini status | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["database"], json.dumps(d["counts"], sort_keys=True))'; }
-orphans() { pgrep -f "mariadbd --defaults-file=/etc/thothmini" || true; }
+# Pure /proc scan (no pgrep dependency, which a minimal guest may lack and which would
+# then make this check pass vacuously): this install's mariadbd, by its config path.
+orphans() { for p in /proc/[0-9]*; do tr '\0' ' ' < "$p/cmdline" 2>/dev/null | grep -q -- '--defaults-file=/etc/thothmini/my.cnf' && echo "${p#/proc/}"; done; true; }
 run() { docker run -d --name "$name" -v "$volume:/data" -e THOTH_LISTEN="127.0.0.1:$port" "$image" >/dev/null; }
 
 docker inspect "$name" >/dev/null 2>&1 || run
@@ -32,7 +34,7 @@ base=$(counts) || { bad "owner status unavailable"; exit 1; }
 [[ -n $base ]] || { bad "empty status"; exit 1; }
 ok "ready in ${ms} ms; baseline $base"
 
-vm=$(docker exec "$name" sh -c 'for p in /proc/[0-9]*; do [ "$(cat $p/comm 2>/dev/null)" = mariadbd ] && awk "/^VmSize/{print \$2}" $p/status; done' | head -1)
+vm=$(docker exec "$name" sh -c 'for p in /proc/[0-9]*; do [ "$(cat $p/comm 2>/dev/null)" = mariadbd ] && awk "/^VmSize/{print \$2}" $p/status; done; true' | head -1)
 # Android kernels with 39-bit user addresses (512 GiB) cannot map MariaDB's default 8 TiB reservation.
 if [[ -n $vm && $vm -lt 16777216 ]]; then ok "mariadbd virtual size $((vm/1024)) MiB (< 16 GiB; a 39-bit address space holds 512 GiB)"; else bad "mariadbd virtual size ${vm:-unknown} kB; would not fit a 39-bit address space"; fi
 docker restart -t 60 "$name" >/dev/null; ms=$(ready) || bad "not ready after restart"
