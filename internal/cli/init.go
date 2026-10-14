@@ -17,16 +17,23 @@ func InitConfig() error {
 	if e := InitSecrets(".secrets", true); e != nil {
 		return e
 	}
-	_, existed := os.Stat(".env")
-	if e := initClients(); e != nil {
+	return initClients()
+}
+
+// CreateFreshVolume creates the empty, labelled data volume named in a .env that init-config has just
+// written for a new folder. It does nothing for an existing .env and never touches an existing volume
+// (Docker's create is idempotent). Kept apart from InitConfig so tests never need a Docker daemon.
+func CreateFreshVolume(ctx context.Context, envExistedBefore bool) error {
+	if envExistedBefore {
+		return nil
+	}
+	b, e := os.ReadFile(".env")
+	if e != nil {
 		return e
 	}
-	if existed != nil { // a new folder: create its own empty, labelled data volume (external to Compose)
-		b, _ := os.ReadFile(".env")
-		if v, ok := envValue(string(b), "THOTH_VOLUME"); ok {
-			if out, e := docker(context.Background(), "volume", "create", "--label", "org.thothmemory.install=full", v); e != nil {
-				return fmt.Errorf("could not create data volume %s (is Docker running?): %s", v, out)
-			}
+	if v, ok := envValue(string(b), "THOTH_VOLUME"); ok {
+		if out, e := docker(ctx, "volume", "create", "--label", "org.thothmemory.install=full", v); e != nil {
+			return fmt.Errorf("could not create data volume %s (is Docker running?): %s", v, out)
 		}
 	}
 	return nil

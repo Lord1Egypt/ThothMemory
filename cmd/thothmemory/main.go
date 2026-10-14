@@ -57,7 +57,11 @@ func run(ctx context.Context, args []string) error {
 	}
 	switch cmd {
 	case "init-config":
-		return cli.InitConfig()
+		_, statErr := os.Stat(".env")
+		if e := cli.InitConfig(); e != nil {
+			return e
+		}
+		return cli.CreateFreshVolume(ctx, statErr == nil)
 	case "adopt-volume":
 		return cli.AdoptVolume(ctx, rest)
 	case "backup", "restore":
