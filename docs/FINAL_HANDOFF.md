@@ -1,5 +1,15 @@
 # Verified engineering checkpoint — 2026-10-13
 
+## Latest checkpoint — 2026-10-14 public release
+
+v0.2.0 is public at be30dfe67c9094f197d8810add7b77fb3abcb5d8. GitGuardian,
+PR/main CI and release workflows passed. Independent Mini backup subsequently
+FAILED with certificate-not-yet-valid TLS error; launch is not fully verified.
+See [PUBLIC_RELEASE_VERIFICATION.md](PUBLIC_RELEASE_VERIFICATION.md) for exact
+digests, downloads, successful checks and the stopped corrective-release gate.
+This supersedes historical pending/security-blocked notes below. Production
+remains stopped and unchanged; do not mutate published semantic-version tags.
+
 ## Launch resumed — 2026-10-14
 
 Owner reviewed GitGuardian incident 38171534. Supported GitHub check-run
