@@ -22,7 +22,7 @@ CGO_ENABLED=0 go build -buildvcs=false -o "$work/thothmemory" ./cmd/thothmemory
 : "${THOTH_OLDEST_IMAGE:=lord1egypt/thoth-memory@sha256:c6c7d7e0803afe1e8703f1fd6d8cf80f7427cf2d3447a07316ac378afdafd245}"
 export THOTH_LEGACY_IMAGE THOTH_MID_IMAGE THOTH_OLDEST_IMAGE
 git show "$THOTH_LEGACY_TAG:compose.yaml" > "$work/legacy-compose.yaml"
-docker pull -q "$THOTH_LEGACY_IMAGE" >/dev/null; docker pull -q "$THOTH_MID_IMAGE" >/dev/null; docker pull -q "$THOTH_OLDEST_IMAGE" >/dev/null
+docker pull -q "$PG" >/dev/null; docker pull -q "$THOTH_LEGACY_IMAGE" >/dev/null; docker pull -q "$THOTH_MID_IMAGE" >/dev/null; docker pull -q "$THOTH_OLDEST_IMAGE" >/dev/null
 cid=$(docker create "$THOTH_LEGACY_IMAGE"); docker cp "$cid:/usr/local/bin/thothmemory" "$work/legacy-thothmemory"; docker rm "$cid" >/dev/null
 docker network create "$net" >/dev/null
 # /work is mounted in both containers: Compose file secrets are bind mounts resolved by the daemon.
