@@ -1,5 +1,19 @@
 # Product launch checkpoint
 
+## Security gate cleared — 2026-10-14
+
+Owner completed incident review. GitHub's official check-run rerequest endpoint
+accepted a POST for check 115527343001. GitGuardian created fresh check
+115653901254 at f94a63b0a3dc3e23d6392b66d00a3c9dc631a4f1: **SUCCESS**, all 29
+commits scanned without uncovering secrets. No skip, neutral override, scanner
+disablement or history rewrite. Earlier blocking notes below are historical.
+
+Release-facing availability wording is finalized for the v0.2.0 snapshot.
+Require successful CI and GitGuardian on this final head before merging PR #8,
+then successful main CI before tagging. Publication is still pending at this
+checkpoint; do not infer that finalized download documentation proves publication.
+Existing owner authorization covers this sequence. Production remains excluded.
+
 **v0.2.0 is not published.** The existing public v0.1.2 remains unchanged and
 contains Full clients/images only, not UltraLite. Planned v0.2.0 download links
 must not be presented as working downloads before publication verification.

@@ -13,7 +13,7 @@ not required. On ordinary Docker, the installer publishes only host loopback;
 on ThothDock, where containers share the device network, the application itself
 binds loopback and no forwarder is needed.
 
-The unified v0.2.0 release is pending. After publication, download
+From the unified v0.2.0 release, download
 `thothmini.sh` and `MINI_IMAGE_DIGEST.txt` from that release. The latter contains
 the immutable reference for `lord1egypt/thoth-memory-mini`, with glibc amd64 and
 ARM64 children. It is separate from Full and never replaces Full's latest tag.

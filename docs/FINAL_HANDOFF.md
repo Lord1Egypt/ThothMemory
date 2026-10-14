@@ -1,5 +1,14 @@
 # Verified engineering checkpoint — 2026-10-13
 
+## Launch resumed — 2026-10-14
+
+Owner reviewed GitGuardian incident 38171534. Supported GitHub check-run
+rerequest succeeded; fresh GitGuardian check 115653901254 at f94a63b reported
+SUCCESS with 29 commits scanned and no secrets. No bypass or scan disablement.
+Release-facing documentation finalized; await checks on the final PR head,
+merge PR #8, require main CI, then tag/publish/independently verify v0.2.0 using
+the existing conditional owner authorization. Older blocked notes are historical.
+
 ## Current product launch checkpoint: external security gate blocked
 
 The owner now conditionally authorizes PR #2/#8 merges and unified v0.2.0

@@ -9,8 +9,8 @@ separately; ThothMemory registers installed clients, not their model accounts.
 ## 1. Download and install
 
 The unified [v0.2.0 release](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.0)
-is currently pending the launch gates; v0.1.2 has no UltraLite assets.
-When available, choose the file matching your OS/CPU and download SHA256SUMS.
+contains Full and UltraLite assets; v0.1.2 has no UltraLite assets.
+Choose the file matching your OS/CPU and download SHA256SUMS.
 Windows Intel/AMD uses `thothmemory-ultralite-windows-amd64.exe`; Linux Intel/AMD
 uses `thothmemory-ultralite-linux-amd64`; Linux ARM64 uses `...-linux-arm64`.
 

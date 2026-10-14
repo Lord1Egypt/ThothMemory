@@ -14,12 +14,12 @@
 
 ابدأ بـUltraLite. لا تحتاج إلى تثبيت Go أو قاعدة بيانات منفصلة.
 الإصدار الجامع [v0.2.0](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.0)
-قيد التجهيز حاليًا؛ لا تعتبر روابط ملفاته تنزيلات متاحة قبل نشره.
-الإصدار v0.1.2 المنشور يحتوي Full فقط. [حالة النشر](LAUNCH_STATUS.md).
+يجمع ملفات Full وUltraLite وروابط صور Mini في صفحة واحدة.
+الإصدار القديم v0.1.2 يحتوي Full فقط.
 
 ## Windows
 
-بعد نشر v0.2.0، نزّل `thothmemory-ultralite-windows-amd64.exe` و`SHA256SUMS`.
+من v0.2.0، نزّل `thothmemory-ultralite-windows-amd64.exe` و`SHA256SUMS`.
 افتح PowerShell في مجلد التنزيل. قارن ناتج الأمر الأول بالقيمة في ملف البصمات:
 
 ```powershell

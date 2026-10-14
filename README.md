@@ -14,10 +14,6 @@ ideas, decisions, tasks, evidence and handoffs in your own database.
 ThothMemory needs no model API key; your AI client keeps its own model settings.
 Memory works offline, though your assistant may need a connection.
 
-> **Publication pending:** v0.2.0 is being prepared. Its asset links below are
-> planned, not available downloads yet. The public v0.1.2 is Full-only and does
-> not include UltraLite. [Current launch status](docs/LAUNCH_STATUS.md).
-
 [Beginner tutorial](docs/GETTING_STARTED.md) · [العربية](docs/README_AR.md)
 
 ```mermaid
@@ -37,12 +33,12 @@ flowchart LR
 All editions share memory tools and a portable project format. Mini uses fewer
 database processes than Full; UltraLite is the smallest option.
 
-Planned [v0.2.0 release](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.0):
+[Download v0.2.0](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.0):
 [UltraLite Windows](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-windows-amd64.exe) ·
 [Linux amd64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-linux-amd64) ·
 [Linux ARM64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-linux-arm64).
 [Full Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory) ·
-[Mini Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory-mini) *(pending)*.
+[Mini Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory-mini).
 [Platform status](docs/PLATFORMS.md) labels experimental macOS/Android builds.
 
 ## Get started in under five minutes — UltraLite
@@ -53,7 +49,7 @@ agents launch it by its full path.
 
 ### Windows
 
-Open the v0.2.0 release when published. Download
+Open the v0.2.0 release. Download
 **thothmemory-ultralite-windows-amd64.exe** and **SHA256SUMS**. Open PowerShell
 in the download folder. Compare `Get-FileHash .\thothmemory-ultralite-windows-amd64.exe -Algorithm SHA256`
 with its entry in SHA256SUMS. Then:
@@ -244,7 +240,7 @@ For Full/Mini, rehearse upgrades on a restored copy first. [Safe upgrades](docs/
 
 | Symptom | Next step |
 |---|---|
-| UltraLite is missing from latest release | v0.1.2 is Full-only; check the v0.2.0 availability notice above |
+| UltraLite is missing from an older release | v0.1.2 is Full-only; use the unified v0.2.0 release linked above |
 | Command not found | Use the full executable path shown above; check CPU architecture |
 | Client not installed | Install its CLI on PATH, then rerun `connect` |
 | Tools absent | Restart client, approve trust, run `doctor` and client `mcp list` |
