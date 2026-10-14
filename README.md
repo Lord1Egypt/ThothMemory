@@ -197,8 +197,8 @@ keep those files private. The Compose named volume persists memory across
 > **Which Mini?** Use **Mini 0.1.2** from [release v0.2.2](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.2)
 > (`lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57`). It passed the complete backup, verified restore and recovery
 > lifecycle (25 or 26 gates, including 20 consecutive restarts) on linux/amd64 and on linux/arm64 under QEMU
-> (emulated). **Not yet verified:** a physical Samsung/ThothDock test of this digest (earlier phone results belong to
-> older images), soak and battery behavior. Mini 0.1.0 (v0.2.0) is superseded: its backup could fail with
+> (emulated), and on a physical Samsung SM-A165F under ThothDock 0.2.1 (11/11 MCP and 23/23 lifecycle gates,
+> [evidence](docs/ANDROID_GATE.md)). **Not verified:** multi-hour endurance, battery drain and Android background-kill behavior (Android stays a preview). Mini 0.1.0 (v0.2.0) is superseded: its backup could fail with
 > `TLS/SSL error: certificate is not yet valid`. Before upgrading, copy your `thothmemory-mini-data` volume.
 
 Download **thothmini.sh** and **MINI_IMAGE_DIGEST.txt** from the main release.
@@ -213,7 +213,7 @@ sh ./thothmini.sh doctor
 
 No Compose needed. Data and credentials live in `thothmemory-mini-data`;
 uninstall keeps that volume. The distribution uses the tested glibc variant.
-Prior Samsung tests passed, but the final image/device retest is pending.
+The published Mini 0.1.2 digest passed the physical Samsung gates (see docs/ANDROID_GATE.md).
 No battery or multi-hour background guarantee. [Mini tutorial](docs/MINI.md).
 
 ## Privacy, permissions and data location
