@@ -1,5 +1,10 @@
 # ThothMemory Mini (MariaDB)
 
+> **Warning — Mini 0.1.0 (release v0.2.0) failed independent backup verification.**
+> `backup` can fail with `TLS/SSL error: certificate is not yet valid`; no restore has been
+> verified for that image. The fix is in Mini 0.1.1 (release v0.2.1, **not yet published**).
+> Until then treat Mini 0.1.0 as not recovery-ready and keep an independent copy of its volume.
+
 ## Start here
 
 Mini gives you the browser dashboard and a persistent memory service in one
@@ -48,7 +53,7 @@ One container: the Go service supervises a private `mariadbd` (11.4 LTS, pinned 
 digest in the glibc variant, by package version in the Alpine variant). MariaDB has
 **TCP networking disabled**; the service reaches it through an abstract Unix socket
 named from a random installation ID (a filesystem socket is invisible to `docker exec`
-under ThothDock's PRoot, measured). The service listens on `127.0.0.1:7319` only, serves
+under ThothDock's PRoot, measured). The socket name is not a secret or a strong isolation boundary: ThothDock may share networking and the same UID across containers, so database access is protected by the owner password, not by the socket. The service listens on `127.0.0.1:7319` only, serves
 MCP and the dashboard, and nothing else runs.
 
 ## Images

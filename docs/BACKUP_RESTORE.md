@@ -44,3 +44,30 @@ at-rest protection. A SHA-256 sidecar is corruption detection, not authenticity.
 For a schema downgrade use a pre-upgrade dump restored into a new database and the
 retained old image. Do not manually delete migration columns/checksums. See the
 [owner acceptance and rollback procedure](audits/FIRST-RUN-ACCEPTANCE.md).
+
+## Mini: how backup and restore reach the database
+
+Mini's `backup` runs the container's own `mariadb-dump`, and `restore` runs `mariadb`, with
+a private option file (mode 0600, removed afterwards) so the password never appears in a
+process argument or log. Both connect over the container's abstract Unix socket; MariaDB is
+started with `skip-networking`, so there is no TCP listener.
+
+MariaDB 11.4 clients still negotiate TLS over a Unix socket, against a self-signed
+certificate the server generates in memory at every start, valid from that second. A client
+whose clock reads earlier than the server's start second (a VM or WSL2 clock step, emulation)
+fails with `certificate is not yet valid`. Mini 0.1.1 therefore writes `skip-ssl` into the
+option file **only for the socket transport**. This opens no listener and removes no
+authentication: every connection still needs the owner password. It is not a claim of strong
+isolation. An abstract socket is scoped to a network namespace, not to a UID or a container
+boundary; ThothDock and other runtimes may share networking and the same UID between containers,
+so another local process in that namespace may be able to reach the socket. The password, kept in
+a 0600 file under /data, is the protection, and TLS to a self-signed in-memory certificate never
+authenticated the server anyway. In the optional `THOTH_DB_TCP` loopback mode the option file is
+unchanged, so TLS negotiation and certificate verification stay on; a unit test pins both
+branches and rejects any `skip-ssl`/`ssl-verify-server-cert=0` there.
+There is no general insecure fallback.
+
+A failed backup exits non-zero and prints no `sha256=` line, so it never looks like a valid
+artifact. Restore refuses a checksum mismatch before touching the server, loads into a NEW
+database, tries to drop that database if loading or validation fails (bounded 30 s; the error says whether the drop succeeded), and never activates it
+unless you run `activate` explicitly.

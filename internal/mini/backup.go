@@ -26,7 +26,15 @@ func (l Layout) clientDefaults() (string, error) {
 	if e != nil {
 		return "", e
 	}
-	conn := "socket=" + l.Socket()
+	// The Unix socket is reachable only within the container's network namespace and the
+	// password is still required. That is not a strong isolation boundary (ThothDock can
+	// share networking and UID), so authentication is what protects the database.
+	// MariaDB 11.4 clients still negotiate TLS over it against a certificate the
+	// server generates at each start, valid from that second; a client clock that
+	// reads earlier (VM/WSL2 time steps, emulation) fails with "certificate is not
+	// yet valid". Disabling TLS here is scoped to the socket branch only: the TCP
+	// branch below keeps the client defaults, including certificate verification.
+	conn := "skip-ssl\nsocket=" + l.Socket()
 	if l.Addr != "" {
 		host, port, _ := strings.Cut(l.Addr, ":")
 		conn = "protocol=tcp\nhost=" + host + "\nport=" + port
@@ -106,12 +114,22 @@ func Restore(ctx context.Context, l Layout, r io.Reader, want string) (string, e
 	defer os.Remove(cnf)
 	cmd := exec.CommandContext(ctx, "mariadb", "--defaults-extra-file="+cnf, "--batch", name)
 	cmd.Stdin, cmd.Stderr = spool, os.Stderr
+	// A failed load must not leave a half-restored database that looks like a result.
+	// Cleanup is bounded and checked: only report "discarded" when DROP succeeded.
+	fail := func(msg string) (string, error) {
+		dctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		defer cancel()
+		if _, de := owner.DB.ExecContext(dctx, "DROP DATABASE `"+name+"`"); de != nil {
+			return "", fmt.Errorf("%s; cleanup FAILED, partial database %s remains and must NOT be activated (drop it manually); the active database is untouched", msg, name)
+		}
+		return "", fmt.Errorf("%s; the partial database %s was dropped; the active database is untouched", msg, name)
+	}
 	if e = cmd.Run(); e != nil {
-		return "", fmt.Errorf("restore into %s failed; the active database is untouched", name)
+		return fail("restore load failed")
 	}
 	var projects, events int
 	if e = owner.DB.QueryRowContext(ctx, "SELECT (SELECT COUNT(*) FROM `"+name+"`.projects),(SELECT COUNT(*) FROM `"+name+"`.events)").Scan(&projects, &events); e != nil {
-		return "", errors.New("restored schema validation failed")
+		return fail("restored schema validation failed")
 	}
 	fmt.Fprintf(os.Stderr, "Restored into %s: projects=%d events=%d. Active database unchanged.\n", name, projects, events)
 	return name, nil

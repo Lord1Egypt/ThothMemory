@@ -136,13 +136,17 @@ jobs:
           docker exec ci-mini thothmemory-mini token local-reader > read_token
           python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7319/mcp --token-file agent_token --reader-token-file read_token
           docker rm -f ci-mini
-          scripts/mini-lifecycle.sh ci-mini-lifecycle ci-mini thoth-memory-mini:ci-amd64 7319
+          THOTH_LIFECYCLE_MCP=1 THOTH_SKEW_GATE=1 scripts/mini-lifecycle.sh ci-mini-lifecycle ci-mini thoth-memory-mini:ci-amd64 7319
+          # The script leaves its fixture running; its mariadbd would be counted as an orphan by the next run.
+          docker rm -f -v ci-mini-lifecycle
       - name: TCP-loopback fallback mode (runtimes that cannot use the socket)
         run: |
           set -eu
           docker run -d --name ci-tcp -e THOTH_DB_TCP=127.0.0.1:33306 -e THOTH_LISTEN=127.0.0.1:7319 thoth-memory-mini:ci-amd64
           for i in $(seq 120); do docker exec ci-tcp thothmemory-mini healthcheck && break; sleep 1; done
           docker exec ci-tcp thothmemory-mini healthcheck
+          # The TCP fallback keeps TLS and certificate verification; its backup must also work.
+          docker exec ci-tcp sh -c 'thothmemory-mini backup > /tmp/tcp.sql 2> /tmp/tcp.err; grep -q "^sha256=" /tmp/tcp.err && test -s /tmp/tcp.sql'
           docker rm -f ci-tcp
       - name: Emulated arm64 gates (glibc image; musl mariadbd does not bootstrap under QEMU)
         run: |
@@ -153,6 +157,9 @@ jobs:
           docker exec ci-arm thothmemory-mini token local-agent > arm_token
           docker exec ci-arm thothmemory-mini token local-reader > arm_read_token
           python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7320/mcp --token-file arm_token --reader-token-file arm_read_token
+          docker rm -f -v ci-arm
+      - name: Emulated arm64 backup, restore and recovery lifecycle (glibc image)
+        run: PLATFORM=linux/arm64 THOTH_LIFECYCLE_MCP=1 THOTH_SKEW_GATE=1 scripts/mini-lifecycle.sh ci-arm-lifecycle ci-arm-data thoth-memory-mini:ci-glibc-arm64 7320
   ultralite:
     strategy:
       fail-fast: false
