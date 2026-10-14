@@ -14,6 +14,12 @@ then successful main CI before tagging. Publication is still pending at this
 checkpoint; do not infer that finalized download documentation proves publication.
 Existing owner authorization covers this sequence. Production remains excluded.
 
+Publication QA correction: Mini lifecycle checks now seed an actual MCP project
+and compare portable payload hashes, not only empty-table counts, across restart,
+SIGKILL recovery, container recreation and restore activation. Targeted local
+gate passed 14/14 with 13 events, 4 sessions, 4 records and a task preserved.
+The final CI and publication workflow repeat this stronger gate.
+
 **v0.2.0 is not published.** The existing public v0.1.2 remains unchanged and
 contains Full clients/images only, not UltraLite. Planned v0.2.0 download links
 must not be presented as working downloads before publication verification.
