@@ -194,13 +194,12 @@ keep those files private. The Compose named volume persists memory across
 
 ## Mini — ThothDock and compact containers
 
-> **Which Mini?** Use the Mini in the [latest release](https://github.com/Lord1Egypt/ThothMemory/releases/latest)
-> (0.1.2 in v0.2.2; its exact digest is in that release's `MINI_IMAGE_DIGEST.txt`). Mini 0.1.0 (v0.2.0) is
-> **superseded**: its backup could fail with `TLS/SSL error: certificate is not yet valid` and its restore was
-> never verified. Mini 0.1.1 (v0.2.1, `sha256:6f457f5d…bd29902`) passed a 25-gate backup, restore and recovery
-> lifecycle on linux/amd64 and on linux/arm64 under QEMU (emulated). What has and has not been verified for the
-> newest Mini, including any phone test, is listed in [docs/PUBLIC_RELEASE_VERIFICATION.md](docs/PUBLIC_RELEASE_VERIFICATION.md).
-> Before upgrading, copy your `thothmemory-mini-data` volume.
+> **Which Mini?** Use **Mini 0.1.2** from [release v0.2.2](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.2)
+> (`lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57`). It passed the complete backup, verified restore and recovery
+> lifecycle (25 or 26 gates, including 20 consecutive restarts) on linux/amd64 and on linux/arm64 under QEMU
+> (emulated). **Not yet verified:** a physical Samsung/ThothDock test of this digest (earlier phone results belong to
+> older images), soak and battery behavior. Mini 0.1.0 (v0.2.0) is superseded: its backup could fail with
+> `TLS/SSL error: certificate is not yet valid`. Before upgrading, copy your `thothmemory-mini-data` volume.
 
 Download **thothmini.sh** and **MINI_IMAGE_DIGEST.txt** from the main release.
 In ThothTerm, start ThothDock first. Then:

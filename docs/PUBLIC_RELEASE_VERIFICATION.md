@@ -156,3 +156,36 @@ entries verified after an anonymous download.
 - Android: **pending.** The phone was reachable but in active use; the engine can only be driven through the app UI.
   The published digest has not been tested on the device.
 - Full and UltraLite 0.2.1 were rebuilt by the release workflow; only Mini was independently re-tested here.
+
+## v0.2.2 published and independently verified (2026-10-14)
+
+Release https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.2, annotated tag on merge commit
+`7223ea597ab4924c832911ad16904e295d6e09c6` (PR #12). Pre-merge CI (run 38543509462), post-merge CI
+(38544556568), Release (38546386044) and Docker publication (38547624642) all succeeded on the first attempt.
+16 assets; all 13 SHA256SUMS entries verified after an anonymous download. Older tags and digests are unchanged
+(Mini 0.1.0 `a73a2e3c…`, 0.1.1 `6f457f5d…`, Full 0.2.0 `784eb92b…`, 0.2.1 `73dc7b32…`); no Mini `latest` tag exists.
+
+- Full 0.2.2 and `latest`: `sha256:1505d340cb6f59ed273bd1d7532671f738ad8fc7e198bfc9c74b00e33b1852d5`
+- Mini 0.1.2: `sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57`
+- UltraLite 0.1.0 binaries are byte-identical to v0.2.1 (same SHA-256 for linux/amd64, `861fa09d…`).
+
+| Check on the published artifact | Platform | How |
+|---|---|---|
+| Mini: 11 MCP gates, 26 lifecycle gates incl. 20 consecutive clean restarts, SIGKILL, backup, verified restore, FK/table/migration comparison, MCP reads on restored copy, clock-skew backup | linux/amd64 | native |
+| Mini: same lifecycle, 25/25 (skew gate run by the publication workflow, 26/26, because a local `docker build` hung) | linux/arm64 | **emulated** (QEMU) |
+| Full: ELF architecture, migration, MCP handshake, tools, writes, handoff | amd64 native, arm64 **emulated** | `scripts/smoke-platforms.sh` |
+| Full: compose deployment, restart persistence, backup, restore to a new database, least privilege; listener only on 127.0.0.1 | amd64 | isolated project name; the shipped `compose.yaml` hard-codes `name: thothmemory`, which is the production volume's project, so it must not be run unmodified on a machine that holds that volume |
+| Full dashboard (overview, tasks, decisions, evidence, sessions, timeline, search; light/dark; 1280 and 390 px; no overflow; no JS errors) | amd64 | headless Chromium, `scripts/dashboard-check.mjs` |
+| UltraLite: checksum, init twice, owner-only permissions, doctor, MCP handshake and 25 tools, no listening socket, writes, cross-session read, 3 concurrent writers, backup/restore, upgrade from the v0.2.0 binary, no daemon | linux amd64 native; linux arm64 **emulated** | `scripts/ultralite-acceptance.py` |
+| UltraLite Windows amd64: init, doctor, backup, restore, owner-only ACL, no listener | native (WSL interop) | manual |
+| Real client registration (codex, claude, opencode) and persisted write | linux amd64 | `scripts/quickstart-smoke.py` |
+| Real model: Claude Code wrote an IDEA through the published binary; a fresh session retrieved it | linux amd64 | actual model-driven, one run |
+
+Residual risks:
+- **Intermittent CI failure not explained.** The old log-based check `no clean MariaDB shutdown logged` failed once
+  (run 38534965846) and passed on rerun; it never recurred in 25 restarts before the change or in 21 + 21 + 20
+  consecutive restarts with the new durable `shutdown.log` record. The cause (lost log line vs early exit) remains unproven.
+- **Android: BLOCKED.** Wireless ADB was refused (port closed) when retried after publication; earlier it was reachable
+  but another app was in the foreground. No phone test of any v0.2.2 digest has run. Codex lifecycle hooks and OpenCode
+  real-model behavior remain unverified; macOS and Android UltraLite are not runtime-tested.
+- A leftover owner-only test folder `C:\Windows\Temp\ul022-data` from the Windows check could not be deleted from WSL.
