@@ -9,6 +9,9 @@
   the safety guard stopped before anything was started or migrated. Choose a new empty
   volume (delete the `THOTH_VOLUME` and project lines from `.env` only in a **new** folder)
   or adopt the volume deliberately. Nothing was changed.
+- **I used `-p thothmemory` and my old stopped `app` container was replaced:** this is a known limit
+  (see [Upgrade](UPGRADE.md)). Data is not affected; recreate it with `docker compose up -d` after a successful
+  `adopt-volume` upgrade.
 - **Port conflict:** setup reports the Compose bind failure. Choose a free THOTH_PORT
   in .env and match the endpoint in client*.json. No unrelated process is terminated.
 - **Permission denied reading secrets:** .secrets must remain owner-only while files

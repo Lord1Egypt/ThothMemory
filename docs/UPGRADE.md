@@ -32,6 +32,14 @@ Compose volume such as `thothmemory_memory`) is explicit:
 Without step 2, older folders stop with "no data volume is selected" instead of guessing.
 A new build also refuses to migrate a database written by a newer release.
 
+**Known limitation (not complete container immutability).** The guard protects the *data volume*: it
+refuses an unrecognized volume before the database or a migration starts, even for direct `docker compose up`,
+`-p` or environment overrides. It cannot stop Docker Compose itself from replacing containers that belong to a
+project whose name you force. If you deliberately run with `-p thothmemory` (the legacy project name) in a new
+folder, Compose may replace the old *stopped* application container with a never-started one. The old database
+container and the data volume stay untouched in testing, and nothing from the old installation is started. Never
+force the legacy project name unless you are intentionally upgrading that installation.
+
 From the installation folder run `./bin/thothmemory backup /safe/backup.dump`.
 Restore into a disposable installation using the documented owner CLI and
 verify counts/history before rehearsing migration. Migrations 005, 006 and 007
