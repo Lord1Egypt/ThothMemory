@@ -1,0 +1,10 @@
+== stage4 2026-10-14T12:43:54Z
+containers:
+tonapi-explorer-1 Exited (0) 5 hours ago
+tonapi-api-1 Exited (143) 5 hours ago
+volumes:
+images:
+akim92/egyptianarmyapi:v58
+akim92/egyptianarmyexplorer:v1
+mariadbd left:
+-- marker: stage4 done

@@ -1,0 +1,32 @@
+== stage2 2026-10-14T12:40:44Z
+Digest: sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57
+Status: Image is up to date for lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57
+docker.io/lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57
+Initializing (first start creates the database; allow up to 5 minutes on a phone)...
+Ready on http://127.0.0.1:27431 (MCP: /mcp). Next: thothmini.sh clients
+
+real	0m13.337s
+user	0m0.879s
+sys	0m1.387s
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+{
+  "counts": {
+    "attestations": 0,
+    "events": 0,
+    "evidence": 0,
+    "imports": 0,
+    "projects": 0,
+    "records": 0,
+    "sessions": 0,
+    "tasks": 0
+  },
+-- listeners (LISTEN sockets in /proc/net/tcp: addr:port hex)
+-- mariadbd processes
+pid 24587
+-- acceptance
+Traceback (most recent call last):
+  File "/home/thoth/qa/mini-acceptance.py", line 24, in <module>
+    TOKEN = open(args.token_file).read().strip()
+            ~~~~^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/thoth/qa/home/agent_token'
+-- marker: stage2 done

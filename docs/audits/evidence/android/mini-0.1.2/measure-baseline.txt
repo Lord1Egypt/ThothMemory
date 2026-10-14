@@ -1,0 +1,5 @@
+-- baseline 12:40:03
+procs(uid u0_a773): 7  threads: 102
+        TOTAL   108406    70785     2300    32335   164801    94693    64321    30371
+           TOTAL PSS:   108406            TOTAL RSS:   164801       TOTAL SWAP PSS:    32335
+  AC powered: true   level: 48   temperature: 306

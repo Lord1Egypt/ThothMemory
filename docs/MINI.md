@@ -3,8 +3,8 @@
 > **Which Mini?** Use Mini 0.1.2 (release v0.2.2, `sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57`). Mini 0.1.0 (v0.2.0) is superseded:
 > `backup` could fail with `TLS/SSL error: certificate is not yet valid` and restore was never verified. Mini 0.1.2
 > passed the 25-gate backup/restore/recovery lifecycle on amd64 and emulated arm64 ([evidence](PUBLIC_RELEASE_VERIFICATION.md)).
-> Limits: the physical Samsung test of this digest is pending (earlier results belong to older images); no soak or
-> battery measurement; the database socket is protected by the owner password, not by a strong isolation boundary.
+> Limits: the physical Samsung SM-A165F test of this digest passed ([ANDROID_GATE.md](ANDROID_GATE.md)); no soak, battery or
+> background-kill measurement; the database socket is protected by the owner password, not by a strong isolation boundary.
 
 ## Start here
 
