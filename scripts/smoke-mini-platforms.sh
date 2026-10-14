@@ -36,5 +36,6 @@ trap 'for a in amd64 arm64; do docker rm -f -v "$name-$a" >/dev/null 2>&1 || tru
 for arch in amd64 arm64; do
   docker pull --platform "linux/$arch" "$MINI_IMAGE" >/dev/null
   PLATFORM="linux/$arch" THOTH_LIFECYCLE_MCP=1 THOTH_SKEW_GATE=1 scripts/mini-lifecycle.sh "$name-$arch" "$name-$arch-data" "$MINI_IMAGE" 27419
+  docker rm -f -v "$name-$arch" >/dev/null  # the next architecture's orphan scan must not see this fixture
   echo "linux/$arch Mini backup, verified restore and recovery lifecycle PASS (arm64 is emulated on amd64)"
 done

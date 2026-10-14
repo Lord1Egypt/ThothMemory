@@ -137,6 +137,8 @@ jobs:
           python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:7319/mcp --token-file agent_token --reader-token-file read_token
           docker rm -f ci-mini
           THOTH_LIFECYCLE_MCP=1 THOTH_SKEW_GATE=1 scripts/mini-lifecycle.sh ci-mini-lifecycle ci-mini thoth-memory-mini:ci-amd64 7319
+          # The script leaves its fixture running; its mariadbd would be counted as an orphan by the next run.
+          docker rm -f -v ci-mini-lifecycle
       - name: TCP-loopback fallback mode (runtimes that cannot use the socket)
         run: |
           set -eu
