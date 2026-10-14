@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	FullVersion      = "0.2.2"
-	MiniVersion      = "0.1.2"
+	FullVersion      = "0.2.3"
+	MiniVersion      = "0.1.3"
 	UltraLiteVersion = "0.1.0"
 )
 

@@ -45,7 +45,7 @@ with ThreadPoolExecutor(max_workers=8) as workers:
     list(workers.map(lambda i:tool('append_event',{'project_id':pid,'operation_id':str(uuid.uuid4()),'body':'Concurrent checkpoint '+str(i)}),range(100)))
 result['concurrent_event_writes']={'writers':8,'writes':100,'elapsed_ms':round((time.perf_counter()-start)*1000,3)}
 time.sleep(10)  # Allow checkpoint/write work to settle before sampling idle resources.
-result['idle_docker_stats']=json.loads('['+','.join(subprocess.check_output(['docker','stats','--no-stream','--format','{{json .}}','thothmemory-app-1','thothmemory-db-1'],text=True).splitlines())+']')
+result['idle_docker_stats']=json.loads('['+','.join(subprocess.check_output(['docker','stats','--no-stream','--format','{{json .}}',*subprocess.check_output(['docker','compose','ps','-q','app','db'],text=True).split()],text=True).splitlines())+']')
 start=time.perf_counter();subprocess.run(['docker','compose','restart','app'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
 while True:
     try:

@@ -116,7 +116,7 @@ jobs:
           test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
           # Refuse existing immutable version tags unless they already resolve
           # to this exact candidate (safe resumption of a partial publication).
-          for spec in "$IMAGE:${TAG#v}|$DIGEST" "$MINI_IMAGE:0.1.2|$MINI_DIGEST"; do
+          for spec in "$IMAGE:${TAG#v}|$DIGEST" "$MINI_IMAGE:0.1.3|$MINI_DIGEST"; do
             ref=${spec%|*}; expected=${spec#*|}
             if existing=$(docker buildx imagetools inspect "$ref" --format '{{.Manifest.Digest}}' 2>/dev/null); then
               test "$existing" = "$expected"
@@ -134,7 +134,7 @@ jobs:
             if test -f "downloads/$name"; then cmp "$name" "downloads/$name"; else gh release upload "$TAG" "$name"; fi
           done
           docker buildx imagetools create -t "$IMAGE:${TAG#v}" "$IMAGE@$DIGEST"
-          docker buildx imagetools create -t "$MINI_IMAGE:0.1.2" "$MINI_IMAGE@$MINI_DIGEST"
+          docker buildx imagetools create -t "$MINI_IMAGE:0.1.3" "$MINI_IMAGE@$MINI_DIGEST"
           # Mini intentionally has no Full-repository tag or latest promotion.
           docker buildx imagetools create -t "$IMAGE:latest" "$IMAGE@$DIGEST"
           gh release edit "$TAG" --draft=false --latest

@@ -15,7 +15,7 @@ if [[ -f .env ]]; then
 fi
 build=false
 if [[ ${1:-} == --build ]]; then build=true; export THOTH_IMAGE=${THOTH_IMAGE:-thoth-memory:dev}; fi
-image=${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.2}
+image=${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.3}
 if $build; then docker build -t "$image" .; else docker pull "$image"; fi
 mkdir -p bin
 container=$(docker create "$image")

@@ -189,3 +189,11 @@ Residual risks:
   but another app was in the foreground. No phone test of any v0.2.2 digest has run. Codex lifecycle hooks and OpenCode
   real-model behavior remain unverified; macOS and Android UltraLite are not runtime-tested.
 - A leftover owner-only test folder `C:\Windows\Temp\ul022-data` from the Windows check could not be deleted from WSL.
+
+## 2026-10-14 follow-up: shutdown campaign, Android, Compose isolation
+
+- Mini shutdown campaign (issue #15, stays open): `docs/audits/evidence/mini-shutdown-campaign/README.md`. amd64: 110 iterations,
+  90/90 graceful stops `clean`, 20/20 SIGKILLs correctly unrecorded, 0 orphans. Emulated arm64: 54 restarts, 53 clean and one
+  unexplained "not ready" (no diagnostics were captured in that run).
+- Android (issue #14, closed): published Mini 0.1.2 digest passed the physical SM-A165F gates; see `docs/ANDROID_GATE.md`.
+- Compose isolation (PR #17): `scripts/compose-isolation-dind.sh` 44/44 against a real legacy v0.2.1 fixture.

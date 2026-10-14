@@ -1,0 +1,15 @@
+{"i":1,"kind":"restart","outcome":"clean","container_exit_code":"","ms":35114}
+{"i":2,"kind":"restart","outcome":"clean","container_exit_code":"","ms":52073}
+{"i":3,"kind":"restart","outcome":"clean","container_exit_code":"","ms":28077}
+{"i":4,"kind":"restart","outcome":"clean","container_exit_code":"","ms":37464}
+{"i":5,"kind":"restart","outcome":"clean","container_exit_code":"","ms":52449}
+{"i":6,"kind":"restart","outcome":"clean","container_exit_code":"","ms":29814}
+{"i":7,"kind":"restart","outcome":"clean","container_exit_code":"","ms":51409}
+{"i":8,"kind":"restart","outcome":"clean","container_exit_code":"","ms":41934}
+{"i":9,"kind":"restart","outcome":"clean","container_exit_code":"","ms":108785}
+{"i":10,"kind":"restart","outcome":"clean","container_exit_code":"","ms":44188}
+{"i":11,"kind":"restart","outcome":"clean","container_exit_code":"","ms":21750}
+{"i":12,"kind":"restart","outcome":"clean","container_exit_code":"","ms":36183}
+{"i":13,"kind":"restart","outcome":"clean","container_exit_code":"","ms":19015}
+{"i":14,"kind":"restart","outcome":"clean","container_exit_code":"","ms":71517}
+{"i":15,"kind":"restart","outcome":"not-ready"}

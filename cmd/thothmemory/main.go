@@ -47,7 +47,7 @@ func dsn() (string, error) {
 }
 func run(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		fmt.Println("ThothMemory " + memory.FullVersion + "\nCommands: serve, migrate, bridge, doctor, connect, instructions, permissions, backup, restore, attest, export, import, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
+		fmt.Println("ThothMemory " + memory.FullVersion + "\nCommands: serve, migrate, adopt-volume, bridge, doctor, connect, instructions, permissions, backup, restore, attest, export, import, lifecycle, demo\nClient options: --config <client.json>. Run connect --help for scopes.")
 		return nil
 	}
 	cmd := args[0]
@@ -57,7 +57,13 @@ func run(ctx context.Context, args []string) error {
 	}
 	switch cmd {
 	case "init-config":
-		return cli.InitConfig()
+		_, statErr := os.Stat(".env")
+		if e := cli.InitConfig(); e != nil {
+			return e
+		}
+		return cli.CreateFreshVolume(ctx, statErr == nil)
+	case "adopt-volume":
+		return cli.AdoptVolume(ctx, rest)
 	case "backup", "restore":
 		return cli.BackupRestore(ctx, cmd, rest)
 	case "healthcheck":
