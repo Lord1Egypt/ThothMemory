@@ -1,0 +1,13 @@
+baseline: "attestations":0,"events":10058,"evidence":1,"imports":0,"projects":3,"records":2,"sessions":1,"tasks":1
+PASS  SIGTERM: whole tree gone after 1s, no orphan
+PASS  MariaDB shut down cleanly
+PASS  restart ready in 5s
+PASS  data identical after clean restart
+PASS  SIGKILL: no process left
+PASS  restart after SIGKILL ready in 4s
+PASS  data identical after SIGKILL recovery
+2026-10-13 17:06:41 0 [Note] Starting table crash recovery...
+2026-10-13 17:06:41 0 [Note] Crash table recovery finished.
+PASS  backup 7366679 bytes, sha256 matches
+PASS  restored into a new database: thoth_restore_20261013_170646
+PASS  active database unchanged by restore

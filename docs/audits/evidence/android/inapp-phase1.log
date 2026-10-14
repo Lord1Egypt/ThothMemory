@@ -1,0 +1,1343 @@
+== A. environment 2026-10-13T17:12:54Z
+$ docker version --format client={{.Client.Version}} server={{.Server.Platform.Name}} api={{.Server.APIVersion}}
+client=29.8.1 server=ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) api=1.41
+existing containers:
+tonapi-explorer-1 akim92/egyptianarmyexplorer:v1 Up 7 hours
+tonapi-api-1 akim92/egyptianarmyapi:v58 Up 7 hours
+existing volumes:
+existing images:
+akim92/egyptianarmyapi:v58
+akim92/egyptianarmyexplorer:v1
+== B. baseline process tree (engine + user workloads), before install
+{
+ "idle_seconds": 0.0,
+ "processes": 13,
+ "total": {
+  "rss_kib": 144656,
+  "pss_kib": 124460,
+  "threads": 36,
+  "cpu_ms_idle": 0,
+  "switches_idle": 2
+ },
+ "rows": [
+  {
+   "pid": 7172,
+   "comm": "libproot.so",
+   "rss_kib": 9680,
+   "pss_kib": 560,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7173,
+   "comm": "libproot.so",
+   "rss_kib": 9336,
+   "pss_kib": 314,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7176,
+   "comm": "nginx",
+   "rss_kib": 528,
+   "pss_kib": 6,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7177,
+   "comm": "node",
+   "rss_kib": 114140,
+   "pss_kib": 114100,
+   "threads": 11,
+   "cpu_ms_idle": 0,
+   "switches_idle": 2,
+   "threads_started": 0
+  },
+  {
+   "pid": 7202,
+   "comm": "nginx",
+   "rss_kib": 232,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7203,
+   "comm": "nginx",
+   "rss_kib": 380,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7204,
+   "comm": "nginx",
+   "rss_kib": 524,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7205,
+   "comm": "nginx",
+   "rss_kib": 120,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7206,
+   "comm": "nginx",
+   "rss_kib": 348,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7207,
+   "comm": "nginx",
+   "rss_kib": 196,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7208,
+   "comm": "nginx",
+   "rss_kib": 144,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7209,
+   "comm": "nginx",
+   "rss_kib": 368,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 16329,
+   "comm": "libthothdock.so",
+   "rss_kib": 8660,
+   "pss_kib": 9328,
+   "threads": 14,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  }
+ ]
+}
+processes 13 total {'rss_kib': 144656, 'pss_kib': 124460, 'threads': 36, 'cpu_ms_idle': 0, 'switches_idle': 2}
+== A. environment 2026-10-13T17:12:54Z
+$ docker version --format client={{.Client.Version}} server={{.Server.Platform.Name}} api={{.Server.APIVersion}}
+client=29.8.1 server=ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) api=1.41
+existing containers:
+tonapi-explorer-1 akim92/egyptianarmyexplorer:v1 Up 7 hours
+tonapi-api-1 akim92/egyptianarmyapi:v58 Up 7 hours
+existing volumes:
+existing images:
+akim92/egyptianarmyapi:v58
+akim92/egyptianarmyexplorer:v1
+== B. baseline process tree (engine + user workloads), before install
+{
+ "idle_seconds": 0.0,
+ "processes": 13,
+ "total": {
+  "rss_kib": 144656,
+  "pss_kib": 124460,
+  "threads": 36,
+  "cpu_ms_idle": 0,
+  "switches_idle": 2
+ },
+ "rows": [
+  {
+   "pid": 7172,
+   "comm": "libproot.so",
+   "rss_kib": 9680,
+   "pss_kib": 560,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7173,
+   "comm": "libproot.so",
+   "rss_kib": 9336,
+   "pss_kib": 314,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7176,
+   "comm": "nginx",
+   "rss_kib": 528,
+   "pss_kib": 6,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7177,
+   "comm": "node",
+   "rss_kib": 114140,
+   "pss_kib": 114100,
+   "threads": 11,
+   "cpu_ms_idle": 0,
+   "switches_idle": 2,
+   "threads_started": 0
+  },
+  {
+   "pid": 7202,
+   "comm": "nginx",
+   "rss_kib": 232,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7203,
+   "comm": "nginx",
+   "rss_kib": 380,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7204,
+   "comm": "nginx",
+   "rss_kib": 524,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7205,
+   "comm": "nginx",
+   "rss_kib": 120,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7206,
+   "comm": "nginx",
+   "rss_kib": 348,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7207,
+   "comm": "nginx",
+   "rss_kib": 196,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7208,
+   "comm": "nginx",
+   "rss_kib": 144,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7209,
+   "comm": "nginx",
+   "rss_kib": 368,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 16329,
+   "comm": "libthothdock.so",
+   "rss_kib": 8660,
+   "pss_kib": 9328,
+   "threads": 14,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  }
+ ]
+}
+processes 13 total {'rss_kib': 144656, 'pss_kib': 124460, 'threads': 36, 'cpu_ms_idle': 0, 'switches_idle': 2}
+== C. pull by digest from the staging registry and install with scripts/thothmini.sh
+$ sh /tmp/qa/thothmini.sh install --image nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda --port 27400
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda: Pulling from nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa
+90812e242c93: Pulling fs layer
+869818f1b59a: Pulling fs layer
+df7c4d0d024b: Pulling fs layer
+ff67770dd0b2: Pulling fs layer
+de037a211253: Pulling fs layer
+ff4cfe5faf64: Pulling fs layer
+d23f55b9bd03: Pulling fs layer
+90812e242c93: Verifying Checksum
+90812e242c93: Download complete
+869818f1b59a: Verifying Checksum
+869818f1b59a: Download complete
+df7c4d0d024b: Verifying Checksum
+df7c4d0d024b: Download complete
+ff67770dd0b2: Verifying Checksum
+ff67770dd0b2: Download complete
+de037a211253: Verifying Checksum
+de037a211253: Download complete
+ff4cfe5faf64: Verifying Checksum
+ff4cfe5faf64: Download complete
+d23f55b9bd03: Verifying Checksum
+d23f55b9bd03: Download complete
+90812e242c93: Extracting
+90812e242c93: Pull complete
+869818f1b59a: Extracting
+869818f1b59a: Pull complete
+df7c4d0d024b: Extracting
+df7c4d0d024b: Pull complete
+ff67770dd0b2: Extracting
+ff67770dd0b2: Pull complete
+de037a211253: Extracting
+de037a211253: Pull complete
+ff4cfe5faf64: Extracting
+ff4cfe5faf64: Pull complete
+d23f55b9bd03: Extracting
+d23f55b9bd03: Pull complete
+Digest: sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Status: Downloaded newer image for nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Initializing (first start creates the database; allow up to 5 minutes on a phone)...
+Ready on http://127.0.0.1:27400 (MCP: /mcp). Next: thothmini.sh clients
+install total (pull + first MariaDB init + ready): 51.4 s
+== A. environment 2026-10-13T17:12:54Z
+$ docker version --format client={{.Client.Version}} server={{.Server.Platform.Name}} api={{.Server.APIVersion}}
+client=29.8.1 server=ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) api=1.41
+existing containers:
+tonapi-explorer-1 akim92/egyptianarmyexplorer:v1 Up 7 hours
+tonapi-api-1 akim92/egyptianarmyapi:v58 Up 7 hours
+existing volumes:
+existing images:
+akim92/egyptianarmyapi:v58
+akim92/egyptianarmyexplorer:v1
+== B. baseline process tree (engine + user workloads), before install
+{
+ "idle_seconds": 0.0,
+ "processes": 13,
+ "total": {
+  "rss_kib": 144656,
+  "pss_kib": 124460,
+  "threads": 36,
+  "cpu_ms_idle": 0,
+  "switches_idle": 2
+ },
+ "rows": [
+  {
+   "pid": 7172,
+   "comm": "libproot.so",
+   "rss_kib": 9680,
+   "pss_kib": 560,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7173,
+   "comm": "libproot.so",
+   "rss_kib": 9336,
+   "pss_kib": 314,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7176,
+   "comm": "nginx",
+   "rss_kib": 528,
+   "pss_kib": 6,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7177,
+   "comm": "node",
+   "rss_kib": 114140,
+   "pss_kib": 114100,
+   "threads": 11,
+   "cpu_ms_idle": 0,
+   "switches_idle": 2,
+   "threads_started": 0
+  },
+  {
+   "pid": 7202,
+   "comm": "nginx",
+   "rss_kib": 232,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7203,
+   "comm": "nginx",
+   "rss_kib": 380,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7204,
+   "comm": "nginx",
+   "rss_kib": 524,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7205,
+   "comm": "nginx",
+   "rss_kib": 120,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7206,
+   "comm": "nginx",
+   "rss_kib": 348,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7207,
+   "comm": "nginx",
+   "rss_kib": 196,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7208,
+   "comm": "nginx",
+   "rss_kib": 144,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7209,
+   "comm": "nginx",
+   "rss_kib": 368,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 16329,
+   "comm": "libthothdock.so",
+   "rss_kib": 8660,
+   "pss_kib": 9328,
+   "threads": 14,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  }
+ ]
+}
+processes 13 total {'rss_kib': 144656, 'pss_kib': 124460, 'threads': 36, 'cpu_ms_idle': 0, 'switches_idle': 2}
+== C. pull by digest from the staging registry and install with scripts/thothmini.sh
+$ sh /tmp/qa/thothmini.sh install --image nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda --port 27400
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda: Pulling from nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa
+90812e242c93: Pulling fs layer
+869818f1b59a: Pulling fs layer
+df7c4d0d024b: Pulling fs layer
+ff67770dd0b2: Pulling fs layer
+de037a211253: Pulling fs layer
+ff4cfe5faf64: Pulling fs layer
+d23f55b9bd03: Pulling fs layer
+90812e242c93: Verifying Checksum
+90812e242c93: Download complete
+869818f1b59a: Verifying Checksum
+869818f1b59a: Download complete
+df7c4d0d024b: Verifying Checksum
+df7c4d0d024b: Download complete
+ff67770dd0b2: Verifying Checksum
+ff67770dd0b2: Download complete
+de037a211253: Verifying Checksum
+de037a211253: Download complete
+ff4cfe5faf64: Verifying Checksum
+ff4cfe5faf64: Download complete
+d23f55b9bd03: Verifying Checksum
+d23f55b9bd03: Download complete
+90812e242c93: Extracting
+90812e242c93: Pull complete
+869818f1b59a: Extracting
+869818f1b59a: Pull complete
+df7c4d0d024b: Extracting
+df7c4d0d024b: Pull complete
+ff67770dd0b2: Extracting
+ff67770dd0b2: Pull complete
+de037a211253: Extracting
+de037a211253: Pull complete
+ff4cfe5faf64: Extracting
+ff4cfe5faf64: Pull complete
+d23f55b9bd03: Extracting
+d23f55b9bd03: Pull complete
+Digest: sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Status: Downloaded newer image for nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Initializing (first start creates the database; allow up to 5 minutes on a phone)...
+Ready on http://127.0.0.1:27400 (MCP: /mcp). Next: thothmini.sh clients
+install total (pull + first MariaDB init + ready): 51.4 s
+== D. clients and doctor
+$ sh /tmp/qa/thothmini.sh clients
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+Register agents (asks before changing their settings):
+  /home/thoth/.thothmemory-mini-qa/thothmemory-mini connect all --config /home/thoth/.thothmemory-mini-qa/client.json
+$ sh /tmp/qa/thothmini.sh doctor
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+Container: running (started 2026-10-13T17:13:39.177002385Z)
+Service: ready on 127.0.0.1:27400
+{
+  "counts": {
+    "attestations": 0,
+    "events": 0,
+    "evidence": 0,
+    "imports": 0,
+    "projects": 0,
+    "records": 0,
+    "sessions": 0,
+    "tasks": 0
+  },
+  "database": "thoth",
+  "database_transport": "abstract unix socket @thothmemory-mini-c94e3eebb89469e2e510e5f1e2bfaba7 (TCP networking disabled)",
+  "edition": "mini",
+  "mariadb": "11.4.12-MariaDB-ubu2404",
+  "schema": "001_initial.sql",
+  "version": "0.1.0-rc.1"
+}
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+== A. environment 2026-10-13T17:12:54Z
+$ docker version --format client={{.Client.Version}} server={{.Server.Platform.Name}} api={{.Server.APIVersion}}
+client=29.8.1 server=ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) api=1.41
+existing containers:
+tonapi-explorer-1 akim92/egyptianarmyexplorer:v1 Up 7 hours
+tonapi-api-1 akim92/egyptianarmyapi:v58 Up 7 hours
+existing volumes:
+existing images:
+akim92/egyptianarmyapi:v58
+akim92/egyptianarmyexplorer:v1
+== B. baseline process tree (engine + user workloads), before install
+{
+ "idle_seconds": 0.0,
+ "processes": 13,
+ "total": {
+  "rss_kib": 144656,
+  "pss_kib": 124460,
+  "threads": 36,
+  "cpu_ms_idle": 0,
+  "switches_idle": 2
+ },
+ "rows": [
+  {
+   "pid": 7172,
+   "comm": "libproot.so",
+   "rss_kib": 9680,
+   "pss_kib": 560,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7173,
+   "comm": "libproot.so",
+   "rss_kib": 9336,
+   "pss_kib": 314,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7176,
+   "comm": "nginx",
+   "rss_kib": 528,
+   "pss_kib": 6,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7177,
+   "comm": "node",
+   "rss_kib": 114140,
+   "pss_kib": 114100,
+   "threads": 11,
+   "cpu_ms_idle": 0,
+   "switches_idle": 2,
+   "threads_started": 0
+  },
+  {
+   "pid": 7202,
+   "comm": "nginx",
+   "rss_kib": 232,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7203,
+   "comm": "nginx",
+   "rss_kib": 380,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7204,
+   "comm": "nginx",
+   "rss_kib": 524,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7205,
+   "comm": "nginx",
+   "rss_kib": 120,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7206,
+   "comm": "nginx",
+   "rss_kib": 348,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7207,
+   "comm": "nginx",
+   "rss_kib": 196,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7208,
+   "comm": "nginx",
+   "rss_kib": 144,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7209,
+   "comm": "nginx",
+   "rss_kib": 368,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 16329,
+   "comm": "libthothdock.so",
+   "rss_kib": 8660,
+   "pss_kib": 9328,
+   "threads": 14,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  }
+ ]
+}
+processes 13 total {'rss_kib': 144656, 'pss_kib': 124460, 'threads': 36, 'cpu_ms_idle': 0, 'switches_idle': 2}
+== C. pull by digest from the staging registry and install with scripts/thothmini.sh
+$ sh /tmp/qa/thothmini.sh install --image nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda --port 27400
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda: Pulling from nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa
+90812e242c93: Pulling fs layer
+869818f1b59a: Pulling fs layer
+df7c4d0d024b: Pulling fs layer
+ff67770dd0b2: Pulling fs layer
+de037a211253: Pulling fs layer
+ff4cfe5faf64: Pulling fs layer
+d23f55b9bd03: Pulling fs layer
+90812e242c93: Verifying Checksum
+90812e242c93: Download complete
+869818f1b59a: Verifying Checksum
+869818f1b59a: Download complete
+df7c4d0d024b: Verifying Checksum
+df7c4d0d024b: Download complete
+ff67770dd0b2: Verifying Checksum
+ff67770dd0b2: Download complete
+de037a211253: Verifying Checksum
+de037a211253: Download complete
+ff4cfe5faf64: Verifying Checksum
+ff4cfe5faf64: Download complete
+d23f55b9bd03: Verifying Checksum
+d23f55b9bd03: Download complete
+90812e242c93: Extracting
+90812e242c93: Pull complete
+869818f1b59a: Extracting
+869818f1b59a: Pull complete
+df7c4d0d024b: Extracting
+df7c4d0d024b: Pull complete
+ff67770dd0b2: Extracting
+ff67770dd0b2: Pull complete
+de037a211253: Extracting
+de037a211253: Pull complete
+ff4cfe5faf64: Extracting
+ff4cfe5faf64: Pull complete
+d23f55b9bd03: Extracting
+d23f55b9bd03: Pull complete
+Digest: sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Status: Downloaded newer image for nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Initializing (first start creates the database; allow up to 5 minutes on a phone)...
+Ready on http://127.0.0.1:27400 (MCP: /mcp). Next: thothmini.sh clients
+install total (pull + first MariaDB init + ready): 51.4 s
+== D. clients and doctor
+$ sh /tmp/qa/thothmini.sh clients
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+Register agents (asks before changing their settings):
+  /home/thoth/.thothmemory-mini-qa/thothmemory-mini connect all --config /home/thoth/.thothmemory-mini-qa/client.json
+$ sh /tmp/qa/thothmini.sh doctor
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+Container: running (started 2026-10-13T17:13:39.177002385Z)
+Service: ready on 127.0.0.1:27400
+{
+  "counts": {
+    "attestations": 0,
+    "events": 0,
+    "evidence": 0,
+    "imports": 0,
+    "projects": 0,
+    "records": 0,
+    "sessions": 0,
+    "tasks": 0
+  },
+  "database": "thoth",
+  "database_transport": "abstract unix socket @thothmemory-mini-c94e3eebb89469e2e510e5f1e2bfaba7 (TCP networking disabled)",
+  "edition": "mini",
+  "mariadb": "11.4.12-MariaDB-ubu2404",
+  "schema": "001_initial.sql",
+  "version": "0.1.0-rc.1"
+}
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+== E. MCP acceptance gates (11)
+PASS  health  mini 0.1.0-rc.1
+PASS  mcp handshake and discovery  ThothMemory Mini 0.1.0-rc.1, 25 tools
+PASS  authentication rejects bad token  HTTP 401
+PASS  crud and read-back  project, task, session, decision written and read back
+PASS  transaction rollback  foreign-key failure rolled back event and operation
+PASS  optimistic concurrency  8 concurrent writers, exactly 1 succeeded
+PASS  idempotency  replay identical, changed payload refused
+PASS  evidence gates  tested allowed, verified refused without owner attestation
+PASS  multilingual search  Arabic substring and commit prefix found; stale flags set
+PASS  read-only credential  write tool not even discoverable by read credential
+PASS  session handoff  handoff recorded and retrieved
+11/11 gates passed
+== A. environment 2026-10-13T17:12:54Z
+$ docker version --format client={{.Client.Version}} server={{.Server.Platform.Name}} api={{.Server.APIVersion}}
+client=29.8.1 server=ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) api=1.41
+existing containers:
+tonapi-explorer-1 akim92/egyptianarmyexplorer:v1 Up 7 hours
+tonapi-api-1 akim92/egyptianarmyapi:v58 Up 7 hours
+existing volumes:
+existing images:
+akim92/egyptianarmyapi:v58
+akim92/egyptianarmyexplorer:v1
+== B. baseline process tree (engine + user workloads), before install
+{
+ "idle_seconds": 0.0,
+ "processes": 13,
+ "total": {
+  "rss_kib": 144656,
+  "pss_kib": 124460,
+  "threads": 36,
+  "cpu_ms_idle": 0,
+  "switches_idle": 2
+ },
+ "rows": [
+  {
+   "pid": 7172,
+   "comm": "libproot.so",
+   "rss_kib": 9680,
+   "pss_kib": 560,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7173,
+   "comm": "libproot.so",
+   "rss_kib": 9336,
+   "pss_kib": 314,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7176,
+   "comm": "nginx",
+   "rss_kib": 528,
+   "pss_kib": 6,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7177,
+   "comm": "node",
+   "rss_kib": 114140,
+   "pss_kib": 114100,
+   "threads": 11,
+   "cpu_ms_idle": 0,
+   "switches_idle": 2,
+   "threads_started": 0
+  },
+  {
+   "pid": 7202,
+   "comm": "nginx",
+   "rss_kib": 232,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7203,
+   "comm": "nginx",
+   "rss_kib": 380,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7204,
+   "comm": "nginx",
+   "rss_kib": 524,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7205,
+   "comm": "nginx",
+   "rss_kib": 120,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7206,
+   "comm": "nginx",
+   "rss_kib": 348,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7207,
+   "comm": "nginx",
+   "rss_kib": 196,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7208,
+   "comm": "nginx",
+   "rss_kib": 144,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7209,
+   "comm": "nginx",
+   "rss_kib": 368,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 16329,
+   "comm": "libthothdock.so",
+   "rss_kib": 8660,
+   "pss_kib": 9328,
+   "threads": 14,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  }
+ ]
+}
+processes 13 total {'rss_kib': 144656, 'pss_kib': 124460, 'threads': 36, 'cpu_ms_idle': 0, 'switches_idle': 2}
+== C. pull by digest from the staging registry and install with scripts/thothmini.sh
+$ sh /tmp/qa/thothmini.sh install --image nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda --port 27400
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda: Pulling from nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa
+90812e242c93: Pulling fs layer
+869818f1b59a: Pulling fs layer
+df7c4d0d024b: Pulling fs layer
+ff67770dd0b2: Pulling fs layer
+de037a211253: Pulling fs layer
+ff4cfe5faf64: Pulling fs layer
+d23f55b9bd03: Pulling fs layer
+90812e242c93: Verifying Checksum
+90812e242c93: Download complete
+869818f1b59a: Verifying Checksum
+869818f1b59a: Download complete
+df7c4d0d024b: Verifying Checksum
+df7c4d0d024b: Download complete
+ff67770dd0b2: Verifying Checksum
+ff67770dd0b2: Download complete
+de037a211253: Verifying Checksum
+de037a211253: Download complete
+ff4cfe5faf64: Verifying Checksum
+ff4cfe5faf64: Download complete
+d23f55b9bd03: Verifying Checksum
+d23f55b9bd03: Download complete
+90812e242c93: Extracting
+90812e242c93: Pull complete
+869818f1b59a: Extracting
+869818f1b59a: Pull complete
+df7c4d0d024b: Extracting
+df7c4d0d024b: Pull complete
+ff67770dd0b2: Extracting
+ff67770dd0b2: Pull complete
+de037a211253: Extracting
+de037a211253: Pull complete
+ff4cfe5faf64: Extracting
+ff4cfe5faf64: Pull complete
+d23f55b9bd03: Extracting
+d23f55b9bd03: Pull complete
+Digest: sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Status: Downloaded newer image for nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Initializing (first start creates the database; allow up to 5 minutes on a phone)...
+Ready on http://127.0.0.1:27400 (MCP: /mcp). Next: thothmini.sh clients
+install total (pull + first MariaDB init + ready): 51.4 s
+== D. clients and doctor
+$ sh /tmp/qa/thothmini.sh clients
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+Register agents (asks before changing their settings):
+  /home/thoth/.thothmemory-mini-qa/thothmemory-mini connect all --config /home/thoth/.thothmemory-mini-qa/client.json
+$ sh /tmp/qa/thothmini.sh doctor
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+Container: running (started 2026-10-13T17:13:39.177002385Z)
+Service: ready on 127.0.0.1:27400
+{
+  "counts": {
+    "attestations": 0,
+    "events": 0,
+    "evidence": 0,
+    "imports": 0,
+    "projects": 0,
+    "records": 0,
+    "sessions": 0,
+    "tasks": 0
+  },
+  "database": "thoth",
+  "database_transport": "abstract unix socket @thothmemory-mini-c94e3eebb89469e2e510e5f1e2bfaba7 (TCP networking disabled)",
+  "edition": "mini",
+  "mariadb": "11.4.12-MariaDB-ubu2404",
+  "schema": "001_initial.sql",
+  "version": "0.1.0-rc.1"
+}
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+== E. MCP acceptance gates (11)
+PASS  health  mini 0.1.0-rc.1
+PASS  mcp handshake and discovery  ThothMemory Mini 0.1.0-rc.1, 25 tools
+PASS  authentication rejects bad token  HTTP 401
+PASS  crud and read-back  project, task, session, decision written and read back
+PASS  transaction rollback  foreign-key failure rolled back event and operation
+PASS  optimistic concurrency  8 concurrent writers, exactly 1 succeeded
+PASS  idempotency  replay identical, changed payload refused
+PASS  evidence gates  tested allowed, verified refused without owner attestation
+PASS  multilingual search  Arabic substring and commit prefix found; stale flags set
+PASS  read-only credential  write tool not even discoverable by read credential
+PASS  session handoff  handoff recorded and retrieved
+11/11 gates passed
+== F. listeners (new TCP listeners vs baseline are mine only)
+  "database_transport": "abstract unix socket @thothmemory-mini-c94e3eebb89469e2e510e5f1e2bfaba7 (TCP networking disabled)",
+  "mariadb": "11.4.12-MariaDB-ubu2404",
+  "schema": "001_initial.sql",
+== A. environment 2026-10-13T17:12:54Z
+$ docker version --format client={{.Client.Version}} server={{.Server.Platform.Name}} api={{.Server.APIVersion}}
+client=29.8.1 server=ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) api=1.41
+existing containers:
+tonapi-explorer-1 akim92/egyptianarmyexplorer:v1 Up 7 hours
+tonapi-api-1 akim92/egyptianarmyapi:v58 Up 7 hours
+existing volumes:
+existing images:
+akim92/egyptianarmyapi:v58
+akim92/egyptianarmyexplorer:v1
+== B. baseline process tree (engine + user workloads), before install
+{
+ "idle_seconds": 0.0,
+ "processes": 13,
+ "total": {
+  "rss_kib": 144656,
+  "pss_kib": 124460,
+  "threads": 36,
+  "cpu_ms_idle": 0,
+  "switches_idle": 2
+ },
+ "rows": [
+  {
+   "pid": 7172,
+   "comm": "libproot.so",
+   "rss_kib": 9680,
+   "pss_kib": 560,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7173,
+   "comm": "libproot.so",
+   "rss_kib": 9336,
+   "pss_kib": 314,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7176,
+   "comm": "nginx",
+   "rss_kib": 528,
+   "pss_kib": 6,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7177,
+   "comm": "node",
+   "rss_kib": 114140,
+   "pss_kib": 114100,
+   "threads": 11,
+   "cpu_ms_idle": 0,
+   "switches_idle": 2,
+   "threads_started": 0
+  },
+  {
+   "pid": 7202,
+   "comm": "nginx",
+   "rss_kib": 232,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7203,
+   "comm": "nginx",
+   "rss_kib": 380,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7204,
+   "comm": "nginx",
+   "rss_kib": 524,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7205,
+   "comm": "nginx",
+   "rss_kib": 120,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7206,
+   "comm": "nginx",
+   "rss_kib": 348,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7207,
+   "comm": "nginx",
+   "rss_kib": 196,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7208,
+   "comm": "nginx",
+   "rss_kib": 144,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 7209,
+   "comm": "nginx",
+   "rss_kib": 368,
+   "pss_kib": 19,
+   "threads": 1,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  },
+  {
+   "pid": 16329,
+   "comm": "libthothdock.so",
+   "rss_kib": 8660,
+   "pss_kib": 9328,
+   "threads": 14,
+   "cpu_ms_idle": 0,
+   "switches_idle": 0,
+   "threads_started": 0
+  }
+ ]
+}
+processes 13 total {'rss_kib': 144656, 'pss_kib': 124460, 'threads': 36, 'cpu_ms_idle': 0, 'switches_idle': 2}
+== C. pull by digest from the staging registry and install with scripts/thothmini.sh
+$ sh /tmp/qa/thothmini.sh install --image nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda --port 27400
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda: Pulling from nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa
+90812e242c93: Pulling fs layer
+869818f1b59a: Pulling fs layer
+df7c4d0d024b: Pulling fs layer
+ff67770dd0b2: Pulling fs layer
+de037a211253: Pulling fs layer
+ff4cfe5faf64: Pulling fs layer
+d23f55b9bd03: Pulling fs layer
+90812e242c93: Verifying Checksum
+90812e242c93: Download complete
+869818f1b59a: Verifying Checksum
+869818f1b59a: Download complete
+df7c4d0d024b: Verifying Checksum
+df7c4d0d024b: Download complete
+ff67770dd0b2: Verifying Checksum
+ff67770dd0b2: Download complete
+de037a211253: Verifying Checksum
+de037a211253: Download complete
+ff4cfe5faf64: Verifying Checksum
+ff4cfe5faf64: Download complete
+d23f55b9bd03: Verifying Checksum
+d23f55b9bd03: Download complete
+90812e242c93: Extracting
+90812e242c93: Pull complete
+869818f1b59a: Extracting
+869818f1b59a: Pull complete
+df7c4d0d024b: Extracting
+df7c4d0d024b: Pull complete
+ff67770dd0b2: Extracting
+ff67770dd0b2: Pull complete
+de037a211253: Extracting
+de037a211253: Pull complete
+ff4cfe5faf64: Extracting
+ff4cfe5faf64: Pull complete
+d23f55b9bd03: Extracting
+d23f55b9bd03: Pull complete
+Digest: sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Status: Downloaded newer image for nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+nutrition-environment-cancellation-threatened.trycloudflare.com/thothmini-qa@sha256:3e6ef0a0bbcb139471385345729895ecb701dbda37ed9cc7205d2f40d837cdda
+Initializing (first start creates the database; allow up to 5 minutes on a phone)...
+Ready on http://127.0.0.1:27400 (MCP: /mcp). Next: thothmini.sh clients
+install total (pull + first MariaDB init + ready): 51.4 s
+== D. clients and doctor
+$ sh /tmp/qa/thothmini.sh clients
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+Register agents (asks before changing their settings):
+  /home/thoth/.thothmemory-mini-qa/thothmemory-mini connect all --config /home/thoth/.thothmemory-mini-qa/client.json
+$ sh /tmp/qa/thothmini.sh doctor
+Engine: ThothDock 0.2.1 (Docker Engine API 1.41 compatible; not affiliated with Docker, Inc.) 0.2.1
+Container: running (started 2026-10-13T17:13:39.177002385Z)
+Service: ready on 127.0.0.1:27400
+{
+  "counts": {
+    "attestations": 0,
+    "events": 0,
+    "evidence": 0,
+    "imports": 0,
+    "projects": 0,
+    "records": 0,
+    "sessions": 0,
+    "tasks": 0
+  },
+  "database": "thoth",
+  "database_transport": "abstract unix socket @thothmemory-mini-c94e3eebb89469e2e510e5f1e2bfaba7 (TCP networking disabled)",
+  "edition": "mini",
+  "mariadb": "11.4.12-MariaDB-ubu2404",
+  "schema": "001_initial.sql",
+  "version": "0.1.0-rc.1"
+}
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+== E. MCP acceptance gates (11)
+PASS  health  mini 0.1.0-rc.1
+PASS  mcp handshake and discovery  ThothMemory Mini 0.1.0-rc.1, 25 tools
+PASS  authentication rejects bad token  HTTP 401
+PASS  crud and read-back  project, task, session, decision written and read back
+PASS  transaction rollback  foreign-key failure rolled back event and operation
+PASS  optimistic concurrency  8 concurrent writers, exactly 1 succeeded
+PASS  idempotency  replay identical, changed payload refused
+PASS  evidence gates  tested allowed, verified refused without owner attestation
+PASS  multilingual search  Arabic substring and commit prefix found; stale flags set
+PASS  read-only credential  write tool not even discoverable by read credential
+PASS  session handoff  handoff recorded and retrieved
+11/11 gates passed
+== F. listeners (new TCP listeners vs baseline are mine only)
+  "database_transport": "abstract unix socket @thothmemory-mini-c94e3eebb89469e2e510e5f1e2bfaba7 (TCP networking disabled)",
+  "mariadb": "11.4.12-MariaDB-ubu2404",
+  "schema": "001_initial.sql",
+== G. latency on the phone (python client, HTTP over loopback, includes interpreter overhead)
+bench posted
+== H. 60 s idle: whole engine tree incl. your workloads and Mini
+processes 16 total {'rss_kib': 229572, 'pss_kib': 188974, 'threads': 64, 'cpu_ms_idle': 16380, 'switches_idle': 14021}
+PHASE1 DONE 2026-10-13T17:22:35Z

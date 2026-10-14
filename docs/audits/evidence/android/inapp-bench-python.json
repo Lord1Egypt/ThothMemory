@@ -1,0 +1,77 @@
+{
+ "label": "mini-thothdock-app-python",
+ "server": {
+  "name": "ThothMemory Mini",
+  "version": "0.1.0-rc.1"
+ },
+ "connect_and_initialize_ms": 67.8,
+ "sizes": [
+  {
+   "events": 230,
+   "fill_events_per_s": 26.3,
+   "context": {
+    "n": 30,
+    "median_ms": 32.16,
+    "p95_ms": 43.63,
+    "max_ms": 53.86
+   },
+   "search": {
+    "n": 30,
+    "median_ms": 41.15,
+    "p95_ms": 55.67,
+    "max_ms": 74.06
+   },
+   "write": {
+    "n": 30,
+    "median_ms": 31.29,
+    "p95_ms": 44.44,
+    "max_ms": 52.02
+   }
+  },
+  {
+   "events": 2030,
+   "fill_events_per_s": 23.2,
+   "context": {
+    "n": 30,
+    "median_ms": 42.95,
+    "p95_ms": 53.63,
+    "max_ms": 57.78
+   },
+   "search": {
+    "n": 30,
+    "median_ms": 64.05,
+    "p95_ms": 86.82,
+    "max_ms": 89.05
+   },
+   "write": {
+    "n": 30,
+    "median_ms": 39.58,
+    "p95_ms": 51.24,
+    "max_ms": 54.19
+   }
+  },
+  {
+   "events": 10030,
+   "fill_events_per_s": 22.4,
+   "context": {
+    "n": 30,
+    "median_ms": 33.61,
+    "p95_ms": 43.57,
+    "max_ms": 49.48
+   },
+   "search": {
+    "n": 30,
+    "median_ms": 90.53,
+    "p95_ms": 103.39,
+    "max_ms": 103.71
+   },
+   "write": {
+    "n": 30,
+    "median_ms": 31.14,
+    "p95_ms": 37.84,
+    "max_ms": 43.05
+   }
+  }
+ ],
+ "project": "85f2a19c-6254-422e-bf86-5c7dd608ce8e"
+}

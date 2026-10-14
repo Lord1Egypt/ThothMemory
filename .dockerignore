@@ -3,6 +3,7 @@
 .secrets
 client*.json
 bin
+dist
 .validation
 *.dump*
 *.sha256

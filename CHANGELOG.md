@@ -1,7 +1,34 @@
 # Changelog
 
-## Unreleased — 0.2.0 security hardening
+## Unreleased — next generation candidate (branch nextgen/full-and-mini, stacked on PR #2)
 
+Three editions on one shared core. Nothing here is released, merged or deployed.
+
+- **Shared core**: edition-independent domain and mutation algorithm (`internal/memory`),
+  MCP tool contracts without HTTP (`internal/mcptools`), shared SQL for MariaDB and SQLite
+  (`internal/sqlstore`). PostgreSQL SQL is unchanged; one contract suite runs on all three.
+- **Mini (MariaDB 11.4)**: one container supervising a private, network-disabled
+  `mariadbd`; Alpine and glibc images; CLI-only ThothDock installer; verified on ThothDock
+  0.2.1 + Garden PRoot on a Linux host. Caps MariaDB's 8 TiB address-space reservation.
+- **UltraLite (SQLite, pure Go, headless)**: one executable, per-user data directory, MCP
+  stdio, native CLI (init, doctor, projects, brief, search, tasks, timeline, backup,
+  restore, export, import, attest, permissions, hooks, capture); no dashboard, no HTTP
+  listener, no daemon. `pkg/memorycore` for in-process embedding.
+- **Automatic memory**: `idea` and `note` records; duplicate suppression; secret refusal on
+  every write; lifecycle capture engine (session start/resume, opt-in prompts, compaction,
+  idle, end) with a bounded idempotent retry queue; hooks for UserPromptSubmit and
+  SessionEnd; official `THOTHMEMORY_AGENT_PROTOCOL.md` installed through a non-destructive
+  managed block in `AGENTS.md` and `CLAUDE.md`.
+- **Dashboard** redesigned: projects register, resume briefing with stale-revision check,
+  task/session/decision/evidence/timeline explorers, trust seals, mobile and dark mode.
+- **Portability**: checksummed project export and fast-forward import across Full, Mini and
+  UltraLite; migrations 006 (imports) and 007 (ideas and notes) for PostgreSQL.
+- **CI**: MariaDB service, Mini image architecture checks, emulated arm64 gates, UltraLite
+  native matrix with a headless-boundary check.
+- Fixes found on the way: lowercase UUID/revision lookups; hook registration used the
+  canonical form instead of the remote URL; QEMU/musl MariaDB bootstrap (glibc variant).
+
+## Security hardening included in 0.2.0
 
 - Preserve scoped/revoked credential policy across setup; add local permissions CLI.
 - Protect Windows secrets, configuration backups and database dumps using owner ACLs.

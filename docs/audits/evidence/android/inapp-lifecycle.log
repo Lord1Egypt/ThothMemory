@@ -1,0 +1,50 @@
+== lifecycle gates on a fresh fixture, real ThothDock in ThothTerm 2026-10-13T17:32:19Z
+image pulled by digest
+WARNING: Android process pressure may cause background containers or the engine to be terminated. Consider stopping unused workloads before starting additional containers. ThothTerm currently has 21 processes; Android's default limit on such processes is 32 (this device's value cannot be read, and other apps' processes may count too). 1 created container(s) have not started yet; estimated at least 3 more processes (about 3 each).
+PASS  ready in 7919 ms; baseline thoth {"attestations": 0, "events": 0, "evidence": 0, "imports": 0, "projects": 0, "records": 0, "sessions": 0, "tasks": 0}
+PASS  mariadbd virtual size 1609 MiB (< 16 GiB; a 39-bit address space holds 512 GiB)
+PASS  restart: ready in 4374 ms, data identical
+PASS  restart shut MariaDB down cleanly
+PASS  SIGKILL: no MariaDB process left after 100 ms
+      exit state: exited 137
+PASS  SIGKILL recovery: ready in 7095 ms, data identical
+WARNING: Android process pressure may cause background containers or the engine to be terminated. Consider stopping unused workloads before starting additional containers. ThothTerm currently has 21 processes; Android's default limit on such processes is 32 (this device's value cannot be read, and other apps' processes may count too). 1 created container(s) have not started yet; estimated at least 3 more processes (about 3 each).
+PASS  recreated container on the same volume: ready in 7821 ms, data identical
+PASS  backup: 30637 bytes, sha256 matches
+PASS  restore refuses a wrong checksum before any change
+PASS  restored into new database thoth_restore_20261013_173336; active database untouched
+PASS  activated restore serves identical data
+PASS  re-activated the original database
+PASS  clean stop exits 0
+PASS  no orphaned MariaDB process after stop
+14 passed, 0 failed
+== lifecycle gates on a fresh fixture, real ThothDock in ThothTerm 2026-10-13T17:32:19Z
+image pulled by digest
+WARNING: Android process pressure may cause background containers or the engine to be terminated. Consider stopping unused workloads before starting additional containers. ThothTerm currently has 21 processes; Android's default limit on such processes is 32 (this device's value cannot be read, and other apps' processes may count too). 1 created container(s) have not started yet; estimated at least 3 more processes (about 3 each).
+PASS  ready in 7919 ms; baseline thoth {"attestations": 0, "events": 0, "evidence": 0, "imports": 0, "projects": 0, "records": 0, "sessions": 0, "tasks": 0}
+PASS  mariadbd virtual size 1609 MiB (< 16 GiB; a 39-bit address space holds 512 GiB)
+PASS  restart: ready in 4374 ms, data identical
+PASS  restart shut MariaDB down cleanly
+PASS  SIGKILL: no MariaDB process left after 100 ms
+      exit state: exited 137
+PASS  SIGKILL recovery: ready in 7095 ms, data identical
+WARNING: Android process pressure may cause background containers or the engine to be terminated. Consider stopping unused workloads before starting additional containers. ThothTerm currently has 21 processes; Android's default limit on such processes is 32 (this device's value cannot be read, and other apps' processes may count too). 1 created container(s) have not started yet; estimated at least 3 more processes (about 3 each).
+PASS  recreated container on the same volume: ready in 7821 ms, data identical
+PASS  backup: 30637 bytes, sha256 matches
+PASS  restore refuses a wrong checksum before any change
+PASS  restored into new database thoth_restore_20261013_173336; active database untouched
+PASS  activated restore serves identical data
+PASS  re-activated the original database
+PASS  clean stop exits 0
+PASS  no orphaned MariaDB process after stop
+14 passed, 0 failed
+== cleanup (only objects this test created)
+thothmini-gate
+thothmini-gate-data
+Deleted: sha256:d23f55b9bd032c8f73f2563a6d0515a9861f73daa42f6e7aab892a9aa211b1e2
+remaining containers:
+tonapi-explorer-1 Up 7 hours
+tonapi-api-1 Up 7 hours
+remaining volumes:
+mariadbd processes left: 0
+PHASE3 DONE 2026-10-13T17:34:20Z

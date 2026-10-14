@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1.7
+# ThothMemory Mini, glibc variant: the official MariaDB 11.4 build on Ubuntu
+# 24.04. Larger than the Alpine image; kept because Alpine's musl arm64
+# mariadbd never finished bootstrap under QEMU while this build did.
+FROM --platform=$BUILDPLATFORM golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade AS build
+ARG TARGETOS
+ARG TARGETARCH
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+COPY . .
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o /out/thothmemory-mini ./cmd/thothmemory-mini
+
+FROM mariadb:11.4.12@sha256:4f1d8d202fcf7bcb3902f63af09f9c1a050c2922a89652f22abaec0d4f015e83 AS mariadb
+RUN set -eu; mkdir -p /slim/bin /slim/lib /slim/share/mariadb; \
+    cp /usr/sbin/mariadbd /usr/bin/mariadb /usr/bin/mariadb-dump /usr/bin/mariadb-install-db /usr/bin/my_print_defaults /slim/bin/; \
+    for b in /usr/sbin/mariadbd /usr/bin/mariadb /usr/bin/mariadb-dump /usr/bin/my_print_defaults; do ldd $b; done \
+      | awk '$3 ~ /^\// {print $3}' | sort -u | while read -r lib; do cp -L "$lib" /slim/lib/; done; \
+    cd /usr/share/mariadb; cp -a english charsets mariadb_system_tables.sql mariadb_system_tables_data.sql mariadb_performance_tables.sql maria_add_gis_sp_bootstrap.sql mariadb_test_db.sql /slim/share/mariadb/; \
+    : > /slim/share/mariadb/fill_help_tables.sql; : > /slim/share/mariadb/mariadb_sys_schema.sql
+
+FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+# The pinned base contains libssl3t64 3.0.13-0ubuntu3.15. Trivy reports
+# CVE-2026-84782 (HIGH), fixed by Ubuntu's 3.16 package. Pin the patched
+# package rather than suppressing the finding or upgrading arbitrary packages.
+RUN apt-get update && apt-get install -y --no-install-recommends libssl3t64=3.0.13-0ubuntu3.16 \
+    && rm -rf /var/lib/apt/lists/*
+LABEL org.opencontainers.image.title="ThothMemory Mini (glibc)" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.0"
+COPY --from=mariadb /slim/ /opt/mariadb-slim/
+# Install binaries; add only libraries the base image does not already ship.
+RUN set -eu; triplet=$(dirname "$(ldconfig -p | awk '/libc.so.6/ {print $NF; exit}')"); \
+    mv /opt/mariadb-slim/bin/mariadbd /usr/sbin/; mv /opt/mariadb-slim/bin/* /usr/bin/; \
+    for lib in /opt/mariadb-slim/lib/*; do [ -e "$triplet/$(basename "$lib")" ] || mv "$lib" "$triplet/"; done; \
+    mkdir -p /usr/share/mariadb && mv /opt/mariadb-slim/share/mariadb/* /usr/share/mariadb/; rm -rf /opt/mariadb-slim; ldconfig; \
+    mariadbd --version >/dev/null; \
+    useradd --system --uid 65532 --no-create-home --shell /usr/sbin/nologin thoth; mkdir -p /data /run/thothmini /etc/thothmini; chown 65532:65532 /data /run/thothmini; chmod 700 /data /run/thothmini
+COPY --from=build /out/thothmemory-mini /usr/local/bin/thothmemory-mini
+COPY deploy/mini/my.cnf /etc/thothmini/my.cnf
+COPY LICENSE /licenses/ThothMemory.txt
+COPY third_party/ /licenses/dependencies/
+USER 65532:65532
+ENV THOTH_LISTEN=127.0.0.1:7319
+EXPOSE 7319
+STOPSIGNAL SIGTERM
+ENTRYPOINT ["/usr/local/bin/thothmemory-mini"]
+CMD ["run"]

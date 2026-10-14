@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"github.com/Lord1Egypt/ThothMemory/internal/memory"
 	"github.com/Lord1Egypt/ThothMemory/internal/store"
 	"github.com/Lord1Egypt/ThothMemory/migrations"
 	"net/url"
@@ -112,26 +113,26 @@ func TestAuditPatchMigrationAtomicity(t *testing.T) {
 		}
 	}
 
-	principal := store.Principal{ID: "migration-fixture", Write: true, Projects: []string{"*"}}
+	principal := memory.Principal{ID: "migration-fixture", Write: true, Projects: []string{"*"}}
 	if err = s.Register(ctx, principal); err != nil {
 		t.Fatal(err)
 	}
 	project := auditProject(t, s, principal, "patch-upgrade")
-	task, err := s.Call(ctx, principal, "create_task", store.Input{ProjectID: project, OperationID: "upgrade-task-create", Title: "SIMULATED preserve revision"})
+	task, err := s.Call(ctx, principal, "create_task", memory.Input{ProjectID: project, OperationID: "upgrade-task-create", Title: "SIMULATED preserve revision"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.Call(ctx, principal, "update_task", store.Input{ProjectID: project, OperationID: "upgrade-task-active", TaskID: id(task), ExpectedRevision: 1, State: "active"}); err != nil {
+	if _, err = s.Call(ctx, principal, "update_task", memory.Input{ProjectID: project, OperationID: "upgrade-task-active", TaskID: id(task), ExpectedRevision: 1, State: "active"}); err != nil {
 		t.Fatal(err)
 	}
-	session, err := s.Call(ctx, principal, "start_session", store.Input{ProjectID: project, OperationID: "upgrade-session-start", Agent: "simulated-claude", GitRevision: strings.Repeat("a", 40)})
+	session, err := s.Call(ctx, principal, "start_session", memory.Input{ProjectID: project, OperationID: "upgrade-session-start", Agent: "simulated-claude", GitRevision: strings.Repeat("a", 40)})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.Call(ctx, principal, "checkpoint_session", store.Input{ProjectID: project, OperationID: "upgrade-session-checkpoint", SessionID: id(session), ExpectedRevision: 1, GitRevision: strings.Repeat("a", 40), Body: "SIMULATED durable Arabic checkpoint إعدادات الاتصال"}); err != nil {
+	if _, err = s.Call(ctx, principal, "checkpoint_session", memory.Input{ProjectID: project, OperationID: "upgrade-session-checkpoint", SessionID: id(session), ExpectedRevision: 1, GitRevision: strings.Repeat("a", 40), Body: "SIMULATED durable Arabic checkpoint إعدادات الاتصال"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.Call(ctx, principal, "attach_evidence", store.Input{ProjectID: project, OperationID: "upgrade-reported-evidence", TaskID: id(task), SourceKind: "test", Outcome: "fail", GitRevision: strings.Repeat("a", 40), Locator: "test://simulated/migration", Body: "SIMULATED failed attempt"}); err != nil {
+	if _, err = s.Call(ctx, principal, "attach_evidence", memory.Input{ProjectID: project, OperationID: "upgrade-reported-evidence", TaskID: id(task), SourceKind: "test", Outcome: "fail", GitRevision: strings.Repeat("a", 40), Locator: "test://simulated/migration", Body: "SIMULATED failed attempt"}); err != nil {
 		t.Fatal(err)
 	}
 	snapshot := func() map[string]string {

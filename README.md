@@ -1,231 +1,263 @@
-<div align="center">
+# ThothMemory — One Memory for Every AI Agent
 
-# ThothMemory
+**Persistent, local-first memory for Claude Code, Codex, OpenCode and other MCP-compatible agents.**
 
-**One Brain. Every Agent. Zero Lost Context.**
-
-Local-first shared engineering memory for **Codex CLI · Claude Code · OpenCode**.
+Your AI agent can continue where another agent stopped. Keep project notes,
+ideas, decisions, tasks, evidence and handoffs in your own database.
 
 [![CI](https://github.com/Lord1Egypt/ThothMemory/actions/workflows/ci.yml/badge.svg)](https://github.com/Lord1Egypt/ThothMemory/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Lord1Egypt/ThothMemory)](https://github.com/Lord1Egypt/ThothMemory/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-gold.svg)](LICENSE)
-[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-thoth--memory-2496ED?logo=docker)](https://hub.docker.com/r/lord1egypt/thoth-memory)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platforms](https://img.shields.io/badge/UltraLite-Windows%20%7C%20Linux-blue)](docs/PLATFORMS.md)
 
-</div>
+**Start with UltraLite: one executable, one SQLite database, no Docker.**
+ThothMemory needs no model API key; your AI client keeps its own model settings.
+Memory works offline, though your assistant may need a connection.
 
-Your next agent should know where the work stopped, what was attempted, and which
-claims have evidence. ThothMemory keeps that context in your own PostgreSQL database
-and exposes it through standard MCP. No LLM API key, paid service, model dependency,
-or local embedding model is required by ThothMemory.
-
-Switch between agents, recover a crashed terminal, or return after several days.
-Load a short briefing, compare current HEAD, read the last handoff, and resume with
-an auditable record of tasks, decisions, problems and test evidence.
-
-![The actual local dashboard displaying cross-agent demonstration memory](docs/screenshots/dashboard.png)
-
-*Screenshot from the running application with explicitly simulated agent sessions.*
-
-> Pre-production patch candidate: see the [2026-10-12 audit](docs/audits/PREPRODUCTION-AUDIT.md).
-> Published deployment remains 0.1.1. Candidate fixes are not a live upgrade.
-> OpenCode 1.17.13 legacy is tested; normal V2 runtime rejects V2 keys.
-> Audit correction: published 0.1.1 Docker arm64 contains an x86-64 binary. Its
-> standalone arm64 binary is correct. The container fix awaits an approved patch release.
-
-## Install in one step
-
-Install and start Docker Desktop with Linux containers (Windows/WSL2), or Docker
-Engine with Compose (Linux). Clone this repository or download its source archive.
-No Go, PostgreSQL installation, Node.js runtime or model key is needed.
-
-**Windows — double-click `start-thothmemory.cmd`**, or run:
-
-```powershell
-.\start-thothmemory.cmd
-```
-
-**Linux / WSL2:**
-
-```sh
-./setup.sh
-```
-
-Setup pulls the released image, extracts the native CLI, generates secure local
-credentials, starts PostgreSQL, applies migrations, checks real MCP initialization
-and tool discovery, and opens **http://127.0.0.1:7319** where a browser launcher is
-available. Unlock the dashboard with `.secrets/agent_token` (or the read-only token).
-Running setup again preserves data and credentials. Review any image upgrade and
-[back up first](docs/BACKUP_RESTORE.md).
-
-After initial configuration, the minimal deployment command is:
-
-```sh
-docker compose up -d
-```
-
-Named volumes persist memory across restarts and container recreation. Do not use
-`docker compose down -v` unless you intend to remove memory and have a tested backup.
-
-## Connect your agents
-
-From the installation directory:
-
-```sh
-./bin/thothmemory connect all --dir /path/to/your/project
-./bin/thothmemory instructions --dir /path/to/your/project
-```
-
-On Windows use `.\bin\thothmemory.exe` and a Windows project path. The connector
-detects installed CLIs, shows target files, asks consent, backs up changes, preserves
-other servers, avoids duplicate registration and verifies the backend handshake.
-Client-specific credentials stay in protected files; configs contain only a stdio
-bridge command and config path. Restart clients and accept their project trust prompts.
-
-| Client | Register | Configuration |
-|---|---|---|
-| Codex CLI | `thothmemory connect codex` | `.codex/config.toml`; project must be trusted |
-| Claude Code | `thothmemory connect claude` | `.mcp.json`; approve server on launch |
-| OpenCode | `thothmemory connect opencode` | `opencode.json` / `.jsonc`; legacy tested; V2 detected and guarded as unverified |
-
-Use `--scope user` for global configuration, `--dir PATH` for project configuration,
-and `--yes` only after reviewing targets when automating. Existing conflicting
-ThothMemory registrations require review; they are never silently replaced.
-Install OpenCode using [its official installation instructions](https://opencode.ai/docs/).
-The integration works independently of its selected model/inference provider.
-
-**MCP registration alone does not enforce memory updates.** Install the shared
-instructions, and optionally enable supported lifecycle adapters:
-
-```sh
-./bin/thothmemory hooks claude --dir /path/to/project
-./bin/thothmemory hooks codex --dir /path/to/project
-./bin/thothmemory hooks opencode --dir /path/to/project
-./bin/thothmemory doctor
-```
-
-Codex hooks require `--enable hooks`. Command hooks target Linux/WSL; native Windows
-uses the shared instructions. The OpenCode plugin loads context, records lifecycle
-metadata and requests a checkpoint before compaction; it does not invent a semantic
-handoff. See [the shared protocol](docs/AGENT_MEMORY_PROTOCOL.md) and
-[current client compatibility matrix](docs/audits/AGENT-COMPATIBILITY-MATRIX.md) for supported versions and limitations.
-
-For clients preferring direct HTTP, register `http://127.0.0.1:7319/mcp` with a bearer
-token read from your environment or secure file. Never commit a raw token. Codex
-supports `--bearer-token-env-var`; the default bridge avoids shell environment setup.
-
-## What it remembers
-
-- Stable repository identities, branches/revisions and durable agent sessions.
-- Planned, active, blocked, implemented, committed, tested, verified and released tasks.
-- Decisions, observations, known issues, attempted resolutions and concise handoffs.
-- Evidence source, locator, full revision, outcome, artifact digest and reporter.
-- Append-only history, supersession, transactional writes and optimistic revisions.
-- Full-text, keyword and exact lookup with project/task/agent/time/evidence filters.
-- Project-scoped read/write credentials and short context briefings with provenance.
-
-A reported test result remains reported evidence. A task can become **verified** only
-with owner-attested passing test/CI evidence for its exact revision and task. Attestation
-records owner review; ThothMemory does not independently execute or validate tests.
-Older evidence is flagged stale when a different current revision is supplied.
-
-## One shared workflow
-
-1. Claude resolves the repository, loads context and starts a session at HEAD.
-2. It records a task, a decision and revision-specific evidence, then writes a handoff.
-3. Codex loads that handoff, compares HEAD and updates the task with its expected revision.
-4. OpenCode reads the same project, checkpoints progress and records the next handoff.
-5. Claude retrieves the updated state without starting the investigation over.
-
-Try the repeatable, model-free demonstration:
-
-```sh
-./bin/thothmemory demo
-```
-
-This uses four independent MCP connections: Claude → Codex → OpenCode → Claude.
-The actor identities are simulated; the server, PostgreSQL, protocol and persistence
-are real. No demonstration output is represented as a production correctness claim.
-
-## Architecture
+[Beginner tutorial](docs/GETTING_STARTED.md) · [العربية](docs/README_AR.md)
 
 ```mermaid
 flowchart LR
-  Codex[Codex CLI] --> MCP[Authenticated MCP gateway]
-  Claude[Claude Code] --> MCP
-  OpenCode[OpenCode / any model] --> MCP
-  Other[Other MCP clients] --> MCP
-  MCP --> Core[One Go application]
-  Dashboard[Embedded read-only dashboard] --> Core
-  Core --> DB[(PostgreSQL 18 / named volume)]
+  A[Claude Code / Codex / OpenCode] --> B[ThothMemory MCP tools]
+  B --> C[(Your persistent shared memory)]
 ```
 
-Official Go MCP SDK + pgx + deterministic SQL migrations. PostgreSQL is the source
-of truth. No Redis, vector database, message broker or frontend container. The
-runtime container is non-root with a read-only filesystem and no Docker socket.
+## Choose your edition
 
-## Security defaults
+| Edition | Database | Docker | Web UI | Recommended for |
+|---|---|---|---|---|
+| **UltraLite** | SQLite | **No** | No | Individuals and desktops; easiest setup |
+| **Full** | PostgreSQL 18 | Yes | Yes | Persistent service and complete dashboard |
+| **Mini** | MariaDB 11.4 | Docker-compatible engine | Yes | ThothDock and compact container environments |
 
-Only the loopback app port is published. PostgreSQL is internal. Random file-based
-credentials, project allowlists, read-only tokens, strict Host/Origin validation,
-parameterized SQL, input limits, immutable historical records and separate migration
-and runtime DB privileges are included. Stored memory is always untrusted data.
-Each project has a bounded event budget; service logs rotate.
+All editions share memory tools and a portable project format. Mini uses fewer
+database processes than Full; UltraLite is the smallest option.
 
-This is a local shared-owner trust domain. Do not expose it to the public internet.
-Read [security design and limits](docs/SECURITY.md) before changing access boundaries.
+[Download v0.2.0](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.0):
+[UltraLite Windows](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-windows-amd64.exe) ·
+[Linux amd64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-linux-amd64) ·
+[Linux ARM64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-linux-arm64).
+[Full Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory) ·
+[Mini Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory-mini).
+[Platform status](docs/PLATFORMS.md) labels experimental macOS/Android builds.
 
-## Backup, move and restore
+## Get started in under five minutes — UltraLite
+
+Install your chosen AI assistant's CLI first. No Go compiler, database server or
+administrator privileges needed. Keep the executable in a permanent location;
+agents launch it by its full path.
+
+### Windows
+
+Open the v0.2.0 release. Download
+**thothmemory-ultralite-windows-amd64.exe** and **SHA256SUMS**. Open PowerShell
+in the download folder. Compare `Get-FileHash .\thothmemory-ultralite-windows-amd64.exe -Algorithm SHA256`
+with its entry in SHA256SUMS. Then:
+
+```powershell
+$bin = "$env:LOCALAPPDATA\Programs\ThothMemory"
+New-Item -ItemType Directory -Force $bin | Out-Null
+Copy-Item .\thothmemory-ultralite-windows-amd64.exe "$bin\thothmemory-ultralite.exe"
+& "$bin\thothmemory-ultralite.exe" init
+# Replace this placeholder with your own Git project's folder.
+Set-Location C:\path\to\your-project
+& "$bin\thothmemory-ultralite.exe" connect all
+& "$bin\thothmemory-ultralite.exe" instructions
+& "$bin\thothmemory-ultralite.exe" doctor
+```
+
+No PATH setup is needed. Native Windows uses MCP writes and instructions;
+command hooks require Linux/macOS/WSL.
+
+### Linux amd64
+
+Download **thothmemory-ultralite-linux-amd64** and SHA256SUMS. From that folder:
 
 ```sh
-./bin/thothmemory backup backups/memory.dump
-./bin/thothmemory restore backups/memory.dump --confirm
+sha256sum thothmemory-ultralite-linux-amd64  # compare with SHA256SUMS
+mkdir -p ~/.local/bin
+install -m 0755 thothmemory-ultralite-linux-amd64 ~/.local/bin/thothmemory-ultralite
+~/.local/bin/thothmemory-ultralite init
+cd /path/to/your-project
+~/.local/bin/thothmemory-ultralite connect all
+~/.local/bin/thothmemory-ultralite instructions
+~/.local/bin/thothmemory-ultralite doctor
 ```
 
-Restore verifies the archive/checksum, backs up the current database and restores to
-a **new database**. It never implicitly overwrites existing memory. Review the result,
-then activate the printed database in `.env`. [Recovery and moving PCs](docs/BACKUP_RESTORE.md).
+### Linux ARM64
 
-## Development and validation
+Download **thothmemory-ultralite-linux-arm64**. Replace the install command above
+with the following; initialization and connection commands are identical:
 
 ```sh
-./scripts/test-integration.sh   # disposable PostgreSQL, real MCP, race detector
-./scripts/check.sh             # formatting, module integrity, vet and tests
-./setup.sh --build             # build and deploy from source using Docker
+mkdir -p ~/.local/bin
+install -m 0755 thothmemory-ultralite-linux-arm64 ~/.local/bin/thothmemory-ultralite
 ```
 
-Go 1.26.9+ is needed only for native development. CI executes PostgreSQL integration,
-MCP/security/concurrency tests, vulnerability analysis, image build and deployment,
-restart persistence, and backup/restore validation. Release images are smoke-tested
-on amd64 and arm64 before `latest` promotion. [Validation](docs/VALIDATION.md) and
-[measured performance](docs/PERFORMANCE.md) report actual results and their limits.
+The full path works even if `~/.local/bin` is not on PATH. Both platforms need a
+Git project with an `origin` remote for automatic project identification.
 
-## Documentation
+## Connect an AI assistant
 
-[Architecture](docs/ARCHITECTURE.md) · [Database model](docs/DATABASE_SCHEMA.md) ·
-[MCP contracts](docs/MCP_API.md) · [Agent protocol](docs/AGENT_MEMORY_PROTOCOL.md) ·
-[Security](docs/SECURITY.md) · [Backup/restore](docs/BACKUP_RESTORE.md) ·
-[Troubleshooting](docs/TROUBLESHOOTING.md) · [Decisions](docs/DECISIONS.md) ·
-[Dependency licenses](docs/DEPENDENCIES.md)
+MCP is the standard that lets an assistant call ThothMemory's memory tools.
+`connect all` registers whichever supported clients are installed. Choose one:
 
-## Limits and roadmap
+```sh
+~/.local/bin/thothmemory-ultralite connect claude
+~/.local/bin/thothmemory-ultralite connect codex
+~/.local/bin/thothmemory-ultralite connect opencode
+```
 
-- Abrupt process termination may skip hooks; incremental checkpoints are essential.
-- Agent-reported facts and labels are not independent verification or authentication.
-- The initial service is local-only and single-owner; scoped tokens are explicit boundaries.
-- OpenCode's experimental lifecycle API can change; V2 and legacy diagnostics differ.
-- Search uses bounded offset pagination; no embeddings or cross-project automatic inference.
-- Backups require Docker and are not encrypted by the application.
+On Windows use `& "$bin\thothmemory-ultralite.exe"` instead of the Linux path.
+Default scope is **this project**, in the current folder. Add `--scope user` for
+all projects. Run `instructions` in each project or `instructions --scope user`.
+Changes are shown for consent; unrelated settings and text are preserved.
 
-Future work: optional local embeddings/pgvector, richer evidence import, archive/export
-workflows and additional MCP clients. Remote multi-user hosting needs its own security
-architecture. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+Restart the assistant and approve its normal project/MCP trust prompt. Verify
+with `claude mcp list`, `codex mcp list` or `opencode mcp list`.
+[Configuration files and scopes](docs/MCP_QUICKSTART.md).
 
-**License:** [MIT](LICENSE). Dependencies retain their own notices.
+## Turn on persistent memory
 
-**Image:** [lord1egypt/thoth-memory](https://hub.docker.com/r/lord1egypt/thoth-memory).
+**Connect** makes tools available. **Instructions** teach the model to save
+meaningful information. **Supported hooks** load context and record lifecycle
+metadata automatically. Installation alone does not guarantee that an agent
+saves every important detail; hooks cannot understand technical decisions.
 
-## Release evidence
+Optional Claude capture on Linux/WSL:
 
-See the [delivery report](docs/DELIVERY.md) for published digests, successful workflow
-runs, actual measurements and known limits, and the [executed demonstration](docs/DEMONSTRATION.md)
-for public-image installation and recovery results.
+```sh
+~/.local/bin/thothmemory-ultralite hooks claude
+~/.local/bin/thothmemory-ultralite capture status
+~/.local/bin/thothmemory-ultralite capture set metadata
+# Optional bounded user-request capture, with explicit consent:
+~/.local/bin/thothmemory-ultralite capture set prompts --yes
+```
+
+Claude's SessionStart, UserPromptSubmit, PreCompact, Stop and SessionEnd were
+observed. **Codex semantic writes work; hook capture remains unverified.** Use
+MCP + instructions + checkpoints. Optional `hooks codex` also requires normal
+folder trust and `/hooks` review. OpenCode's connection and plugin fixtures
+passed; real-model behavior is unverified. Optional plugin: `hooks opencode`.
+[Capture details](docs/AUTOMATIC_MEMORY.md).
+
+## Your first memory
+
+Tell a connected agent: **“Remember that we might add SQLite support to PocketClaw.”**
+Ask it to save an **IDEA / PROPOSED**, not an approved decision. Close the agent,
+start another in the same project, and ask: **“What ideas were recorded for PocketClaw?”**
+
+[Real Codex→Claude retrieval was demonstrated](docs/audits/evidence/real-client-handoff.md)
+with no shared chat. OpenCode can connect to the same memory; the third
+real-model step remains unverified. Confirm persistence yourself:
+
+```sh
+~/.local/bin/thothmemory-ultralite projects
+~/.local/bin/thothmemory-ultralite search PROJECT_ID PocketClaw
+```
+
+Replace PROJECT_ID with the returned ID. An agent saying “saved” is not proof.
+To resume, ask the next agent to load project context and the latest handoff,
+compare Git revision, and continue unfinished work. [Handoffs](docs/AGENT_HANDOFF.md).
+
+## What is saved?
+
+Ideas, notes, requirements, tasks, decisions, issues, failed attempts, progress
+checkpoints, reported test evidence and handoffs. Evidence retains its source
+and revision; an agent's report is not independent verification. Hooks record
+supported lifecycle metadata and optional bounded requests. They do not collect
+full transcripts, every tool result or unrelated conversations. A sudden kill
+can skip the final callback; existing checkpoints help the next agent recover.
+
+## Full — PostgreSQL and browser dashboard
+
+Install Docker Desktop with Linux containers on Windows, or Docker Engine plus
+Compose on Linux. Download and extract **thothmemory-v0.2.0-source.tar.gz** from
+the release. In its extracted folder:
+
+```sh
+./setup.sh
+./bin/thothmemory connect all --dir /path/to/your-project
+./bin/thothmemory instructions --dir /path/to/your-project
+```
+
+Windows: run `.\start-thothmemory.cmd`, then use `.\bin\thothmemory.exe`.
+Setup pulls the published image, creates credentials, starts PostgreSQL and
+checks MCP. Open **http://127.0.0.1:7319**, unlock with `.secrets/read_token`, and
+keep those files private. The Compose named volume persists memory across
+`docker compose stop` / `docker compose start`.
+[Full walkthrough](docs/GETTING_STARTED.md#full-with-docker).
+
+## Mini — ThothDock and compact containers
+
+Download **thothmini.sh** and **MINI_IMAGE_DIGEST.txt** from the main release.
+In ThothTerm, start ThothDock first. Then:
+
+```sh
+sh ./thothmini.sh install --image "$(cat MINI_IMAGE_DIGEST.txt)" --port 7319
+sh ./thothmini.sh clients
+~/.thothmemory-mini/thothmemory-mini connect all --config ~/.thothmemory-mini/client.json
+sh ./thothmini.sh doctor
+```
+
+No Compose needed. Data and credentials live in `thothmemory-mini-data`;
+uninstall keeps that volume. The distribution uses the tested glibc variant.
+Prior Samsung tests passed, but the final image/device retest is pending.
+No battery or multi-hour background guarantee. [Mini tutorial](docs/MINI.md).
+
+## Privacy, permissions and data location
+
+ThothMemory does not upload your database. **An AI client may send retrieved
+context to its model provider**, according to its own settings. UltraLite stores
+data in `~/.local/share/thothmemory` on Linux, `%LOCALAPPDATA%\ThothMemory` on
+Windows; `--data DIR` selects another location. Full/Mini use persistent volumes.
+Each agent has a scoped credential. Memory is untrusted data, never permission.
+Secret screening rejects many credential patterns but is not a guarantee.
+Never deliberately store secrets. Prompt capture is opt-in; your OS account
+remains the trust boundary. [Security details](docs/SECURITY.md).
+
+## Backup, restore and updates
+
+```sh
+# UltraLite: online backup; keep its checksum sidecar too.
+~/.local/bin/thothmemory-ultralite backup
+~/.local/bin/thothmemory-ultralite restore /path/to/backup.db --confirm
+# Full, from its install folder with Docker running:
+./bin/thothmemory backup /path/to/backup.dump
+./bin/thothmemory restore /path/to/backup.dump --confirm
+# Mini:
+sh ./thothmini.sh backup /path/to/backups
+sh ./thothmini.sh restore /path/to/backup.sql
+```
+
+UltraLite restore refuses active clients and keeps the old database. Full/Mini
+restore into another database; review activation separately. Keep independent
+backups and test restore. Update UltraLite by replacing only its executable.
+For Full/Mini, rehearse upgrades on a restored copy first. [Safe upgrades](docs/UPGRADE.md)
+· [Portable export/import](docs/PORTABILITY.md).
+
+## Troubleshooting
+
+| Symptom | Next step |
+|---|---|
+| UltraLite is missing from an older release | v0.1.2 is Full-only; use the unified v0.2.0 release linked above |
+| Command not found | Use the full executable path shown above; check CPU architecture |
+| Client not installed | Install its CLI on PATH, then rerun `connect` |
+| Tools absent | Restart client, approve trust, run `doctor` and client `mcp list` |
+| “Saved” but no search result | Check project ID/data directory; ask agent to perform the actual MCP write and report errors |
+| Hooks do nothing | Windows command hooks unsupported; Codex hooks unverified; check `capture status` |
+| Memory temporarily unavailable | `capture pending`, then `capture retry`; agent MCP writes need explicit retry with the same operation ID |
+| Interrupted session | Ask the next agent to read unfinished sessions and the last checkpoint |
+| Mini not ready | `sh ./thothmini.sh logs`; check port, process budget and glibc image |
+
+`capture set off` disables capture while preserving memory. Never use volume
+deletion or `docker compose down -v` as routine maintenance.
+
+## Advanced documentation
+
+[Getting Started](docs/GETTING_STARTED.md) · [العربية](docs/README_AR.md) ·
+[MCP](docs/MCP_QUICKSTART.md) · [Automatic memory](docs/AUTOMATIC_MEMORY.md) ·
+[Agent protocol](THOTHMEMORY_AGENT_PROTOCOL.md) · [Architecture](docs/ARCHITECTURE.md) ·
+[API](docs/MCP_API.md) · [Schema/migrations](docs/DATABASE_SCHEMA.md) ·
+[Benchmarks](docs/BENCHMARKS.md) · [Android evidence](docs/ANDROID_GATE.md) ·
+[Platforms](docs/PLATFORMS.md) · [Development](AGENTS.md).

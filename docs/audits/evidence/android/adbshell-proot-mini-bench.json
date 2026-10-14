@@ -1,0 +1,72 @@
+{
+ "connect_and_initialize_ms": 14.35,
+ "label": "mini-mariadb-samsung-proot",
+ "sizes": [
+  {
+   "context": {
+    "max_ms": 44.76,
+    "median_ms": 23.16,
+    "n": 50,
+    "p95_ms": 34.13
+   },
+   "events": 250,
+   "fill_events_per_s": 36.55,
+   "search": {
+    "max_ms": 50.2,
+    "median_ms": 26.61,
+    "n": 50,
+    "p95_ms": 37.57
+   },
+   "write": {
+    "max_ms": 50.58,
+    "median_ms": 26.62,
+    "n": 50,
+    "p95_ms": 42.18
+   }
+  },
+  {
+   "context": {
+    "max_ms": 34.87,
+    "median_ms": 20.82,
+    "n": 50,
+    "p95_ms": 29.14
+   },
+   "events": 2050,
+   "fill_events_per_s": 38.47,
+   "search": {
+    "max_ms": 53.43,
+    "median_ms": 31.87,
+    "n": 50,
+    "p95_ms": 39.49
+   },
+   "write": {
+    "max_ms": 65.91,
+    "median_ms": 23.23,
+    "n": 50,
+    "p95_ms": 31.42
+   }
+  },
+  {
+   "context": {
+    "max_ms": 34.88,
+    "median_ms": 20.86,
+    "n": 50,
+    "p95_ms": 30.38
+   },
+   "events": 10050,
+   "fill_events_per_s": 39.89,
+   "search": {
+    "max_ms": 95.78,
+    "median_ms": 68.61,
+    "n": 50,
+    "p95_ms": 80.26
+   },
+   "write": {
+    "max_ms": 45.46,
+    "median_ms": 20.76,
+    "n": 50,
+    "p95_ms": 34.02
+   }
+  }
+ ]
+}
