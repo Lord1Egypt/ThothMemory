@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3 (Full 0.2.3, Mini 0.1.3, UltraLite 0.1.0) — Compose installation safety, candidate
+
+- Full Compose installs get their own project and `external` data volume; a guard service refuses unrecognized
+  existing volumes (e.g. `thothmemory_memory`); `adopt-volume` makes upgrading an older installation explicit.
+- Full refuses to migrate a database written by a newer release.
+- Regression: `scripts/compose-isolation-dind.sh` (real legacy v0.2.1 fixture, upgrade chain, backup/restore).
+- Mini 0.1.3 / UltraLite: no behavior change (workflow version alignment only).
+
 ## 0.2.2 (Full 0.2.2, Mini 0.1.2, UltraLite 0.1.0) — stabilization
 
 - Mini records each server stop in `/data/shutdown.log`; the recovery gate checks it over 21 consecutive

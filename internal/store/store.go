@@ -68,6 +68,30 @@ func (s *Store) Migrate(ctx context.Context) error {
 		return e
 	}
 	sort.Slice(fs, func(i, j int) bool { return fs[i].Name() < fs[j].Name() })
+	// Refuse to run an older build against a database that a newer release already migrated.
+	known := map[string]bool{}
+	for _, f := range fs {
+		known[f.Name()] = true
+	}
+	applied, e := tx.Query(ctx, "SELECT version FROM schema_migrations")
+	if e != nil {
+		return e
+	}
+	for applied.Next() {
+		var v string
+		if e = applied.Scan(&v); e != nil {
+			applied.Close()
+			return e
+		}
+		if !known[v] {
+			applied.Close()
+			return fmt.Errorf("database schema is newer than this build (unknown migration %s); refusing to run an older version against it. Use the release that created it or a newer one, or restore a backup into a new database", v)
+		}
+	}
+	applied.Close()
+	if e = applied.Err(); e != nil {
+		return e
+	}
 	for _, f := range fs {
 		if !strings.HasSuffix(f.Name(), ".sql") {
 			continue

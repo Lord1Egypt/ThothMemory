@@ -8,7 +8,7 @@ separately; ThothMemory registers installed clients, not their model accounts.
 
 ## 1. Download and install
 
-The unified [v0.2.2 release](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.2)
+The unified [v0.2.3 release](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.3)
 contains Full and UltraLite assets; v0.1.2 has no UltraLite assets.
 Choose the file matching your OS/CPU and download SHA256SUMS.
 Windows Intel/AMD uses `thothmemory-ultralite-windows-amd64.exe`; Linux Intel/AMD
@@ -120,7 +120,7 @@ Keep `.secrets` private. Do not put an active SQLite database on a network share
 
 Choose Full for the complete browser dashboard. Install Docker Desktop with
 Linux containers on Windows or Docker Engine and Compose on Linux. Download
-the v0.2.2 source package, extract it into a new installation folder, then:
+the v0.2.3 source package, extract it into a new installation folder, then:
 
 ```sh
 ./setup.sh
@@ -135,8 +135,14 @@ PostgreSQL and the MCP/dashboard service. Open http://127.0.0.1:7319 and use
 `.secrets/read_token` to unlock. Tasks, sessions, decisions, evidence and timeline
 are browseable. Git revision is last observed, not live-polled current state.
 Use `docker compose stop` to stop and `docker compose start` to resume. Memory
-persists in the `memory` named volume within the Compose project. Never delete
-it as routine maintenance. [Backup/restore](BACKUP_RESTORE.md).
+persists in this installation's own data volume (its name is `THOTH_VOLUME` in `.env`;
+setup creates it and Compose never deletes it). Never delete it as routine
+maintenance. [Backup/restore](BACKUP_RESTORE.md).
+
+**This is a fresh installation.** Always extract the package into a **new, empty folder**.
+If you already run ThothMemory Full (for example in an older folder), do not repeat these
+steps there: follow [Upgrade an existing installation](UPGRADE.md) instead. Setup never
+reuses or migrates a data volume it did not create; if it refuses, nothing was changed.
 
 ## Mini with ThothDock
 

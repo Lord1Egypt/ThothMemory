@@ -3,7 +3,7 @@
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 out=${1:-dist}
-tag=${GITHUB_REF_NAME:-v0.2.2}
+tag=${GITHUB_REF_NAME:-v0.2.3}
 [[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
 mkdir -p "$out"
 flags='-s -w -buildid='
@@ -26,6 +26,6 @@ cmp "$out/repro-check" "$out/thothmemory-ultralite-linux-amd64"
 rm "$out/repro-check"
 cp scripts/thothmini.sh "$out/thothmini.sh"
 cp docs/PLATFORMS.md "$out/PLATFORMS.md"
-cp docs/RELEASE_0.2.2.md "$out/RELEASE_NOTES.md"
+cp docs/RELEASE_0.2.3.md "$out/RELEASE_NOTES.md"
 git archive --format=tar.gz --prefix="thothmemory-$tag/" HEAD > "$out/thothmemory-$tag-source.tar.gz"
 (cd "$out" && sha256sum thothmemory-* thothmini.sh PLATFORMS.md RELEASE_NOTES.md > SHA256SUMS)

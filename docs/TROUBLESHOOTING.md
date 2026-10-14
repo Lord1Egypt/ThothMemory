@@ -2,6 +2,13 @@
 
 - **Docker unavailable:** start Docker Desktop (Linux containers) or Docker Engine.
   WSL2 requires integration enabled for the distribution; Docker Compose is required.
+- **"no data volume is selected" / "no isolated project name":** this folder was not set up
+  by this release. In a new folder run `./setup.sh`; to continue an older installation follow
+  [Upgrade an existing installation](UPGRADE.md) (`adopt-volume`).
+- **"REFUSING: data volume ... already contains data that this installation did not create":**
+  the safety guard stopped before anything was started or migrated. Choose a new empty
+  volume (delete the `THOTH_VOLUME` and project lines from `.env` only in a **new** folder)
+  or adopt the volume deliberately. Nothing was changed.
 - **Port conflict:** setup reports the Compose bind failure. Choose a free THOTH_PORT
   in .env and match the endpoint in client*.json. No unrelated process is terminated.
 - **Permission denied reading secrets:** .secrets must remain owner-only while files

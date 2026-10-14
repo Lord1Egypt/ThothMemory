@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -15,7 +17,19 @@ func InitConfig() error {
 	if e := InitSecrets(".secrets", true); e != nil {
 		return e
 	}
-	return initClients()
+	_, existed := os.Stat(".env")
+	if e := initClients(); e != nil {
+		return e
+	}
+	if existed != nil { // a new folder: create its own empty, labelled data volume (external to Compose)
+		b, _ := os.ReadFile(".env")
+		if v, ok := envValue(string(b), "THOTH_VOLUME"); ok {
+			if out, e := docker(context.Background(), "volume", "create", "--label", "org.thothmemory.install=full", v); e != nil {
+				return fmt.Errorf("could not create data volume %s (is Docker running?): %s", v, out)
+			}
+		}
+	}
+	return nil
 }
 
 // InitSecrets creates missing random credentials and the default token policy
@@ -95,7 +109,7 @@ func InitSecrets(dir string, databasePasswords bool) error {
 func initClients() error {
 	image := os.Getenv("THOTH_IMAGE")
 	if image == "" {
-		image = "lord1egypt/thoth-memory:0.2.2"
+		image = "lord1egypt/thoth-memory:0.2.3"
 	}
 	port := os.Getenv("THOTH_PORT")
 	if port == "" {
@@ -112,11 +126,17 @@ func initClients() error {
 		return errors.New("invalid THOTH_PORT")
 	}
 	if _, e := os.Stat(".env"); os.IsNotExist(e) {
-		if e = exclusive(".env", []byte("THOTH_IMAGE="+image+"\nTHOTH_PORT="+port+"\nTHOTH_DATABASE=thoth\n")); e != nil {
+		project, volume := freshIdentity()
+		if e = exclusive(".env", []byte("THOTH_IMAGE="+image+"\nTHOTH_PORT="+port+"\nTHOTH_DATABASE=thoth\nCOMPOSE_PROJECT_NAME="+project+"\nTHOTH_VOLUME="+volume+"\n")); e != nil {
 			return e
 		}
 	} else if e != nil {
 		return e
+	} else if b, e := os.ReadFile(".env"); e != nil {
+		return e
+	} else if _, ok := envValue(string(b), "THOTH_VOLUME"); !ok {
+		// An older installation. Never pick a volume for it: that choice is the owner's.
+		return errors.New("this folder's .env predates isolated data volumes, so no data volume is selected.\nTo continue the existing installation: back it up, then run ./bin/thothmemory adopt-volume VOLUME --confirm VOLUME (docs/UPGRADE.md).\nFor a separate new installation, use a new empty folder")
 	}
 	for _, item := range []struct{ path, token string }{{"client.json", "agent_token"}, {"client-codex.json", "codex_token"}, {"client-claude.json", "claude_token"}, {"client-opencode.json", "opencode_token"}} {
 		if _, e := os.Stat(item.path); os.IsNotExist(e) {

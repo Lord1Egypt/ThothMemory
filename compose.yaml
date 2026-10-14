@@ -1,11 +1,43 @@
-name: thothmemory
+# Safe by default: the project and the data volume must be named explicitly (.env, written by
+# `thothmemory init-config`). A bare `docker compose up` in a folder without them fails before
+# anything is created, and the `guard` service refuses any data volume that this installation
+# did not create, so an existing database (for example the historical `thothmemory_memory`)
+# is never initialized, migrated or reused by accident. Continue an older installation only
+# with `thothmemory adopt-volume` (docs/UPGRADE.md). The volume is `external`, so Compose never
+# creates, recreates (no "data will be lost" prompt) or deletes it, not even with `down -v`.
+name: "${COMPOSE_PROJECT_NAME:?run ./setup.sh (or ./bin/thothmemory init-config) first - this folder has no isolated project name}"
 services:
+  guard:
+    image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+    user: postgres
+    entrypoint: [sh, -ec]
+    command:
+      - |
+        m=/v/.thothmemory-volume
+        want="thothmemory-volume-v1 $$THOTH_VOLUME $$THOTH_PROJECT"
+        if [ -f "$$m" ]; then
+          [ "$$(cat "$$m")" = "$$want" ] || { echo "REFUSING: data volume $$THOTH_VOLUME is marked for a different installation or project" >&2; exit 1; }
+          exit 0
+        fi
+        if [ -z "$$(ls -A /v)" ]; then echo "$$want" > "$$m"; exit 0; fi
+        echo "REFUSING: data volume $$THOTH_VOLUME already contains data that this installation did not create. Nothing was started or migrated. To continue an existing installation deliberately, back it up and run: ./bin/thothmemory adopt-volume $$THOTH_VOLUME --confirm $$THOTH_VOLUME (see docs/UPGRADE.md). Otherwise choose a new empty volume name." >&2
+        exit 1
+    environment:
+      THOTH_PROJECT: "${COMPOSE_PROJECT_NAME:?run ./setup.sh (or ./bin/thothmemory init-config) first - this folder has no isolated project name}"
+      THOTH_VOLUME: "${THOTH_VOLUME:?run ./setup.sh (or ./bin/thothmemory init-config) first - no data volume is selected}"
+    volumes: [memory:/v]
+    restart: "no"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
   db:
     image: postgres:18-alpine@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
     environment:
       POSTGRES_DB: thoth
       POSTGRES_PASSWORD_FILE: /run/secrets/db_owner_password
     secrets: [db_owner_password]
+    depends_on:
+      guard: {condition: service_completed_successfully}
     volumes: [memory:/var/lib/postgresql]
     healthcheck:
       test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U postgres -d thoth']
@@ -18,7 +50,7 @@ services:
     mem_limit: 384m
     security_opt: [no-new-privileges:true]
   migrate:
-    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.2}
+    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.3}
     logging: {driver: json-file, options: {max-size: "10m", max-file: "3"}}
     command: [migrate]
     environment:
@@ -28,12 +60,13 @@ services:
       THOTH_RUNTIME_PASSWORD_FILE: /run/secrets/db_app_password
     secrets: [db_owner_password, db_app_password]
     depends_on:
+      guard: {condition: service_completed_successfully}
       db: {condition: service_healthy}
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
   app:
-    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.2}
+    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.3}
     environment:
       THOTH_LISTEN: 0.0.0.0:7319
       THOTH_DB_NAME: ${THOTH_DATABASE:-thoth}
@@ -45,6 +78,7 @@ services:
         target: tokens
     ports: ['127.0.0.1:${THOTH_PORT:-7319}:7319']
     depends_on:
+      guard: {condition: service_completed_successfully}
       migrate: {condition: service_completed_successfully}
     logging: {driver: json-file, options: {max-size: "10m", max-file: "3"}}
     restart: unless-stopped
@@ -58,3 +92,5 @@ secrets:
   tokens: {file: .secrets/tokens.json}
 volumes:
   memory:
+    name: "${THOTH_VOLUME:?run ./setup.sh (or ./bin/thothmemory init-config) first - no data volume is selected}"
+    external: true

@@ -14,6 +14,24 @@ copy**. Do not open a newer schema with an older executable or delete the origin
 
 ## Full
 
+**Fresh install, upgrade and restore are different procedures.** `./setup.sh` in a new
+empty folder is a *fresh install*: it creates its own volume and never touches an
+existing one. Upgrading an *existing* installation (installed before v0.2.3, with a
+Compose volume such as `thothmemory_memory`) is explicit:
+
+1. Stop it (`docker compose stop`) and back it up (below). Keep the backup outside Docker.
+2. In the old installation folder (it has `.env` and `.secrets`), replace the files with
+   the new release but keep `.env` and `.secrets`, then run
+   `./bin/thothmemory adopt-volume VOLUME --confirm VOLUME`, where VOLUME is your existing
+   data volume (`docker volume ls`; the old default is `thothmemory_memory`, the legacy
+   project name is `thothmemory`). It checks that the volume exists, is not in use and is a
+   PostgreSQL volume, marks it as this installation's, and writes `COMPOSE_PROJECT_NAME`
+   and `THOTH_VOLUME` into `.env`. It runs no migration.
+3. Run `./setup.sh`. Migrations run now, once, on that volume.
+
+Without step 2, older folders stop with "no data volume is selected" instead of guessing.
+A new build also refuses to migrate a database written by a newer release.
+
 From the installation folder run `./bin/thothmemory backup /safe/backup.dump`.
 Restore into a disposable installation using the documented owner CLI and
 verify counts/history before rehearsing migration. Migrations 005, 006 and 007
@@ -24,8 +42,8 @@ change THOTH_IMAGE to the verified release digest and run setup.
 Rollback uses the old image plus a separate restored pre-upgrade database and
 preserved credentials/configuration. It does not reverse SQL migrations in place.
 v0.1.1's ARM64 image is broken; use the verified v0.1.2 ARM64 digest as an older
-application baseline where its pre-upgrade schema is compatible. Never use
-`docker compose down -v` on valuable data. [Detailed commands](BACKUP_RESTORE.md).
+application baseline where its pre-upgrade schema is compatible. Never delete
+the data volume (`docker volume rm`) on valuable data. [Detailed commands](BACKUP_RESTORE.md).
 
 ## Mini
 

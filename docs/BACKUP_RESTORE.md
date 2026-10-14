@@ -21,8 +21,9 @@ the prior THOTH_DATABASE setting and rerun setup. Keep the recovery archive.
 For another PC, install ThothMemory there, copy the trusted dump and checksum, run
 restore and activate the printed database. New local credentials are independent of
 those on the old PC. Agent registrations must point to the new installation's CLI.
-Named volumes survive container recreation and `docker compose down`. The destructive
-`docker compose down -v` removes them; never use it without a tested backup.
+Named volumes survive container recreation and `docker compose down`. In v0.2.3 and later the
+data volume is `external` to Compose, so even `down -v` does not delete it; deleting it needs an
+explicit `docker volume rm`, which you should never run without a tested backup.
 
 ## Upgrades and interruption
 

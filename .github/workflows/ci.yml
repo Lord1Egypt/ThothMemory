@@ -160,6 +160,19 @@ jobs:
           docker rm -f -v ci-arm
       - name: Emulated arm64 backup, restore and recovery lifecycle (glibc image)
         run: PLATFORM=linux/arm64 THOTH_LIFECYCLE_MCP=1 THOTH_SKEW_GATE=1 scripts/mini-lifecycle.sh ci-arm-lifecycle ci-arm-data thoth-memory-mini:ci-glibc-arm64 7320
+  compose-isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.26.9'
+      - name: Build the candidate Full image
+        run: docker build -t thoth-memory:isolation-test .
+      - name: Compose collision, upgrade chain, backup/restore (disposable Docker-in-Docker daemon)
+        run: THOTH_NEW_IMAGE=thoth-memory:isolation-test scripts/compose-isolation-dind.sh
   ultralite:
     strategy:
       fail-fast: false

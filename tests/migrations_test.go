@@ -172,3 +172,50 @@ func TestAuditPatchMigrationAtomicity(t *testing.T) {
 		t.Fatal("patch migration changed IDs, revisions, provenance or history")
 	}
 }
+
+func TestMigrateRefusesDatabaseNewerThanBuild(t *testing.T) {
+	dsn := os.Getenv("THOTH_TEST_DATABASE_URL")
+	if dsn == "" {
+		t.Skip("database unset; downgrade refusal NOT executed")
+	}
+	ctx := context.Background()
+	admin, e := store.Open(ctx, dsn)
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer admin.Pool.Close()
+	schema := fmt.Sprintf("downgrade_%d", time.Now().UnixNano())
+	if _, e = admin.Pool.Exec(ctx, "CREATE SCHEMA "+schema); e != nil {
+		t.Fatal(e)
+	}
+	defer admin.Pool.Exec(ctx, "DROP SCHEMA "+schema+" CASCADE")
+	u, _ := url.Parse(dsn)
+	q := u.Query()
+	q.Set("search_path", schema)
+	u.RawQuery = q.Encode()
+	s, e := store.Open(ctx, u.String())
+	if e != nil {
+		t.Fatal(e)
+	}
+	defer s.Pool.Close()
+	if e = s.Migrate(ctx); e != nil {
+		t.Fatal(e)
+	}
+	if e = s.Migrate(ctx); e != nil {
+		t.Fatalf("repeat migrate on the same release must succeed: %v", e)
+	}
+	if _, e = s.Pool.Exec(ctx, "INSERT INTO schema_migrations(version,checksum) VALUES('999_from_a_future_release.sql','x')"); e != nil {
+		t.Fatal(e)
+	}
+	var before int
+	_ = s.Pool.QueryRow(ctx, "SELECT count(*) FROM schema_migrations").Scan(&before)
+	e = s.Migrate(ctx)
+	if e == nil || !strings.Contains(e.Error(), "newer than this build") {
+		t.Fatalf("a database from a newer release must be refused, got %v", e)
+	}
+	var after int
+	_ = s.Pool.QueryRow(ctx, "SELECT count(*) FROM schema_migrations").Scan(&after)
+	if after != before {
+		t.Fatalf("refusal changed schema_migrations: %d -> %d", before, after)
+	}
+}

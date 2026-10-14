@@ -37,10 +37,10 @@ flowchart LR
 All editions share memory tools and a portable project format. Mini uses fewer
 database processes than Full; UltraLite is the smallest option.
 
-[Download v0.2.2](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.2):
-[UltraLite Windows](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.2/thothmemory-ultralite-windows-amd64.exe) ·
-[Linux amd64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.2/thothmemory-ultralite-linux-amd64) ·
-[Linux ARM64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.2/thothmemory-ultralite-linux-arm64).
+[Download v0.2.3](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.3):
+[UltraLite Windows](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.3/thothmemory-ultralite-windows-amd64.exe) ·
+[Linux amd64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.3/thothmemory-ultralite-linux-amd64) ·
+[Linux ARM64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.3/thothmemory-ultralite-linux-arm64).
 [Full Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory) ·
 [Mini Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory-mini).
 [Platform status](docs/PLATFORMS.md) labels experimental macOS/Android builds.
@@ -53,7 +53,7 @@ agents launch it by its full path.
 
 ### Windows
 
-Open the v0.2.2 release. Download
+Open the v0.2.3 release. Download
 **thothmemory-ultralite-windows-amd64.exe** and **SHA256SUMS**. Open PowerShell
 in the download folder. Compare `Get-FileHash .\thothmemory-ultralite-windows-amd64.exe -Algorithm SHA256`
 with its entry in SHA256SUMS. Then:
@@ -176,7 +176,7 @@ can skip the final callback; existing checkpoints help the next agent recover.
 ## Full — PostgreSQL and browser dashboard
 
 Install Docker Desktop with Linux containers on Windows, or Docker Engine plus
-Compose on Linux. Download and extract **thothmemory-v0.2.2-source.tar.gz** from
+Compose on Linux. Download and extract **thothmemory-v0.2.3-source.tar.gz** from
 the release. In its extracted folder:
 
 ```sh
@@ -186,15 +186,22 @@ the release. In its extracted folder:
 ```
 
 Windows: run `.\start-thothmemory.cmd`, then use `.\bin\thothmemory.exe`.
-Setup pulls the published image, creates credentials, starts PostgreSQL and
-checks MCP. Open **http://127.0.0.1:7319**, unlock with `.secrets/read_token`, and
-keep those files private. The Compose named volume persists memory across
-`docker compose stop` / `docker compose start`.
+Setup pulls the published image, creates credentials, **creates this installation's own
+empty data volume** (named in `.env`), starts PostgreSQL and checks MCP. Open
+**http://127.0.0.1:7319**, unlock with `.secrets/read_token`, and keep those files
+private. The volume persists memory across `docker compose stop` / `start`.
+
+> **Three different jobs, three different commands.** *Fresh install* is `./setup.sh` in a
+> new empty folder (it never reuses an existing volume). *Upgrade an existing installation*
+> is deliberate: back up, then `./bin/thothmemory adopt-volume NAME --confirm NAME`, then
+> setup ([docs/UPGRADE.md](docs/UPGRADE.md)). *Restore a backup* goes into a new database
+> ([docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md)). A bare `docker compose up` without
+> setup fails before creating anything.
 [Full walkthrough](docs/GETTING_STARTED.md#full-with-docker).
 
 ## Mini — ThothDock and compact containers
 
-> **Which Mini?** Use **Mini 0.1.2** from [release v0.2.2](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.2)
+> **Which Mini?** Use **Mini 0.1.2** from [release v0.2.2](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.3)
 > (`lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57`). It passed the complete backup, verified restore and recovery
 > lifecycle (25 or 26 gates, including 20 consecutive restarts) on linux/amd64 and on linux/arm64 under QEMU
 > (emulated). **Not yet verified:** a physical Samsung/ThothDock test of this digest (earlier phone results belong to
@@ -251,7 +258,7 @@ For Full/Mini, rehearse upgrades on a restored copy first. [Safe upgrades](docs/
 
 | Symptom | Next step |
 |---|---|
-| UltraLite is missing from an older release | v0.1.2 is Full-only; use the unified v0.2.2 release linked above |
+| UltraLite is missing from an older release | v0.1.2 is Full-only; use the unified v0.2.3 release linked above |
 | Command not found | Use the full executable path shown above; check CPU architecture |
 | Client not installed | Install its CLI on PATH, then rerun `connect` |
 | Tools absent | Restart client, approve trust, run `doctor` and client `mcp list` |

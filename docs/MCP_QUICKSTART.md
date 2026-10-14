@@ -1,7 +1,7 @@
 # MCP quickstart
 
 **Install first:** download the matching UltraLite executable from the unified
-v0.2.2 release when published, then follow [Windows/Linux setup](../README.md).
+v0.2.3 release when published, then follow [Windows/Linux setup](../README.md).
 v0.1.2 contains Full clients only; UltraLite is not an alias for those files.
 Do not assume the downloaded executable is already on PATH.
 
