@@ -53,7 +53,7 @@ One container: the Go service supervises a private `mariadbd` (11.4 LTS, pinned 
 digest in the glibc variant, by package version in the Alpine variant). MariaDB has
 **TCP networking disabled**; the service reaches it through an abstract Unix socket
 named from a random installation ID (a filesystem socket is invisible to `docker exec`
-under ThothDock's PRoot, measured). The service listens on `127.0.0.1:7319` only, serves
+under ThothDock's PRoot, measured). The socket name is not a secret or a strong isolation boundary: ThothDock may share networking and the same UID across containers, so database access is protected by the owner password, not by the socket. The service listens on `127.0.0.1:7319` only, serves
 MCP and the dashboard, and nothing else runs.
 
 ## Images
