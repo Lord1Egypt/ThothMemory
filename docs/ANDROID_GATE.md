@@ -83,3 +83,31 @@ and the load test with owner-only permissions on the phone.
 `scripts/thothmini.sh install --image REGISTRY/image@sha256:DIGEST --port 27400`, then
 `python3 scripts/mini-acceptance.py --endpoint http://127.0.0.1:27400/mcp --token-file ~/.thothmemory-mini/agent_token --reader-token-file ~/.thothmemory-mini/read_token`
 and `scripts/mini-lifecycle.sh NAME VOLUME IMAGE PORT` inside ThothTerm.
+
+## Addendum 2026-10-14: published Mini 0.1.2 digest on the physical phone — PASS
+
+Image: `lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57`
+(Mini 0.1.2, release v0.2.2), pulled by digest through the engine over normal HTTPS (no tunnel). Device: Samsung
+SM-A165F, Android 16, ThothTerm Debian guest aarch64, ThothDock server 0.2.1 (API 1.41), docker CLI 29.8.1,
+charging at 48-52 %, 30-31 °C. Commands were typed into ThothTerm's terminal over ADB; scripts came from the host over
+`adb reverse` and results went back the same way. The owner's `tonapi-*` containers and images were not touched
+and were in the same state afterwards. Raw logs: `docs/audits/evidence/android/mini-0.1.2/`.
+
+| Gate | Result |
+|---|---|
+| Image architecture and MariaDB | `arm64`/`aarch64`, 11.4.12; pull 13.4 s |
+| Installer (`thothmini.sh install`) to ready, first start | 13.3 s |
+| MCP acceptance | **11/11** (handshake, 401, CRUD, rollback, 8 concurrent writers, idempotency, evidence gates, Arabic search, read-only credential, handoff); 25 tools |
+| Lifecycle (`mini-lifecycle.sh`, 3 extra restarts) | **23/23**: restart and 3 more clean restarts (durable `shutdown.log`), SIGKILL (no orphan after 100 ms; recovery 8.8 s, data identical), recreate on same volume, backup + SHA-256, failed/corrupt/malformed backups refused, restore into a new database with all 13 tables and 26 foreign keys identical, activation with identical seeded payload hash, re-activation, clean stop, no orphan |
+| MariaDB virtual size | 1,897 MiB (kernel limit 512 GiB) |
+| Network exposure | One new listener during the test: `127.0.0.1:27431` (service). No database port. |
+| Cleanup | Only `qa-mini`, `qa-lc`, their volumes and the pulled image were removed; 0 MariaDB processes left |
+
+Resources (ThothTerm app UID, measured from ADB): baseline 7 processes / 101 to 102 threads / 106.7 to 108.4 MiB PSS;
+with Mini running idle 10 / 139 / 129.0 MiB PSS (**+3 processes, +37 threads, about +21 MiB**); during the lifecycle run
+(two containers' worth of activity) peak 20 processes, 155 threads, 115.8 MiB; after cleanup back to 7 / 101 / 106.7 MiB.
+
+Not measured or not run on the device: multi-hour endurance, battery drain (the phone was charging), Doze or
+background-kill behavior, MCP reads on the restored copy and the clock-skew gate (both need a host-published port or
+`docker build`, which ThothDock does not provide; they are covered on amd64 and emulated arm64 CI), SELinux audit logs.
+Alpine arm64 was not tested on the device. Android stays a **preview** with these limits.

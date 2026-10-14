@@ -1,0 +1,37 @@
+== stage2b 2026-10-14T12:41:12Z
+Tool discovery: 25 tools
+Database: ready
+Register agents (asks before changing their settings):
+  /home/thoth/qa/home/thothmemory-mini connect all --config /home/thoth/qa/home/client.json
+agent_token
+claude_token
+client-claude.json
+client-codex.json
+client-opencode.json
+client.json
+codex_token
+opencode_token
+read_token
+thothmemory-mini
+tokens: /home/thoth/qa/home/agent_token /home/thoth/qa/home/read_token
+PASS  health  mini 0.1.2
+PASS  mcp handshake and discovery  ThothMemory Mini 0.1.2, 25 tools
+PASS  authentication rejects bad token  HTTP 401
+PASS  crud and read-back  project, task, session, decision written and read back
+PASS  transaction rollback  foreign-key failure rolled back event and operation
+PASS  optimistic concurrency  8 concurrent writers, exactly 1 succeeded
+PASS  idempotency  replay identical, changed payload refused
+PASS  evidence gates  tested allowed, verified refused without owner attestation
+PASS  multilingual search  Arabic substring and commit prefix found; stale flags set
+PASS  read-only credential  write tool not even discoverable by read credential
+PASS  session handoff  handoff recorded and retrieved
+11/11 gates passed; 0 failed; 0 skipped
+  "mariadb": "11.4.12-MariaDB-ubu2404",
+  "schema": "001_initial.sql",
+  "version": "0.1.2"
+}
+MCP handshake: OK
+Authentication: OK
+Tool discovery: 25 tools
+Database: ready
+-- marker: stage2b done

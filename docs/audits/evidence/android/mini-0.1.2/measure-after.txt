@@ -1,0 +1,5 @@
+-- after-cleanup 12:44:16
+procs(uid u0_a773): 7  threads: 101
+        TOTAL   106687    77453     2672    19713   181685    85345    55168    30176
+           TOTAL PSS:   106687            TOTAL RSS:   181685       TOTAL SWAP PSS:    19713
+  AC powered: true   level: 52   temperature: 304 
