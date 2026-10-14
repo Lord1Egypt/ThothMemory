@@ -12,7 +12,7 @@ if state=$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null); the
     if [[ -f $existing/$name ]]; then cmp "$asset" "$existing/$name"; else gh release upload "$tag" "$asset"; fi
   done
 else
-  gh release create "$tag" "$out"/* --verify-tag --draft --title "ThothMemory $tag — Full, Mini & UltraLite" --notes-file docs/RELEASE_0.2.1.md
+  gh release create "$tag" "$out"/* --verify-tag --draft --title "ThothMemory $tag — Full, Mini & UltraLite" --notes-file docs/RELEASE_0.2.2.md
 fi
 uploaded=$(gh release view "$tag" --json assets --jq '.assets[].name')
 for asset in "$out"/thothmemory-* "$out"/thothmini.sh "$out"/SHA256SUMS "$out"/PLATFORMS.md "$out"/RELEASE_NOTES.md; do

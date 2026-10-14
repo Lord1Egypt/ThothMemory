@@ -25,7 +25,7 @@ FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884
 # package rather than suppressing the finding or upgrading arbitrary packages.
 RUN apt-get update && apt-get install -y --no-install-recommends libssl3t64=3.0.13-0ubuntu3.16 \
     && rm -rf /var/lib/apt/lists/*
-LABEL org.opencontainers.image.title="ThothMemory Mini (glibc)" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.1"
+LABEL org.opencontainers.image.title="ThothMemory Mini (glibc)" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.2"
 COPY --from=mariadb /slim/ /opt/mariadb-slim/
 # Install binaries; add only libraries the base image does not already ship.
 RUN set -eu; triplet=$(dirname "$(ldconfig -p | awk '/libc.so.6/ {print $NF; exit}')"); \

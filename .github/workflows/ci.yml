@@ -202,3 +202,6 @@ jobs:
         run: |
           exe=./ul; [ "$RUNNER_OS" = Windows ] && exe=./ul.exe
           python scripts/quickstart-smoke.py "$exe" --client codex
+      - name: Native UltraLite acceptance (permissions, no listener, concurrency, backup, restore)
+        if: runner.os != 'Windows'
+        run: python3 scripts/ultralite-acceptance.py ./ul

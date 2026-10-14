@@ -1,7 +1,7 @@
-# v0.2.0 product family
+# v0.2.2 product family
 
-One source revision distributes Full 0.2.0, Mini 0.1.0 and UltraLite 0.1.0.
-The primary GitHub release is v0.2.0. No historical tag is reused.
+One source revision distributes Full 0.2.2, Mini 0.1.2 and UltraLite 0.1.0.
+The primary GitHub release is v0.2.2. No historical tag is reused.
 
 | Distribution | Platform | Verification / limitations |
 |---|---|---|

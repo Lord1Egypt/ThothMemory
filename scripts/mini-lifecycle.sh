@@ -82,9 +82,19 @@ ok "ready in ${ms} ms; baseline $base"
 vm=$(docker exec "$name" sh -c 'for p in /proc/[0-9]*; do [ "$(cat $p/comm 2>/dev/null)" = mariadbd ] && awk "/^VmSize/{print \$2}" $p/status; done; true' | head -1)
 # Android kernels with 39-bit user addresses (512 GiB) cannot map MariaDB's default 8 TiB reservation.
 if [[ -n $vm && $vm -lt 16777216 ]]; then ok "mariadbd virtual size $((vm/1024)) MiB (< 16 GiB; a 39-bit address space holds 512 GiB)"; else bad "mariadbd virtual size ${vm:-unknown} kB; would not fit a 39-bit address space"; fi
+clean_count() { docker exec "$name" sh -c 'grep -c " clean$" /data/shutdown.log 2>/dev/null || true'; }
+clean_before=$(clean_count)
 docker restart -t 60 "$name" >/dev/null; ms=$(ready) || bad "not ready after restart"
 [[ $(counts) == "$base" && $(fingerprint) == "$original" ]] && ok "restart: ready in ${ms} ms, counts and seeded payload hash identical" || bad "restart changed data"
-docker logs "$name" 2>&1 | grep -q "MariaDB stopped cleanly" && ok "restart shut MariaDB down cleanly" || bad "no clean MariaDB shutdown logged"
+# Graceful shutdown is proven by the supervisor's durable shutdown.log (written when mariadbd exits
+# with status 0 after SIGTERM), not by container logs, whose final line can be lost at container exit.
+[[ $(clean_count) -gt ${clean_before:-0} ]] && ok "restart shut MariaDB down cleanly (shutdown.log: $(docker exec "$name" tail -n 1 /data/shutdown.log))" || bad "no clean MariaDB shutdown recorded; last: $(docker exec "$name" tail -n 2 /data/shutdown.log 2>&1 | tr '\n' '|')"
+repeat=${THOTH_RESTART_REPEAT:-5}
+for i in $(seq "$repeat"); do
+  before=$(clean_count); docker restart -t 60 "$name" >/dev/null; ready >/dev/null || { bad "not ready after repeated restart $i"; break; }
+  [[ $(clean_count) -gt $before ]] || { bad "repeated restart $i recorded no clean shutdown: $(docker exec "$name" tail -n 2 /data/shutdown.log | tr '\n' '|')"; break; }
+done
+[[ $(counts) == "$base" && $(fingerprint) == "$original" ]] && ok "$repeat further consecutive restarts each recorded a clean shutdown; data identical" || bad "data changed across repeated restarts"
 
 docker kill "$name" >/dev/null
 gone=no; for i in $(seq 50); do [[ -z $(orphans) ]] && { gone=yes; break; }; sleep 0.1; done

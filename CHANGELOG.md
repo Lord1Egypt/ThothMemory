@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2 (Full 0.2.2, Mini 0.1.2, UltraLite 0.1.0) — stabilization
+
+- Mini records each server stop in `/data/shutdown.log`; the recovery gate checks it over 21 consecutive
+  restarts instead of container logs. The earlier intermittent CI failure was not reproduced and its cause
+  is not established.
+- Mini failed-restore cleanup is bounded, checked and honest, with unit tests for both outcomes.
+- New native UltraLite acceptance script (CI on Linux) and Full dashboard check script.
+- Version references and Mini guidance updated.
+
 ## 0.2.1 (Mini 0.1.1, Full 0.2.1) — corrective release candidate, not published
 
 Fixes the Mini backup failure found by the independent check of v0.2.0

@@ -15,7 +15,7 @@ if (Test-Path .env) {
         if ($pair[0] -eq 'THOTH_PORT' -and -not $env:THOTH_PORT) { $env:THOTH_PORT = $pair[1].Trim() }
     }
 }
-$image = if ($env:THOTH_IMAGE) { $env:THOTH_IMAGE } elseif ($Build) { 'thoth-memory:dev' } else { 'lord1egypt/thoth-memory:0.2.1' }
+$image = if ($env:THOTH_IMAGE) { $env:THOTH_IMAGE } elseif ($Build) { 'thoth-memory:dev' } else { 'lord1egypt/thoth-memory:0.2.2' }
 if ($Build) { $env:THOTH_IMAGE = $image; & docker build -t $image . } else { & docker pull $image }
 if ($LASTEXITCODE -ne 0) { throw 'Image retrieval failed.' }
 New-Item -ItemType Directory -Force bin | Out-Null
