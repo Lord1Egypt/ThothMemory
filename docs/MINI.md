@@ -1,9 +1,11 @@
 # ThothMemory Mini (MariaDB)
 
-> **Warning — Mini 0.1.0 (release v0.2.0) failed independent backup verification.**
-> `backup` can fail with `TLS/SSL error: certificate is not yet valid`; no restore has been
-> verified for that image. The fix is in Mini 0.1.1 (release v0.2.1, **not yet published**).
-> Until then treat Mini 0.1.0 as not recovery-ready and keep an independent copy of its volume.
+> **Use Mini 0.1.1 (release v0.2.1).** Mini 0.1.0 (v0.2.0) could fail `backup` with
+> `TLS/SSL error: certificate is not yet valid` and never passed restore verification.
+> 0.1.1 (`sha256:6f457f5d3ad060a045fa81c652e6fad30263973c79119f8a50a06752bbd29902`) passed the complete
+> 25-gate backup/restore/recovery lifecycle on amd64 and emulated arm64. Limits: the physical Samsung
+> retest of this digest is pending; no soak or battery measurement; the database socket is protected
+> by the owner password, not by a strong isolation boundary.
 
 ## Start here
 
@@ -18,7 +20,7 @@ not required. On ordinary Docker, the installer publishes only host loopback;
 on ThothDock, where containers share the device network, the application itself
 binds loopback and no forwarder is needed.
 
-From the unified v0.2.0 release, download
+From the unified v0.2.1 release, download
 `thothmini.sh` and `MINI_IMAGE_DIGEST.txt` from that release. The latter contains
 the immutable reference for `lord1egypt/thoth-memory-mini`, with glibc amd64 and
 ARM64 children. It is separate from Full and never replaces Full's latest tag.

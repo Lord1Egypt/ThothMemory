@@ -138,3 +138,21 @@ digest is published to pull, staging an unpublished image would need a public tu
 not been approved for this release, and the phone was in active use by its owner (another app
 in the foreground). The device was not modified. Earlier Samsung evidence applies to Mini 0.1.0
 only and is preserved unchanged.
+
+## v0.2.1 published and independently verified (2026-10-14)
+
+Release https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.1 (merge commit `f1bac9a`, PR #10).
+Release run 38536634909 and Docker publication run 38537717127 succeeded; 16 assets; all 13 SHA256SUMS
+entries verified after an anonymous download.
+
+- Mini 0.1.1 `lord1egypt/thoth-memory-mini:0.1.1`: `sha256:6f457f5d3ad060a045fa81c652e6fad30263973c79119f8a50a06752bbd29902`
+  (amd64 `sha256:c045877b…38d8`, arm64 `sha256:1883acec…5bca`).
+- Full 0.2.1 and `latest`: `sha256:73dc7b329b3da64817497bec23fb23ab946a2762bb6b7524ce9a63f7ae54b86d`.
+- Unchanged: Mini 0.1.0 `sha256:a73a2e3c…ef9d`, Full 0.2.0 `sha256:784eb92b…9526`.
+- Pulled by digest, `scripts/smoke-mini-platforms.sh`: 11/11 MCP gates and the 25-gate backup, verified restore
+  and recovery lifecycle passed on linux/amd64 and on linux/arm64 (**emulated**, QEMU).
+- Post-merge CI first failed once on the existing "no clean MariaDB shutdown logged" check and passed on rerun;
+  not reproduced locally (0 of 25 restarts). Treat as an unexplained intermittent CI failure.
+- Android: **pending.** The phone was reachable but in active use; the engine can only be driven through the app UI.
+  The published digest has not been tested on the device.
+- Full and UltraLite 0.2.1 were rebuilt by the release workflow; only Mini was independently re-tested here.

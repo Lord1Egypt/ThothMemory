@@ -33,10 +33,10 @@ flowchart LR
 All editions share memory tools and a portable project format. Mini uses fewer
 database processes than Full; UltraLite is the smallest option.
 
-[Download v0.2.0](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.0):
-[UltraLite Windows](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-windows-amd64.exe) ·
-[Linux amd64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-linux-amd64) ·
-[Linux ARM64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.0/thothmemory-ultralite-linux-arm64).
+[Download v0.2.1](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.1):
+[UltraLite Windows](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.1/thothmemory-ultralite-windows-amd64.exe) ·
+[Linux amd64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.1/thothmemory-ultralite-linux-amd64) ·
+[Linux ARM64](https://github.com/Lord1Egypt/ThothMemory/releases/download/v0.2.1/thothmemory-ultralite-linux-arm64).
 [Full Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory) ·
 [Mini Docker Hub](https://hub.docker.com/r/lord1egypt/thoth-memory-mini).
 [Platform status](docs/PLATFORMS.md) labels experimental macOS/Android builds.
@@ -49,7 +49,7 @@ agents launch it by its full path.
 
 ### Windows
 
-Open the v0.2.0 release. Download
+Open the v0.2.1 release. Download
 **thothmemory-ultralite-windows-amd64.exe** and **SHA256SUMS**. Open PowerShell
 in the download folder. Compare `Get-FileHash .\thothmemory-ultralite-windows-amd64.exe -Algorithm SHA256`
 with its entry in SHA256SUMS. Then:
@@ -172,7 +172,7 @@ can skip the final callback; existing checkpoints help the next agent recover.
 ## Full — PostgreSQL and browser dashboard
 
 Install Docker Desktop with Linux containers on Windows, or Docker Engine plus
-Compose on Linux. Download and extract **thothmemory-v0.2.0-source.tar.gz** from
+Compose on Linux. Download and extract **thothmemory-v0.2.1-source.tar.gz** from
 the release. In its extracted folder:
 
 ```sh
@@ -190,13 +190,14 @@ keep those files private. The Compose named volume persists memory across
 
 ## Mini — ThothDock and compact containers
 
-> **Warning — Mini 0.1.0 (unified release v0.2.0): backup and restore are not verified.**
-> On the published Mini digest `sha256:a73a2e3c…1083ef9d`, an independent check of `backup`
-> failed on one run with `mariadb-dump: … TLS/SSL error: certificate is not yet valid`, so
-> no backup or restore was verified. Do not rely on that image for data you cannot lose, and
-> keep your own copy of the volume until you upgrade. A corrected Mini **0.1.1** (unified
-> release **v0.2.1**) is prepared but **not yet published**; this notice will point to it
-> once it is. Full and UltraLite are unaffected.
+> **Mini 0.1.0 (release v0.2.0) is superseded.** Its backup could fail with
+> `TLS/SSL error: certificate is not yet valid`, and its restore was never verified. Use
+> **Mini 0.1.1 from [release v0.2.1](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.1)**
+> (`lord1egypt/thoth-memory-mini@sha256:6f457f5d3ad060a045fa81c652e6fad30263973c79119f8a50a06752bbd29902`).
+> Verified on that digest: complete backup, verified restore into a new database and recovery,
+> 25/25 gates on linux/amd64 and on linux/arm64 under QEMU (emulated). Not yet verified: the
+> physical-phone retest of this digest, and long-duration/battery behavior. Before upgrading a
+> 0.1.0 install, copy its `thothmemory-mini-data` volume.
 
 Download **thothmini.sh** and **MINI_IMAGE_DIGEST.txt** from the main release.
 In ThothTerm, start ThothDock first. Then:
