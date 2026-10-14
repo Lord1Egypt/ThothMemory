@@ -1,5 +1,12 @@
 # Product launch checkpoint
 
+## Current: published; Mini independent recovery gate FAILED
+
+See [public verification](PUBLIC_RELEASE_VERIFICATION.md) for released source,
+all digests, successful CI/security and the exact Mini TLS backup blocker.
+Earlier pending/blocked sections below are historical. No further publication
+or tag mutation: owner direction is required after the failed gate.
+
 ## Security gate cleared — 2026-10-14
 
 Owner completed incident review. GitHub's official check-run rerequest endpoint
