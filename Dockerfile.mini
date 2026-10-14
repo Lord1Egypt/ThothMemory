@@ -26,7 +26,7 @@ RUN set -eu; \
     : > /slim/usr/share/mariadb/fill_help_tables.sql; : > /slim/usr/share/mariadb/mariadb_sys_schema.sql
 
 FROM alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8
-LABEL org.opencontainers.image.title="ThothMemory Mini" org.opencontainers.image.description="Lightweight shared agent memory with a private MariaDB, for ThothDock on Android" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.title="ThothMemory Mini" org.opencontainers.image.description="Lightweight shared agent memory with a private MariaDB, for ThothDock on Android" org.opencontainers.image.source="https://github.com/Lord1Egypt/ThothMemory" org.opencontainers.image.licenses="MIT" org.opencontainers.image.version="0.1.1"
 COPY --from=mariadb /slim/ /
 COPY --from=build /out/thothmemory-mini /usr/local/bin/thothmemory-mini
 COPY deploy/mini/my.cnf /etc/thothmini/my.cnf

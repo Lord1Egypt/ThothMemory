@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.1 (Mini 0.1.1, Full 0.2.1) — corrective release candidate, not published
+
+Fixes the Mini backup failure found by the independent check of v0.2.0
+(`mariadb-dump: TLS/SSL error: certificate is not yet valid`). Mini 0.1.0 and v0.2.0 stay
+as published; nothing is replaced or retagged.
+
+- **Mini**: native `mariadb-dump`/`mariadb` no longer negotiate TLS over the private Unix
+  socket (`skip-ssl`, socket transport only; the TCP fallback keeps TLS and verification).
+  A failed restore now drops its half-loaded database.
+- **Tests**: unit tests pin the option file for both transports; the Mini lifecycle now
+  checks a failed backup, corrupted and malformed backups, per-table row checksums, foreign
+  keys, migrations, real MCP reads on the restored copy, and a backup with the client clock
+  5 s behind the server (fails on 0.1.0 with the original error). Required in Mini CI on
+  amd64 and emulated arm64, and in the Docker publication gate for both architectures.
+- Full 0.2.1 and UltraLite are rebuilt unchanged in behavior; versions only.
+
 ## Unreleased — next generation candidate (branch nextgen/full-and-mini, stacked on PR #2)
 
 Three editions on one shared core. Nothing here is released, merged or deployed.

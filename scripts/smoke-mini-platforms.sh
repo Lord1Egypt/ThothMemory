@@ -29,7 +29,12 @@ for arch in amd64 arm64; do
   docker rm -f -v "$name" >/dev/null
   echo "linux/$arch Mini ELF and 11 MCP gates PASS (arm64 is emulated on amd64)"
 done
-# Lifecycle coverage against this exact image; script leaves the disposable fixture.
+# Complete backup/restore and recovery lifecycle against this exact digest, per architecture
+# (arm64 runs under QEMU on the amd64 runner). Any failed gate aborts the publication.
 volume=$name-data
-trap 'docker rm -f -v "$name" >/dev/null 2>&1 || true; docker volume rm "$volume" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
-scripts/mini-lifecycle.sh "$name" "$volume" "$MINI_IMAGE" 27419
+trap 'for a in amd64 arm64; do docker rm -f -v "$name-$a" >/dev/null 2>&1 || true; docker volume rm "$name-$a-data" >/dev/null 2>&1 || true; done; docker rm -f -v "$name" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
+for arch in amd64 arm64; do
+  docker pull --platform "linux/$arch" "$MINI_IMAGE" >/dev/null
+  PLATFORM="linux/$arch" THOTH_LIFECYCLE_MCP=1 THOTH_SKEW_GATE=1 scripts/mini-lifecycle.sh "$name-$arch" "$name-$arch-data" "$MINI_IMAGE" 27419
+  echo "linux/$arch Mini backup, verified restore and recovery lifecycle PASS (arm64 is emulated on amd64)"
+done

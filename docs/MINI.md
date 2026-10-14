@@ -1,5 +1,10 @@
 # ThothMemory Mini (MariaDB)
 
+> **Warning — Mini 0.1.0 (release v0.2.0) failed independent backup verification.**
+> `backup` can fail with `TLS/SSL error: certificate is not yet valid`; no restore has been
+> verified for that image. The fix is in Mini 0.1.1 (release v0.2.1, **not yet published**).
+> Until then treat Mini 0.1.0 as not recovery-ready and keep an independent copy of its volume.
+
 ## Start here
 
 Mini gives you the browser dashboard and a persistent memory service in one

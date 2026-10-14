@@ -190,6 +190,14 @@ keep those files private. The Compose named volume persists memory across
 
 ## Mini — ThothDock and compact containers
 
+> **Warning — Mini 0.1.0 (unified release v0.2.0): backup and restore are not verified.**
+> On the published Mini digest `sha256:a73a2e3c…1083ef9d`, an independent check of `backup`
+> failed on one run with `mariadb-dump: … TLS/SSL error: certificate is not yet valid`, so
+> no backup or restore was verified. Do not rely on that image for data you cannot lose, and
+> keep your own copy of the volume until you upgrade. A corrected Mini **0.1.1** (unified
+> release **v0.2.1**) is prepared but **not yet published**; this notice will point to it
+> once it is. Full and UltraLite are unaffected.
+
 Download **thothmini.sh** and **MINI_IMAGE_DIGEST.txt** from the main release.
 In ThothTerm, start ThothDock first. Then:
 

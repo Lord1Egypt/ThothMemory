@@ -26,7 +26,13 @@ func (l Layout) clientDefaults() (string, error) {
 	if e != nil {
 		return "", e
 	}
-	conn := "socket=" + l.Socket()
+	// The Unix socket is private to the container and authenticated by password.
+	// MariaDB 11.4 clients still negotiate TLS over it against a certificate the
+	// server generates at each start, valid from that second; a client clock that
+	// reads earlier (VM/WSL2 time steps, emulation) fails with "certificate is not
+	// yet valid". Disabling TLS here is scoped to the socket branch only: the TCP
+	// branch below keeps the client defaults, including certificate verification.
+	conn := "skip-ssl\nsocket=" + l.Socket()
 	if l.Addr != "" {
 		host, port, _ := strings.Cut(l.Addr, ":")
 		conn = "protocol=tcp\nhost=" + host + "\nport=" + port
@@ -106,12 +112,16 @@ func Restore(ctx context.Context, l Layout, r io.Reader, want string) (string, e
 	defer os.Remove(cnf)
 	cmd := exec.CommandContext(ctx, "mariadb", "--defaults-extra-file="+cnf, "--batch", name)
 	cmd.Stdin, cmd.Stderr = spool, os.Stderr
+	// A failed load must not leave a half-restored database that looks like a result.
+	discard := func() { _, _ = owner.DB.ExecContext(context.WithoutCancel(ctx), "DROP DATABASE IF EXISTS `"+name+"`") }
 	if e = cmd.Run(); e != nil {
-		return "", fmt.Errorf("restore into %s failed; the active database is untouched", name)
+		discard()
+		return "", fmt.Errorf("restore into %s failed and was discarded; the active database is untouched", name)
 	}
 	var projects, events int
 	if e = owner.DB.QueryRowContext(ctx, "SELECT (SELECT COUNT(*) FROM `"+name+"`.projects),(SELECT COUNT(*) FROM `"+name+"`.events)").Scan(&projects, &events); e != nil {
-		return "", errors.New("restored schema validation failed")
+		discard()
+		return "", errors.New("restored schema validation failed; the restored database was discarded")
 	}
 	fmt.Fprintf(os.Stderr, "Restored into %s: projects=%d events=%d. Active database unchanged.\n", name, projects, events)
 	return name, nil

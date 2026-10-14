@@ -98,3 +98,43 @@ Resume with this document, not superseded pre-publication notes. Safe checks:
 gh release view v0.2.0 --repo Lord1Egypt/ThothMemory
 gh run view 38504979873 --repo Lord1Egypt/ThothMemory
 ```
+
+## Root cause of the Mini backup failure (diagnosed 2026-10-14)
+
+Established with the exact published digest in disposable containers:
+
+- MariaDB server and clients are 11.4.12. The server generates a self-signed certificate in
+  memory at every start (`Ssl_server_not_before` equals the start second, 10-year validity).
+- Native `mariadb`/`mariadb-dump` do negotiate TLS (`TLS_AES_256_GCM_SHA384`, "cert is OK")
+  over the abstract Unix socket; no global option file overrides it. The Go driver connects
+  without TLS, so the app itself never saw the error.
+- With the client's clock 5 s behind (`libfaketime`) the original error is reproduced
+  deterministically and `backup` exits 1; with the real clock it succeeds.
+- Not reproduced naturally: 6 recreate-then-backup runs on amd64, 6 restart runs, and one
+  emulated arm64 run all passed. The trigger on 2026-10-14 03:21 UTC (a client clock that
+  read earlier than the server's start second) was not individually captured; host and
+  container clocks agreed when checked. The defect is the unnecessary TLS dependency on a
+  clock comparison over a private socket, fixed in Mini 0.1.1 (see docs/BACKUP_RESTORE.md).
+
+## Corrective candidate evidence (local, 2026-10-14; CI results are in the PR)
+
+Candidate source branch `hotfix/mini-backup-tls`. Images were built locally from
+`Dockerfile.mini-glibc` (amd64 native; arm64 under QEMU, **emulated**) and `Dockerfile.mini`
+(Alpine amd64). No candidate has been pushed to a registry, so no corrected digest exists yet.
+
+`THOTH_LIFECYCLE_MCP=1 THOTH_SKEW_GATE=1 scripts/mini-lifecycle.sh …` result: glibc amd64
+25/25, glibc arm64 emulated 25/25, Alpine amd64 25/25. Covered: seeded MCP data (project, task,
+sessions, events, evidence, note, idea, handoff), restart, SIGKILL recovery, recreation, backup
+with SHA-256, failed backup leaves no checksum or restorable artifact, wrong-checksum, one-bit
+corrupt and malformed backups refused with no leftover database, backup with the client clock 5 s
+behind, restore into a NEW database, equal row checksums in all 13 tables, identical
+`schema_migrations`, all 26 foreign keys present with no orphan rows, activation, identical
+export hash and identical real MCP read results on the restored copy, re-activation of the
+original, clean stop, no orphan process. The same script against the published 0.1.0 digest fails
+the skew gate with the original TLS error.
+
+Android: **BLOCKED.** The Samsung SM-A165F was reachable over wireless ADB, but no corrected
+digest is published to pull, staging an unpublished image would need a public tunnel that has
+not been approved for this release, and the phone was in active use by its owner (another app
+in the foreground). The device was not modified. Earlier Samsung evidence applies to Mini 0.1.0
+only and is preserved unchanged.
