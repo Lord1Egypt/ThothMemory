@@ -1,0 +1,31 @@
+== stage3 2026-10-14T12:41:43Z
+PASS  ready in 7384 ms; baseline thoth {"attestations": 0, "events": 13, "evidence": 0, "imports": 0, "projects": 1, "records": 4, "sessions": 4, "tasks": 1}
+PASS  mariadbd virtual size 1897 MiB (< 16 GiB; a 39-bit address space holds 512 GiB)
+PASS  restart: ready in 9036 ms, counts and seeded payload hash identical
+PASS  restart shut MariaDB down cleanly (shutdown.log: 2026-10-14T12:41:56Z clean)
+PASS  3 further consecutive restarts each recorded a clean shutdown; data identical
+PASS  SIGKILL: no MariaDB process left after 100 ms
+      exit state: exited 137
+PASS  SIGKILL recovery: ready in 8752 ms, counts and seeded payload hash identical
+PASS  recreated container on the same volume: ready in 7025 ms, counts and seeded payload hash identical
+PASS  backup: 53916 bytes, sha256 matches
+PASS  failed backup exits non-zero and prints no checksum
+PASS  output of a failed backup cannot be restored
+PASS  restore refuses a wrong checksum before any change
+PASS  one-bit-corrupted backup refused by checksum
+PASS  malformed backup with a matching checksum refused
+PASS  refused restores left no database behind
+PASS  restored into new database thoth_restore_20261014_124254; active database untouched
+PASS  restored copy matches the original in all 13 tables (row checksums)
+PASS  restored schema_migrations identical (001_initial.sql:applied)
+PASS  restored copy keeps all 26 foreign keys with no orphan rows
+PASS  activated restore serves identical seeded payload
+PASS  re-activated the original database
+PASS  clean stop exits 0
+PASS  no orphaned MariaDB process after stop
+23 passed, 0 failed
+
+real	1m57.734s
+user	0m12.255s
+sys	0m17.722s
+-- marker: stage3 done

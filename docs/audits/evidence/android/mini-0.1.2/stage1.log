@@ -1,0 +1,11 @@
+== stage1 2026-10-14T12:40:06Z
+Digest: sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57
+Status: Downloaded newer image for lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57
+docker.io/lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57
+
+real	0m13.388s
+user	0m0.058s
+sys	0m0.125s
+arch=arm64 os=linux id=sha256:58cca9fae1dff4eadfd43942cb9870c287ae134528bdd245934b52a49e887d94
+aarch64
+2026-10-14 12:40:21 0 [Warning] failed to retrieve the MAC address
