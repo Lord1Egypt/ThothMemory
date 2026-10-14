@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -115,24 +116,39 @@ func Restore(ctx context.Context, l Layout, r io.Reader, want string) (string, e
 	cmd := exec.CommandContext(ctx, "mariadb", "--defaults-extra-file="+cnf, "--batch", name)
 	cmd.Stdin, cmd.Stderr = spool, os.Stderr
 	// A failed load must not leave a half-restored database that looks like a result.
-	// Cleanup is bounded and checked: only report "discarded" when DROP succeeded.
-	fail := func(msg string) (string, error) {
-		dctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
-		defer cancel()
-		if _, de := owner.DB.ExecContext(dctx, "DROP DATABASE `"+name+"`"); de != nil {
-			return "", fmt.Errorf("%s; cleanup FAILED, partial database %s remains and must NOT be activated (drop it manually); the active database is untouched", msg, name)
-		}
-		return "", fmt.Errorf("%s; the partial database %s was dropped; the active database is untouched", msg, name)
+	drop := func(c context.Context, db string) error {
+		_, de := owner.DB.ExecContext(c, "DROP DATABASE `"+db+"`")
+		return de
 	}
 	if e = cmd.Run(); e != nil {
-		return fail("restore load failed")
+		return "", discardPartial(ctx, drop, name, "restore load failed", e)
 	}
 	var projects, events int
 	if e = owner.DB.QueryRowContext(ctx, "SELECT (SELECT COUNT(*) FROM `"+name+"`.projects),(SELECT COUNT(*) FROM `"+name+"`.events)").Scan(&projects, &events); e != nil {
-		return fail("restored schema validation failed")
+		return "", discardPartial(ctx, drop, name, "restored schema validation failed", e)
 	}
 	fmt.Fprintf(os.Stderr, "Restored into %s: projects=%d events=%d. Active database unchanged.\n", name, projects, events)
 	return name, nil
+}
+
+var restoreName = regexp.MustCompile(`^thoth_restore_[0-9]{8}_[0-9]{6}$`)
+
+var cleanupTimeout = 30 * time.Second
+
+// discardPartial drops the half-restored database with a bounded, caller-independent
+// timeout and reports the truth: the original failure is always kept, and "dropped" is
+// claimed only when DROP DATABASE succeeded. It refuses any name that is not a restore
+// database, so the active database can never be dropped through this path.
+func discardPartial(ctx context.Context, drop func(context.Context, string) error, name, what string, cause error) error {
+	if !restoreName.MatchString(name) {
+		return fmt.Errorf("%s: %v; refusing to clean up %q: not a restore database", what, cause, name)
+	}
+	dctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cleanupTimeout)
+	defer cancel()
+	if de := drop(dctx, name); de != nil {
+		return fmt.Errorf("%s: %v; cleanup FAILED (%v): partial database %s remains and must NOT be activated, drop it manually; the active database is untouched", what, cause, de, name)
+	}
+	return fmt.Errorf("%s: %v; the partial database %s was dropped; the active database is untouched", what, cause, name)
 }
 
 // refuseForeignStatements rejects dumps that would act outside the target

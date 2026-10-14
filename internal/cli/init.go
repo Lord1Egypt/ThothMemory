@@ -95,7 +95,7 @@ func InitSecrets(dir string, databasePasswords bool) error {
 func initClients() error {
 	image := os.Getenv("THOTH_IMAGE")
 	if image == "" {
-		image = "lord1egypt/thoth-memory:0.2.1"
+		image = "lord1egypt/thoth-memory:0.2.2"
 	}
 	port := os.Getenv("THOTH_PORT")
 	if port == "" {

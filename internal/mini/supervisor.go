@@ -177,7 +177,7 @@ func Run(ctx context.Context, l Layout) error {
 	}
 	exited := make(chan error, 1)
 	go func() { exited <- db.Wait() }()
-	defer stop(db, exited)
+	defer stop(l, db, exited)
 
 	ownerPW, e := l.secret("db_owner_password")
 	if e != nil {
@@ -278,12 +278,35 @@ func waitOpen(ctx context.Context, c mariadb.Config, exited chan error) (*mariad
 	}
 }
 
+// ShutdownLog is an append-only record of how each server stop ended. It is written
+// before the supervisor exits, so unlike container logs it cannot be lost or reordered
+// relative to the container's exit; recovery gates read it to prove a graceful stop.
+func (l Layout) ShutdownLog() string { return filepath.Join(l.Data, "shutdown.log") }
+
+// recordShutdown appends "<RFC3339> <outcome>" and keeps the file small.
+func (l Layout) recordShutdown(outcome string) {
+	path := l.ShutdownLog()
+	var lines []string
+	if b, e := os.ReadFile(path); e == nil {
+		lines = strings.Split(strings.TrimSpace(string(b)), "\n")
+	}
+	lines = append(lines, time.Now().UTC().Format(time.RFC3339)+" "+outcome)
+	if len(lines) > 50 {
+		lines = lines[len(lines)-50:]
+	}
+	if e := os.WriteFile(path, []byte(strings.Join(lines, "\n")+"\n"), 0600); e != nil {
+		slog.Error("could not record shutdown outcome", "error", e)
+	}
+}
+
 // stop asks mariadbd for a clean InnoDB shutdown and waits for it; only a
-// server that ignores SIGTERM for 60 seconds is killed.
-func stop(db *exec.Cmd, exited chan error) {
+// server that ignores SIGTERM for 60 seconds is killed. "clean" is recorded only
+// when mariadbd itself exited with status 0 after our SIGTERM.
+func stop(l Layout, db *exec.Cmd, exited chan error) {
 	select {
 	case e := <-exited:
 		exited <- e
+		l.recordShutdown(fmt.Sprintf("exited-before-stop: %v", e))
 		return
 	default:
 	}
@@ -291,11 +314,18 @@ func stop(db *exec.Cmd, exited chan error) {
 	select {
 	case e := <-exited:
 		exited <- e
+		if e != nil {
+			slog.Error("MariaDB stopped with an error", "error", e)
+			l.recordShutdown(fmt.Sprintf("error: %v", e))
+			return
+		}
 		slog.Info("MariaDB stopped cleanly")
+		l.recordShutdown("clean")
 	case <-time.After(60 * time.Second):
 		_ = db.Process.Kill()
 		e := <-exited
 		exited <- e
 		slog.Error("MariaDB did not stop within 60 s and was killed; InnoDB will recover at next start")
+		l.recordShutdown("killed-after-60s")
 	}
 }

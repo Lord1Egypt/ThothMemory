@@ -18,7 +18,7 @@ services:
     mem_limit: 384m
     security_opt: [no-new-privileges:true]
   migrate:
-    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.1}
+    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.2}
     logging: {driver: json-file, options: {max-size: "10m", max-file: "3"}}
     command: [migrate]
     environment:
@@ -33,7 +33,7 @@ services:
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
   app:
-    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.1}
+    image: ${THOTH_IMAGE:-lord1egypt/thoth-memory:0.2.2}
     environment:
       THOTH_LISTEN: 0.0.0.0:7319
       THOTH_DB_NAME: ${THOTH_DATABASE:-thoth}
