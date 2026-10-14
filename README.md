@@ -201,12 +201,13 @@ private. The volume persists memory across `docker compose stop` / `start`.
 
 ## Mini — ThothDock and compact containers
 
-> **Which Mini?** The last independently verified Mini is **0.1.2**; Mini 0.1.3 (v0.2.3) has the same code and is verified after publication (see docs/PUBLIC_RELEASE_VERIFICATION.md). Verified:  **Mini 0.1.2** from [release v0.2.2](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.2)
-> (`lord1egypt/thoth-memory-mini@sha256:32e9e4c94adc36e8f781202ab55db1862bcdb5ac0a2ec6d10d156947955a7e57`). It passed the complete backup, verified restore and recovery
-> lifecycle (25 or 26 gates, including 20 consecutive restarts) on linux/amd64 and on linux/arm64 under QEMU
-> (emulated), and on a physical Samsung SM-A165F under ThothDock 0.2.1 (11/11 MCP and 23/23 lifecycle gates,
-> [evidence](docs/ANDROID_GATE.md)). **Not verified:** multi-hour endurance, battery drain and Android background-kill behavior (Android stays a preview). Mini 0.1.0 (v0.2.0) is superseded: its backup could fail with
-> `TLS/SSL error: certificate is not yet valid`. Before upgrading, copy your `thothmemory-mini-data` volume.
+> **Which Mini?** Use **Mini 0.1.3** from [release v0.2.3](https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.3)
+> (`lord1egypt/thoth-memory-mini@sha256:7280e3008759075d9b1d577bde47740cbe9a55a64df56aae359f813531f3b1cc`). It passed the complete backup, verified restore and recovery
+> lifecycle (26 gates, including 20 consecutive restarts) and 11 MCP gates on linux/amd64 and on linux/arm64 under QEMU
+> (emulated). Mini 0.1.2 (same code) additionally passed the physical Samsung SM-A165F gates
+> ([evidence](docs/ANDROID_GATE.md)); **the 0.1.3 digest itself has not been tested on the phone.** Not verified:
+> endurance, battery, background-kill behavior (Android stays a preview). Mini 0.1.0 (v0.2.0) is superseded: its backup could
+> fail with `TLS/SSL error: certificate is not yet valid`. Before upgrading, copy your `thothmemory-mini-data` volume.
 
 Download **thothmini.sh** and **MINI_IMAGE_DIGEST.txt** from the main release.
 In ThothTerm, start ThothDock first. Then:
