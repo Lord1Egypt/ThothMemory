@@ -197,3 +197,31 @@ Residual risks:
   unexplained "not ready" (no diagnostics were captured in that run).
 - Android (issue #14, closed): published Mini 0.1.2 digest passed the physical SM-A165F gates; see `docs/ANDROID_GATE.md`.
 - Compose isolation (PR #17): `scripts/compose-isolation-dind.sh` 44/44 against a real legacy v0.2.1 fixture.
+
+## v0.2.3 published and independently verified (2026-10-14)
+
+Release https://github.com/Lord1Egypt/ThothMemory/releases/tag/v0.2.3, annotated tag on merge commit
+`212ea6c5c890610337e28c1e00e5fd937c361877` (PR #17, reviewed head `1a656d3`). PR CI, post-merge CI (38591694935), Release
+(38592940708) and Docker publication (38594681135) succeeded on the first attempt. 16 assets; 13/13 SHA256SUMS entries match after an
+anonymous download; the source archive contains the guarded `compose.yaml` and the corrected `docs/UPGRADE.md`. Earlier tags and
+digests are unchanged (Full 0.2.0 `784eb92b…`, 0.2.1 `73dc7b32…`, 0.2.2 `1505d340…`; Mini 0.1.0 `a73a2e3c…`, 0.1.1 `6f457f5d…`,
+0.1.2 `32e9e4c9…`); no Mini `latest`.
+
+- Full 0.2.3 and `latest`: `sha256:f91170ebf20fb09770ea1df42aa61da71be84c27c0bbfc34d19d4b93407f47bf`
+- Mini 0.1.3: `sha256:7280e3008759075d9b1d577bde47740cbe9a55a64df56aae359f813531f3b1cc`
+- UltraLite 0.1.0: rebuilt; Linux amd64 SHA-256 now differs from v0.2.2 (build output), behavior identical (source under `internal/ultralite`,
+  `internal/sqlite` and the CLI is unchanged between v0.2.2 and v0.2.3).
+
+| Check on the published artifact | Platform | Result |
+|---|---|---|
+| Full: ELF architecture, migration, MCP handshake, tools, writes, handoff | amd64 native; arm64 **emulated** | pass |
+| Full: `scripts/compose-isolation-dind.sh` with the published digest (real v0.2.1 legacy fixture with the production names in a disposable daemon: bare/fresh/repeat/`-p`/env-override/foreign-marker/adopt guards; upgrade v0.2.1 to v0.2.2 to this build; backup; restore into an isolated DB; newer-schema refusal) | amd64 native | **44/44**; historical volume byte-identical in every attempt |
+| Mini: 11 MCP gates and 26 lifecycle gates (20 consecutive clean restarts, SIGKILL, backup, verified restore, MCP reads on restored copy, clock-skew backup) | amd64 native; arm64 **emulated** | 26/26 on both |
+| UltraLite: checksum, init, owner-only permissions, doctor, MCP handshake and 25 tools, no listener, writes, cross-session read, 3 concurrent writers, backup/restore, upgrade, no daemon | linux amd64 native; linux arm64 **emulated** | all pass |
+| UltraLite Windows amd64: init, doctor, backup, restore, owner-only ACL | native (WSL interop) | pass |
+| Real client registration: codex, claude, opencode | linux amd64 | pass |
+
+The dashboard assets (`internal/web`) are unchanged since v0.2.2, whose dashboard check (24/24) therefore still applies; it was not re-run on 0.2.3.
+Not verified: a phone test of the Mini 0.1.3 digest, Codex lifecycle hooks, OpenCode real-model behavior, macOS and Android UltraLite
+runtime. Known limits: forcing `-p thothmemory` may replace an old stopped `app` container (issue #18); #15 (unexplained one-off CI shutdown
+check failure and one unexplained emulated-arm64 not-ready event) remains open.
