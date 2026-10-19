@@ -2,7 +2,7 @@
 # ThothMemory Mini, glibc variant: the official MariaDB 11.4 build on Ubuntu
 # 24.04. Larger than the Alpine image; kept because Alpine's musl arm64
 # mariadbd never finished bootstrap under QEMU while this build did.
-FROM --platform=$BUILDPLATFORM golang:1.26.9-alpine@sha256:3082400e369fa24d5fc60bca20edab3f6d604e0c5a690ec66b295eff4dd87ade AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.2-alpine@sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d AS build
 ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
