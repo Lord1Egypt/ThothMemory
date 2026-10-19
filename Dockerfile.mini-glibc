@@ -19,7 +19,7 @@ RUN set -eu; mkdir -p /slim/bin /slim/lib /slim/share/mariadb; \
     cd /usr/share/mariadb; cp -a english charsets mariadb_system_tables.sql mariadb_system_tables_data.sql mariadb_performance_tables.sql maria_add_gis_sp_bootstrap.sql mariadb_test_db.sql /slim/share/mariadb/; \
     : > /slim/share/mariadb/fill_help_tables.sql; : > /slim/share/mariadb/mariadb_sys_schema.sql
 
-FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+FROM ubuntu:25.10@sha256:7cc5e35f6567ee8c66d2abb4aab0fd866669e6207c237c3a8f0947a5c7f17092
 # The pinned base contains libssl3t64 3.0.13-0ubuntu3.15. Trivy reports
 # CVE-2026-84782 (HIGH), fixed by Ubuntu's 3.16 package. Pin the patched
 # package rather than suppressing the finding or upgrading arbitrary packages.
