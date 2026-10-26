@@ -11,7 +11,7 @@ RUN go mod download && go mod verify
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -buildvcs=false -ldflags='-s -w -buildid=' -o /out/thothmemory-mini ./cmd/thothmemory-mini
 
-FROM mariadb:11.4.12@sha256:4f1d8d202fcf7bcb3902f63af09f9c1a050c2922a89652f22abaec0d4f015e83 AS mariadb
+FROM mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39 AS mariadb
 RUN set -eu; mkdir -p /slim/bin /slim/lib /slim/share/mariadb; \
     cp /usr/sbin/mariadbd /usr/bin/mariadb /usr/bin/mariadb-dump /usr/bin/mariadb-install-db /usr/bin/my_print_defaults /slim/bin/; \
     for b in /usr/sbin/mariadbd /usr/bin/mariadb /usr/bin/mariadb-dump /usr/bin/my_print_defaults; do ldd $b; done \
